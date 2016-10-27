@@ -1,6 +1,6 @@
 """
 Classes for feature matching between point sets for registration
-Author: Jeff
+Author: Jeff Mahler
 """
 from abc import ABCMeta, abstractmethod
 
@@ -9,10 +9,23 @@ import IPython
 from scipy import spatial
 import scipy.spatial.distance as ssd
 
-from alan.rgbd.features import BagOfFeatures
-from alan.core.points import PointCloud
+from perception import BagOfFeatures
+from core import PointCloud
 
 class Correspondences:
+    """ Wrapper for point-set correspondences.
+
+    Attributes
+    ----------
+    index_map : :obj:`list` of int 
+        maps list indices (source points) to target point indices
+    source_points : Nx3 :obj:`numpy.ndarray`
+        set of source points for registration
+    target_points : Nx3 :obj:`numpy.ndarray`
+        set of target points for registration
+    num_matches : int
+        the total number of matches 
+    """
     def __init__(self, index_map, source_points, target_points):
         self.index_map_ = index_map
         self.source_points_ = source_points
@@ -46,6 +59,23 @@ class Correspondences:
             return self.source_points_[self.iter_count,:], self.target_points_[self.iter_count,:]
 
 class NormalCorrespondences(Correspondences):
+    """ Wrapper for point-set correspondences with surface normals.
+
+    Attributes
+    ----------
+    index_map : :obj:`list` of int 
+        maps list indices (source points) to target point indices
+    source_points : Nx3 :obj:`numpy.ndarray`
+        set of source points for registration
+    target_points : Nx3 :obj:`numpy.ndarray`
+        set of target points for registration
+    source_normals : normalized Nx3 :obj:`numpy.ndarray`
+        set of source normals for registration
+    target_normals : normalized Nx3 :obj:`numpy.ndarray`
+        set of target points for registration
+    num_matches : int
+        the total number of matches 
+    """
     def __init__(self, index_map, source_points, target_points, source_normals, target_normals):
         self.source_normals_ = source_normals
         self.target_normals_ = target_normals
@@ -71,7 +101,7 @@ class NormalCorrespondences(Correspondences):
 
 class FeatureMatcher:
     """
-    Generic feature matching between local features on a source and target object using nearest neighbors
+    Generic feature matching between local features on a source and target object using nearest neighbors.
     """
     __metaclass__ = ABCMeta
 
@@ -89,19 +119,26 @@ class FeatureMatcher:
     @abstractmethod
     def match(self, source_obj, target_obj):
         """
-        Matches features between a source and target object
+        Matches features between a source and target object. Source and target object types depend on subclass implementation.
         """
         pass
 
 class RawDistanceFeatureMatcher(FeatureMatcher):
     def match(self, source_obj_features, target_obj_features):
         """
-        Matches features between two graspable objects based on a full distance matrix
-        Params:
-            source_obj_features: (BagOfFeatures) bag of the source objects features
-            target_obj_features: (BagOfFeatures) bag of the target objects features
-        Returns:
-            corrs: (Correspondences) the correspondences between source and target 
+        Matches features between two graspable objects based on a full distance matrix.
+
+        Parameters
+        ----------
+        source_obj_features : :obj:`BagOfFeatures`
+            bag of the source objects features
+        target_obj_features : :obj:`BagOfFeatures`
+            bag of the target objects features
+
+        Returns
+        -------
+        corrs : :obj:`Correspondences`
+            the correspondences between source and target 
         """
         if not isinstance(source_obj_features, f.BagOfFeatures):
             raise ValueError('Must supply source bag of object features')
@@ -137,6 +174,15 @@ class RawDistanceFeatureMatcher(FeatureMatcher):
         return Correspondences(match_indices, source_matched_points, target_matched_points)
 
 class PointToPlaneFeatureMatcher(FeatureMatcher):
+    """ Match points using a point to plane criterion with thresholding.
+
+    Attributes
+    ----------
+    dist_thresh : float
+        threshold distance to consider a match valid
+    norm_thresh : float
+        threshold cosine distance alignment betwen normals to consider a match valid
+    """
     def __init__(self, dist_thresh=0.05, norm_thresh=0.75):
         self.dist_thresh_ = dist_thresh
         self.norm_thresh_ = norm_thresh
@@ -145,13 +191,22 @@ class PointToPlaneFeatureMatcher(FeatureMatcher):
     def match(self, source_points, target_points, source_normals, target_normals):
         """
         Matches points between two point-normal sets. Uses the closest ip to choose matches, with distance for thresholding only.
-        Params:
-           source_point_cloud: (Nx3 ndarray) source object points
-           target_point_cloud: (Nx3 ndarray) target object points
-           source_normal_cloud: (Nx3 ndarray) source object outward-pointing normals
-           target_normal_cloud: (Nx3 ndarray) target object outward-pointing normals
-        Returns:
-            corrs: (Correspondences) the correspondences between source and target 
+
+        Parameters
+        ----------
+        source_point_cloud : Nx3 :obj:`numpy.ndarray`
+            source object points
+        target_point_cloud : Nx3 :obj:`numpy.ndarray`
+            target object points
+        source_normal_cloud : Nx3 :obj:`numpy.ndarray`
+            source object outward-pointing normals
+        target_normal_cloud : Nx3 :obj`numpy.ndarray`
+            target object outward-pointing normals
+
+        Returns
+        -------
+        :obj`Correspondences`
+            the correspondences between source and target 
         """
         # compute the distances and inner products between the point sets 
         dists = ssd.cdist(source_points, target_points, 'euclidean')

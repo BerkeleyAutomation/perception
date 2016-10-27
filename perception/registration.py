@@ -1,5 +1,5 @@
 """
-Classes for point set registration
+Classes for point set registration using variants of Iterated-Closest Point
 Author: Jeff Mahler
 """
 from abc import ABCMeta, abstractmethod
@@ -16,21 +16,26 @@ try:
 except:
     logging.warning('Failed to import mayavi')
 
-from alan.core import RigidTransform, PointCloud, NormalCloud
-from alan.rgbd import PointToPlaneFeatureMatcher
+from core import RigidTransform, PointCloud, NormalCloud
+import core.utils as core
+from perception import PointToPlaneFeatureMatcher
 
 class RegistrationResult(object):
+    """ Struct to hold results of point set registration.
+
+    Attributes
+    ----------
+    T_source_target : :obj:`core.RigidTranform`
+        transformation from source to target frame
+    cost : float
+        numeric value of the registration objective for the given transform
+    """
     def __init__(self, T_source_target, cost):
         self.T_source_target = T_source_target
-        self.cost = cost
-
-def skew(xi):
-    S = np.array([[0, -xi[2,0], xi[1,0]],
-                  [xi[2,0], 0, -xi[0,0]],
-                  [-xi[1,0], xi[0,0], 0]])
-    return S
+        self.cost = costs
 
 class IterativeRegistrationSolver:
+    """ Abstract class for iterative registration solvers. """
     __metaclass__ = ABCMeta
 
     @abstractmethod
@@ -39,6 +44,19 @@ class IterativeRegistrationSolver:
         pass
 
 class PointToPlaneICPSolver(IterativeRegistrationSolver):
+    """ Performs Iterated Closest Point with an objective weighted between point-to-point and point-to-plane.
+
+    Attributes
+    ----------
+    sample_size : int
+        number of randomly sampled points to use per iteration
+    cost_sample_size : int
+        number of randomly sampled points to use for cost evaluations
+    gamma : float
+        weight of point-to-point objective relative to point-to-plane objective
+    mu : float
+        regularizer for matrix inversion in the Gauss-Newton step
+    """
     def __init__(self, sample_size=100, cost_sample_size=100, gamma=100.0, mu=1e-2):
         self.sample_size_ = sample_size
         self.cost_sample_size_ = cost_sample_size
@@ -51,16 +69,30 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
                  num_iterations=1, compute_total_cost=True, vis=False):
         """
         Iteratively register objects to one another using a modified version of point to plane ICP.
-        The cost func is actually PointToPlane_COST + gamma * PointToPoint_COST
-        Params:
-           source_point_cloud: (PointCloud object) source object points
-           target_point_cloud: (PointCloud object) target object points
-           source_normal_cloud: (NormalCloud object) source object outward-pointing normals
-           target_normal_cloud: (NormalCloud object) target object outward-pointing normals
-           matcher: (PointToPlaneFeatureMatcher object) object to match the point sets
-           num_iterations: (int) the number of iterations to run
-        Returns:
-           RegistrationResult object containing the source to target transformation
+        The cost func is PointToPlane_COST + gamma * PointToPoint_COST.
+        Uses a `stochastic Gauss-Newton step` where on each iteration a smaller number of points is sampled.
+
+        Parameters
+        ----------
+        source_point_cloud : :obj:`core.PointCloud`
+            source object points
+        target_point_cloud : :obj`core.PointCloud`
+            target object points
+        source_normal_cloud : :obj:`core.NormalCloud`
+            source object outward-pointing normals
+        target_normal_cloud : :obj:`core.NormalCloud`
+            target object outward-pointing normals
+        matcher : :obj:`PointToPlaneFeatureMatcher`
+            object to match the point sets
+        num_iterations : int
+            the number of iterations to run
+        compute_total_cost : bool
+            whether or not to compute the total cost upon termination.
+        
+        Returns
+        -------
+        :obj`RegistrationResult`
+            results containing source to target transformation and cost
         """
         # check valid data
         if not isinstance(source_point_cloud, PointCloud) or not isinstance(target_point_cloud, PointCloud):
@@ -137,7 +169,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
                 s = source_corr_points[i:i+1,:].T
                 t = target_corr_points[i:i+1,:].T
                 n = target_corr_normals[i:i+1,:].T
-                G[:,:3] = skew(s).T
+                G[:,:3] = utils.skew(s).T
                 A += G.T.dot(n).dot(n.T).dot(G)
                 b += G.T.dot(n).dot(n.T).dot(t - s)
 
@@ -148,7 +180,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
 
             # create pose values from the solution
             R = np.eye(3)
-            R = R + skew(v[:3])
+            R = R + utils.skew(v[:3])
             U, S, V = np.linalg.svd(R)
             R = U.dot(V)
             t = v[3:]
@@ -191,17 +223,30 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
         Iteratively register objects to one another using a modified version of point to plane ICP
         which only solves for tx and ty (translation in the plane) and theta (rotation about the z axis).
         The cost func is actually PointToPlane_COST + gamma * PointToPoint_COST
-        Points should be specified in the basis of the planar worksurface
-        Params:
-           source_point_cloud: (PointCloud object) source object points
-           target_point_cloud: (PointCloud object) target object points
-           source_normal_cloud: (NormalCloud object) source object outward-pointing normals
-           target_normal_cloud: (NormalCloud object) target object outward-pointing normals
-           matcher: (PointToPlaneFeatureMatcher) object to match the point sets
-           num_iterations: (int) the number of iterations to run
-        Returns:
-           RegistrationResult object containing the source to target transformation
-        """        
+        Points should be specified in the basis of the planar worksurface.
+
+        Parameters
+        ----------
+        source_point_cloud : :obj:`core.PointCloud`
+            source object points
+        target_point_cloud : :obj`core.PointCloud`
+            target object points
+        source_normal_cloud : :obj:`core.NormalCloud`
+            source object outward-pointing normals
+        target_normal_cloud : :obj:`core.NormalCloud`
+            target object outward-pointing normals
+        matcher : :obj:`PointToPlaneFeatureMatcher`
+            object to match the point sets
+        num_iterations : int
+            the number of iterations to run
+        compute_total_cost : bool
+            whether or not to compute the total cost upon termination.
+        
+        Returns
+        -------
+        :obj`RegistrationResult`
+            results containing source to target transformation and cost
+        """     
         if not isinstance(source_point_cloud, PointCloud) or not isinstance(target_point_cloud, PointCloud):
             raise ValueError('Source and target point clouds must be PointCloud objects')
         if not isinstance(source_normal_cloud, NormalCloud) or not isinstance(target_normal_cloud, NormalCloud):
@@ -333,65 +378,4 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
             total_cost = point_plane_cost + self.gamma_ * point_dist_cost
 
         return RegistrationResult(T_source_target, total_cost)
-
-"""
-BELOW ARE DEPRECATED, BUT SHOULD BE UPDATED WHEN THE TIME COMES
-"""
-class RegistrationFunc:
-    __metaclass__ = ABCMeta
-
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def register(self, correspondences):
-        """ Register objects to one another """
-        pass
-
-class RigidRegistrationSolver(RegistrationFunc):
-    def __init__(self):
-        passo
-
-    def register(self, correspondences, weights=None):
-        """ Register objects to one another """
-        # setup the problem
-        self.source_points = correspondences.source_points
-        self.target_points = correspondences.target_points
-        N = correspondences.num_matches
-
-        if weights is None:
-            weights = np.ones([correspondences.num_matches, 1])
-        if weights.shape[1] == 1:
-            weights = np.tile(weights, (1, 3)) # tile to get to 3d space
-
-        # calculate centroids (using weights)
-        source_centroid = np.sum(weights * self.source_points, axis=0) / np.sum(weights, axis=0)
-        target_centroid = np.sum(weights * self.target_points, axis=0) / np.sum(weights, axis=0)
-        
-        # center the datasets
-        source_centered_points = self.source_points - np.tile(source_centroid, (N,1))
-        target_centered_points = self.target_points - np.tile(target_centroid, (N,1))
-
-        # find the covariance matrix and finding the SVD
-        H = np.dot((weights * source_centered_points).T, weights * target_centered_points)
-        U, S, V = np.linalg.svd(H) # this decomposes H = USV, so V is "V.T"
-
-        # calculate the rotation
-        R = np.dot(V.T, U.T)
-        
-        # special case (reflection)
-        if np.linalg.det(R) < 0:
-                V[2,:] *= -1
-                R = np.dot(V.T, U.T)
-        
-        # calculate the translation + concatenate the rotation and translation
-        t = np.matrix(np.dot(-R, source_centroid) + target_centroid)
-        tf_source_target = np.hstack([R, t.T])
-        self.R_=R
-        self.t_=t
-        self.source_centroid=source_centroid
-        self.target_centroid=target_centroid
-
-    def transform(self,x):
-        return self.R_.dot(x.T)+self.t_.T
 

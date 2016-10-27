@@ -1,5 +1,5 @@
 """
-Wrapper for tensorflow classes
+Wrapper for tensorflow Convolutional Neural Network classes
 Author: Jeff Mahler
 """
 import copy
@@ -34,7 +34,32 @@ def conv(input, kernel, biases, k_h, k_w, c_o, s_h, s_w,  padding="VALID", group
     return  tf.reshape(tf.nn.bias_add(conv, biases), [-1]+conv.get_shape().as_list()[1:])
 
 class AlexNet(object):
-    """ Wrapper for tensorflow AlexNet. Note: training not yet supported """
+    """ Wrapper for tensorflow AlexNet. Note: training not yet supported.
+
+    Parameters
+    ----------
+    config : :obj:`core.YamlConfig`
+        specifies the parameters of the network
+
+    Notes
+    -----
+    Required configuration paramters are specified in Other Parameters
+
+    Other Parameters
+    ----------------
+    batch_size : int
+        size of batches, less than largest possible prediction to save memory
+    im_height : int
+        height of input images
+    im_width : int
+        width of input images
+    channels : int
+        number of channels of input image (should be 3)
+    output_layer : :obj:`str`
+        name of output layer for classification
+    feature_layer : :obj`str`
+        name of layer to use for feature extraction (e.g. conv5)
+    """
     def __init__(self, config, model_dir=None, use_default_weights=False,
                  dynamic_load=True):
         self._model_dir = model_dir
@@ -48,7 +73,7 @@ class AlexNet(object):
             self._load()
 
     def _parse_config(self, config):
-        """ Parses a tf configuration """
+        """ Parses a tensorflow configuration """
         self._batch_size = config['batch_size']
         self._im_height = config['im_height']
         self._im_width = config['im_width']
@@ -117,21 +142,33 @@ class AlexNet(object):
             self._initialized = True
 
     def open_session(self):
-        """ Open session """
+        """ Open tensorflow session. Exposed for memory management. """
         with self._graph.as_default():
             init = tf.initialize_all_variables()
             self._sess = tf.Session()
             self._sess.run(init)
 
     def close_session(self):
-        """ Close session """
+        """ Close tensorflow session. Exposes for memory management. """
         with self._graph.as_default():
             self._sess.close()
             self._sess = None
 
     def predict(self, image_arr, featurize=False):
-        """ Predict a set of images in batches """
+        """ Predict a set of images in batches.
 
+        Parameters
+        ----------
+        image_arr : NxHxWxC :obj:`numpy.ndarray`
+            input set of images in a num_images x image height x image width x image channels array (must match parameters of network)
+        featurize : bool
+            whether or not to use the featurization layer or classification output layer
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+            num_images x feature_dim containing the output values for each input image
+        """
         # setup prediction
         num_images = image_arr.shape[0]
         output_arr = None
@@ -168,7 +205,18 @@ class AlexNet(object):
         return output_arr[:num_images,...]
 
     def featurize(self, image_arr):
-        """ Predict a set of images in batches """
+        """ Featurize a set of images in batches.
+
+        Parameters
+        ----------
+        image_arr : NxHxWxC :obj:`numpy.ndarray`
+            input set of images in a num_images x image height x image width x image channels array (must match parameters of network)
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+            num_images x feature_dim containing the output values for each input image
+        """
         return self.predict(image_arr, featurize=True)
 
     def build_alexnet_weights(self):

@@ -25,24 +25,34 @@ class FeatureExtractor:
     def extract(self, image):
         """
         Returns a set of extracted features for an image
-        Params:
-           image: Image object to extract for
+        Parameters
+        ----------
+        image : :obj:`Image`
+            object to extract for
         """
         pass
 
 class CNNBatchFeatureExtractor(FeatureExtractor):
-    """ Extract feature descriptors for images in a giant batch """
+    """ Extract feature descriptors for images in a giant batch using Convolutional Neural Networks.
+
+    Attributes
+    ----------
+    cnn : :obj:`AlexNet`
+        the convolutional neural network to use
+    """
     def __init__(self, config):
         self.cnn_ = AlexNet(config, use_default_weights=True)
 
     def open(self):
+        """ Opens the tensorflow session. For memory management. """
         self.cnn_.open_session()
 
     def close(self):
+        """ Closes the tensorflow session. For memory management. """
         self.cnn_.close_session()
 
     def _forward_pass(self, images):
-        """ Forward pass images through the CNN """
+        """ Forward pass a list of images through the CNN """
         # form image array
         num_images = len(images)
         if num_images == 0:
@@ -71,11 +81,17 @@ class CNNBatchFeatureExtractor(FeatureExtractor):
         return final_blobs.reshape(final_blobs.shape[0], -1)
 
     def extract(self, images):
-        """ Form feature descriptors for a set of images """
+        """ Form feature descriptors for a set of images.
+
+        Parameters
+        ----------
+        images : :obj:`list` of :obj`Image` or :obj`numpy.ndarray`
+            images to extract features for
+        """
         return self._forward_pass(images)
 
 class CNNReusableBatchFeatureExtractor(CNNBatchFeatureExtractor):
-    """ Extract feature descriptors for images in a giant batch """
+    """ Extract feature descriptors for images in a giant batch. Allows you to initialize the extractor with a pre-existing CNN, for memory management reasons. """
     def __init__(self, cnn):
         self.cnn_ = cnn
 

@@ -1,12 +1,26 @@
 '''
 Class to record videos from webcams using opencv
-Author: Jacky
+Author: Jacky Liang
 '''
 from multiprocessing import Process, Queue
 import cv2
 
 class _Camera(Process):
+    """ Private class to manage a separate webcam data collection process.
 
+    Attributes
+    ----------
+    camera : :obj:`cv2.VideoCapture`
+        opencv video capturing object
+    cmd_q : :obj:`Queue`
+        queue for commands to the recording process
+    res : 2-tuple
+        height and width of the video stream
+    codec : :obj:`str`
+        string name of codec, e.g. XVID
+    fps : int
+        number of frames per second
+    """
     def __init__(self, camera, cmd_q, res, codec, fps):
         Process.__init__(self)
         
@@ -22,6 +36,7 @@ class _Camera(Process):
         self.out = None
 
     def run(self):
+        """ Continually write images to the filename specified by a command queue. """
         while True:
             if not self.cmd_q.empty():
                 cmd = self.cmd_q.get()
@@ -42,17 +57,20 @@ class _Camera(Process):
                     self.out.write(frame)
 
 class VideoRecorder:
+    """ Encapsulates video recording processes.
 
+    Attributes
+    ----------
+    device_id : int
+        USB index of device
+    res : 2-tuple
+        resolution of recording and saving. defaults to (640, 480)
+    codec : :obj:`str`
+        codec used for encoding video. default to XVID. 
+    fps : int
+        frames per second of video captures. defaults to 30
+    """
     def __init__(self, device_id, res=(640, 480), codec='XVID', fps=30):
-        '''
-        Create video recorder object.
-        
-        Args:
-            device_id: index of device
-            res: resolution of recording and saving. defaults to (640, 480)
-            codec: codec used for encoding video. default to XVID. 
-            fps: fps of vide captures. defaults to 30
-        '''
         self._res = res
         self._codec = codec
         self._fps = fps
@@ -69,11 +87,19 @@ class VideoRecorder:
         self._started = False
         
     def start(self):
+        """ Starts the camera recording process. """
         self._started = True
         self._camera = _Camera(self._actual_camera, self._cmd_q, self._res, self._codec, self._fps)
         self._camera.start()
 
     def start_recording(self, output_file):
+        """ Starts recording to a given output video file.
+
+        Parameters
+        ----------
+        output_file : :obj:`str`
+            filename to write video to
+        """
         if not self._started:
             raise Exception("Must start the video recorder first by calling .start()!")
         if self._recording:
@@ -82,12 +108,14 @@ class VideoRecorder:
         self._cmd_q.put(('start', output_file))
         
     def stop_recording(self):
+        """ Stops writing video to file. """
         if not self._recording:
             raise Exception("Cannot stop a video recording when it's not recording!")
         self._cmd_q.put(('stop',))
         self._recording = False
 
     def stop(self):
+        """ Stop the camera process. """
         if not self._started:
             raise Exception("Cannot stop a video recorder before starting it!")
         self._started = False
