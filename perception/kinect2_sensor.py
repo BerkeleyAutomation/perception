@@ -17,7 +17,7 @@ import pylibfreenect2 as lf2
 
 from camera_intrinsics import CameraIntrinsics
 from image import ColorImage, DepthImage, IrImage, Image
-from rgbd_sensor import RgbdSensor
+from camera_sensor import CameraSensor
 
 class Kinect2PacketPipelineMode:
     OPENGL = 0
@@ -35,7 +35,7 @@ class Kinect2DepthMode:
     METERS = 0
     MILLIMETERS = 1
 
-class Kinect2Sensor(RgbdSensor):
+class Kinect2Sensor(CameraSensor):
     # constants for image height and width (in case they're needed somewhere)
     COLOR_IM_HEIGHT = 1080
     COLOR_IM_WIDTH = 1920
@@ -234,7 +234,7 @@ class Kinect2Sensor(RgbdSensor):
 
         return Image.median_images(depths)
 
-class VirtualKinect2Sensor(RgbdSensor):
+class VirtualKinect2Sensor(CameraSensor):
     """
     Class to spoof the Kinect2Sensor when using pre-captured test images
     """ 

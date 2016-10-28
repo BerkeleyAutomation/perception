@@ -11,7 +11,7 @@ import random
 import sys
 import time
 
-class RgbdSensor(object):
+class CameraSensor(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
