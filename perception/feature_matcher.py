@@ -9,7 +9,7 @@ import IPython
 from scipy import spatial
 import scipy.spatial.distance as ssd
 
-from perception import BagOfFeatures
+from features import BagOfFeatures
 from core import PointCloud
 
 class Correspondences:
@@ -17,14 +17,14 @@ class Correspondences:
 
     Attributes
     ----------
-    index_map : :obj:`list` of int 
+    index_map : :obj:`list` of int
         maps list indices (source points) to target point indices
     source_points : Nx3 :obj:`numpy.ndarray`
         set of source points for registration
     target_points : Nx3 :obj:`numpy.ndarray`
         set of target points for registration
     num_matches : int
-        the total number of matches 
+        the total number of matches
     """
     def __init__(self, index_map, source_points, target_points):
         self.index_map_ = index_map
@@ -63,7 +63,7 @@ class NormalCorrespondences(Correspondences):
 
     Attributes
     ----------
-    index_map : :obj:`list` of int 
+    index_map : :obj:`list` of int
         maps list indices (source points) to target point indices
     source_points : Nx3 :obj:`numpy.ndarray`
         set of source points for registration
@@ -74,7 +74,7 @@ class NormalCorrespondences(Correspondences):
     target_normals : normalized Nx3 :obj:`numpy.ndarray`
         set of target points for registration
     num_matches : int
-        the total number of matches 
+        the total number of matches
     """
     def __init__(self, index_map, source_points, target_points, source_normals, target_normals):
         self.source_normals_ = source_normals
@@ -115,7 +115,7 @@ class FeatureMatcher:
         if inds[0].shape[0] == 0:
             return -1
         return inds[0][0]
-    
+
     @abstractmethod
     def match(self, source_obj, target_obj):
         """
@@ -138,7 +138,7 @@ class RawDistanceFeatureMatcher(FeatureMatcher):
         Returns
         -------
         corrs : :obj:`Correspondences`
-            the correspondences between source and target 
+            the correspondences between source and target
         """
         if not isinstance(source_obj_features, f.BagOfFeatures):
             raise ValueError('Must supply source bag of object features')
@@ -152,8 +152,8 @@ class RawDistanceFeatureMatcher(FeatureMatcher):
         target_keypoints = target_obj_features.keypoints
 
         #calculate distance between this model's descriptors and each of the other_model's descriptors
-        dists = spatial.distance.cdist(source_descriptors, target_descriptors) 
-        
+        dists = spatial.distance.cdist(source_descriptors, target_descriptors)
+
         #calculate the indices of the target_model that minimize the distance to the descriptors in this model
         source_closest_descriptors = dists.argmin(axis=1)
         target_closest_descriptors = dists.argmin(axis=0)
@@ -206,9 +206,9 @@ class PointToPlaneFeatureMatcher(FeatureMatcher):
         Returns
         -------
         :obj`Correspondences`
-            the correspondences between source and target 
+            the correspondences between source and target
         """
-        # compute the distances and inner products between the point sets 
+        # compute the distances and inner products between the point sets
         dists = ssd.cdist(source_points, target_points, 'euclidean')
         ip = source_normals.dot(target_normals.T) # abs because we don't have correct orientations
         source_ip = source_points.dot(target_normals.T)
