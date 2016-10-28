@@ -6,7 +6,7 @@ Author: Jacky Liang
 from camera_sensor import CameraSensor
 from image import ColorImage
 from cv2 import VideoCapture
-
+from time import time
 class OpenCVCameraSensor(CameraSensor):
 
     def __init__(self, device_id):
@@ -20,6 +20,8 @@ class OpenCVCameraSensor(CameraSensor):
         self._sensor = VideoCapture(self._device_id)
         if not self._sensor.isOpened():
             raise Exception("Unable to open OpenCVCameraSensor for id {0}".format(self._device_id))
+        for _ in range(4):
+            self._sensor.read()
 
     def stop(self):
         """ Stops the OpenCVCameraSensor Stream """
