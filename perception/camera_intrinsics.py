@@ -9,9 +9,9 @@ import json
 import os
 
 from image import DepthImage, PointCloudImage
-from alan.core import Point, PointCloud, ImageCoords
+from core import Point, PointCloud, ImageCoords
 
-from alan.constants import INTR_EXTENSION
+from constants import INTR_EXTENSION
 
 class CameraIntrinsics(object):
     def __init__(self, frame, fx, fy=None, cx=0.0, cy=0.0, skew=0.0, height=None, width=None):

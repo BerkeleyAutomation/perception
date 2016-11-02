@@ -12,7 +12,7 @@ import random
 import sys
 import time
 
-from alan.constants import MM_TO_METERS, INTR_EXTENSION
+from constants import MM_TO_METERS, INTR_EXTENSION
 import pylibfreenect2 as lf2
 
 from camera_intrinsics import CameraIntrinsics
@@ -224,7 +224,7 @@ class Kinect2Sensor(RgbdSensor):
             IrImage(ir_arr.astype(np.uint16), self._ir_frame), \
             color_depth_map
 
-    def get_median_depth_img(self, num_img=1):
+    def median_depth_img(self, num_img=1):
         # get raw images
         depths = []
 
@@ -331,6 +331,16 @@ class VirtualKinect2Sensor(RgbdSensor):
         ir_im = IrImage.open(ir_filename, frame=self._frame)
         self._im_index += 1
         return color_im, depth_im, ir_im
+
+    def median_depth_img(self, num_img=1):
+        # get raw images
+        depths = []
+
+        for _ in range(num_img):
+            _, depth, _ = self.frames()
+            depths.append(depth)
+
+        return Image.median_images(depths)
 
 def load_images(cfg):
     """ Helper functions for loading a set of images """
