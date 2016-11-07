@@ -2,11 +2,8 @@
 Wrapper for tensorflow Convolutional Neural Network classes
 Author: Jeff Mahler
 """
-import copy
-import IPython
 import numpy as np
 import os
-import sys
 import tensorflow as tf
 
 class AlexNetWeights(object):

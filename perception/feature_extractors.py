@@ -4,15 +4,12 @@ Author: Jeff Mahler
 """
 from abc import ABCMeta, abstractmethod
 
-import copy
-import IPython
 import logging
 import numpy as np
-import os
 import time
 
 import constants as constants
-from alan.rgbd.cnn import AlexNet
+from cnn import AlexNet
 from image import Image, ColorImage
 
 class FeatureExtractor:
