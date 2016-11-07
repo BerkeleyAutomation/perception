@@ -11,8 +11,7 @@ from constants import MM_TO_METERS, INTR_EXTENSION
 try:
     import pylibfreenect2 as lf2
 except:
-    logging.warning('Unable to import pylibfreenect2.
-                     Kinect sensiong may not work properly.')
+    logging.warning('Unable to import pylibfreenect2. Kinect sensing may not work properly.')
 
 from camera_intrinsics import CameraIntrinsics
 from image import ColorImage, DepthImage, IrImage, Image
