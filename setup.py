@@ -7,11 +7,16 @@ from setuptools import setup
 requirements = [
     'numpy',
     'scipy',
-    'matplotlib==1.4.3',
+    'matplotlib',
     'opencv-python',
     'cycler',
-    'https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.10.0-cp27-none-linux_x86_64.whl'
+    'tensorflow',
+    'protobuf',
+    'Pillow',
+    'core'
 ]
+
+dependency_links=['https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.10.0-cp27-none-linux_x86_64.whl']
 
 setup(name='perception',
       version='0.1.dev0',
@@ -20,5 +25,7 @@ setup(name='perception',
       author_email='jmahler@berkeley.edu',
       package_dir = {'': '.'},
       packages=['perception'],
+      install_requires=requirements,
+      dependency_links=dependency_links,
       test_suite='test'
      )
