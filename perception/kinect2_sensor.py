@@ -12,7 +12,7 @@ import random
 import sys
 import time
 
-from alan.constants import MM_TO_METERS, INTR_EXTENSION
+from core.constants import MM_TO_METERS, INTR_EXTENSION
 import pylibfreenect2 as lf2
 
 from camera_intrinsics import CameraIntrinsics

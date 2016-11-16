@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 
 import scipy.spatial.distance as ssd
 
-from alan.core import RigidTransform, Point, PointCloud, NormalCloud, PointNormalCloud, Box
-import alan.constants as constants
+from core import RigidTransform, Point, PointCloud, NormalCloud, PointNormalCloud, Box
+import core.constants as constants
 
 class Image(object):
     __metaclass__ = ABCMeta    

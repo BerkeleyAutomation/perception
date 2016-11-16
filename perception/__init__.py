@@ -4,8 +4,8 @@ Authors: Jeff, Jacky
 '''
 import logging
 from camera_intrinsics import CameraIntrinsics
-from cnn import AlexNet, AlexNetWeights
 try:
+    from cnn import AlexNet, AlexNetWeights
     from feature_extractors import CNNBatchFeatureExtractor
 except Exception, e:
     logging.warn("Cannot import CNNBatchFeatureExtractor: \n{0}".format(str(e)))

@@ -11,9 +11,9 @@ import numpy as np
 import os
 import time
 
-import alan.constants as constants
-from alan.rgbd.cnn import AlexNet
-from alan.rgbd.image import Image, ColorImage
+import core.constants as constants
+from cnn import AlexNet
+from image import Image, ColorImage
 
 class FeatureExtractor:
     __metaclass__ = ABCMeta
