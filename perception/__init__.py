@@ -19,6 +19,7 @@ except Exception:
 from opencv_camera_sensor import OpenCVCameraSensor
 from registration import IterativeRegistrationSolver, PointToPlaneICPSolver, RegistrationResult
 from video_recorder import VideoRecorder
+from video_writer import write_video
 
 
 __all__ = ['Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage',
