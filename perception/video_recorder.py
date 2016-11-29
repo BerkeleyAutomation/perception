@@ -85,7 +85,7 @@ class VideoRecorder:
         
         self._recording = False
         self._started = False
-        
+
     def start(self):
         """ Starts the camera recording process. """
         self._started = True
@@ -106,7 +106,7 @@ class VideoRecorder:
             raise Exception("Cannot record a video while one is already recording!")
         self._recording = True
         self._cmd_q.put(('start', output_file))
-        
+
     def stop_recording(self):
         """ Stops writing video to file. """
         if not self._recording:

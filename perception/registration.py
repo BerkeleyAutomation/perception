@@ -4,21 +4,11 @@ Author: Jeff Mahler
 """
 from abc import ABCMeta, abstractmethod
 
-import copy
-import IPython
-import logging
 import numpy as np
-import scipy.spatial.distance as ssd
-import scipy.optimize as opt
-
-try:
-    import mayavi.mlab as mlab
-except:
-    logging.warning('Failed to import mayavi')
 
 from core import RigidTransform, PointCloud, NormalCloud
-import core.utils as core
-from perception import PointToPlaneFeatureMatcher
+
+from feature_matcher import PointToPlaneFeatureMatcher
 
 class RegistrationResult(object):
     """ Struct to hold results of point set registration.

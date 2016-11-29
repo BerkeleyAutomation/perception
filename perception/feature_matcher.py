@@ -5,7 +5,6 @@ Author: Jeff Mahler
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
-import IPython
 from scipy import spatial
 import scipy.spatial.distance as ssd
 

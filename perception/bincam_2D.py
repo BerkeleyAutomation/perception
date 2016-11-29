@@ -1,8 +1,5 @@
 import cv2
 import numpy as np
-import datetime
-import os
-import IPython
 # from alan.lfd_slware.options import SLVOptions
 #from alan.lfd_amazon.options import AmazonOptions
 from bgSegmentation import segmentBG, bgBoundsByMode
@@ -30,7 +27,6 @@ class BinaryCamera():
             r, f = self.vc.read()
             if(not f == None):
                 break
-        #IPython.embed()
         #self.vc = cv2.VideoCapture(idNum)
 
         # self.vc.set(cv2.cv.CV_CAP_P]ROP_BUFFERSIZE, 1)

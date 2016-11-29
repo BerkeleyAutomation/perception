@@ -4,14 +4,11 @@ Author: Jeff Mahler
 """
 from abc import ABCMeta, abstractmethod
 
-import copy
-import IPython
 import logging
 import numpy as np
-import os
 import time
 
-import core.constants as constants
+import constants as constants
 from cnn import AlexNet
 from image import Image, ColorImage
 
@@ -94,4 +91,3 @@ class CNNReusableBatchFeatureExtractor(CNNBatchFeatureExtractor):
     """ Extract feature descriptors for images in a giant batch. Allows you to initialize the extractor with a pre-existing CNN, for memory management reasons. """
     def __init__(self, cnn):
         self.cnn_ = cnn
-

@@ -8,7 +8,7 @@ try:
     from cnn import AlexNet, AlexNetWeights
     from feature_extractors import CNNBatchFeatureExtractor
 except Exception, e:
-    logging.warn("Cannot import CNNBatchFeatureExtractor: \n{0}".format(str(e)))
+    logging.warn("Cannot import CNN related modules: \n{0}".format(str(e)))
 from feature_matcher import FeatureMatcher, PointToPlaneFeatureMatcher
 from features import LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
 from image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, BinaryImage
@@ -32,4 +32,3 @@ __all__ = ['Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage',
           "LocalFeature", "GlobalFeature", "SHOTFeature", "MVCNNFeature", "BagOfFeatures",
           'VideoRecorder',
           'OpenCVCameraSensor',
-]

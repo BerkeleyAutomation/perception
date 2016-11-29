@@ -3,15 +3,26 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to perception's documentation!
-======================================
+Berkeley AutoLab Perception Documentation
+===================================
+Welcome to the documentation for the Berkeley AutoLab's `perception` module!
+This module is designed to be useful in a broad set of robotic perception tasks.
+The `perception` module depends directly on AutoLab's `core`_ module.
 
-Contents:
+.. _core: https://github.com/mmatl/core
 
 .. toctree::
    :maxdepth: 2
+   :caption: Installation Guide
 
+   install/install.rst
 
+.. toctree::
+   :maxdepth: 2
+   :caption: API Documentation
+   :glob:
+
+   api/*
 
 Indices and tables
 ==================
@@ -19,4 +30,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
 
