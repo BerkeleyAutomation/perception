@@ -10,29 +10,21 @@ import numpy as np
 import cv2
 import scipy.spatial.distance as ssd
 import scipy.optimize as opt
-import pickle
+
 #from alan.core import RigidTransform, PointCloud, NormalCloud
-from alan.rgbd import bincam_2D as b2
+from perception import OpenCVCameraSensor
 from numpy import linalg as LA
 
 class RegWC():
-    def __init__(self, options=None,calibrate=False):
-
-
+    def __init__(self, id):
         self.X_MM = 200
         self.Y_MM = 400
         self.X_P = 10
         self.Y_P = 10
 
-
-        #Load Parameters
-        if(not calibrate):
-            self.trans = pickle.load(open('data/registration/registration.pckl','rb'))
-        else:
-            self.trans = None
-            self.bc = b2.BinaryCamera()
-            self.bc.open()
-
+        self.trans = None
+        self.cam = OpenCVCameraSensor(id)
+        self.cam.start()
 
         #Camera Parameters
         f_x = 790
@@ -49,8 +41,6 @@ class RegWC():
             self.height = options.HEIGHT
             self.width = options.WIDTH
 
-
-
         #Chessboard Facts (M)
         self.W = 0.023
         self.H = 0.024
@@ -62,13 +52,11 @@ class RegWC():
         CEN_TO_BASE = 0.0
 
     def get_image_bounds(self):
-
         c1 = np.array([0,0])
         c2 = np.array([self.width,self.height])
 
         c1 = self.pixel_to_robot(c1)
         c2 = self.pixel_to_robot(c2)
-
 
         return c1,c2
 
@@ -86,8 +74,6 @@ class RegWC():
         m_p = self.robot_to_pixel(measues)
 
         return LA.norm(m_p - base_p)
-
-
 
     def offset_cam_back(self,pixel):
         pixel[0] = pixel[0]+self.p_x_off
@@ -126,7 +112,6 @@ class RegWC():
         p_prog[1] = (-z_axis_rot[2]/d[2])*d[1]+z_axis_rot[1]
 
         return self.chessboard_to_robot(p_prog)
-
 
     def chessboard_to_robot(self,cords):
         #Translate to Robot Frame
@@ -169,13 +154,9 @@ class RegWC():
         p_mm = self.get_corners_mm()
         c_mm = self.find_chessboard()
 
-
         dist_coef = np.zeros(4)
 
         ret,r_vec,t_vec = cv2.solvePnP(p_mm.T,c_mm.T,self.C,dist_coef)
-
-
-        #IPython.embed()
 
         r_mat,j = cv2.Rodrigues(r_vec)
 
@@ -203,9 +184,7 @@ class RegWC():
                 points[0:2,idx] = point
                 idx += 1
 
-
         return points
-
 
     def find_chessboard(self,debug=False):
         #Rows
@@ -213,12 +192,9 @@ class RegWC():
 
         img = self.bc.read_raw()
 
-
         ret,ic = cv2.findChessboardCorners(img,(6,9))
 
-
         ic_np = np.zeros([2,54])
-
 
         cv2.imshow('debug',img)
         cv2.waitKey(30)
@@ -237,7 +213,6 @@ class RegWC():
             IPython.embed()
 
         return ic_np
-
 
 if __name__ == "__main__":
 
