@@ -2,11 +2,12 @@
 Classes for point set registration using variants of Iterated-Closest Point
 Author: Jeff Mahler
 """
+import logging
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from core import RigidTransform, PointCloud, NormalCloud
+from core import RigidTransform, PointCloud, NormalCloud, skew
 
 from feature_matcher import PointToPlaneFeatureMatcher
 
@@ -22,7 +23,7 @@ class RegistrationResult(object):
     """
     def __init__(self, T_source_target, cost):
         self.T_source_target = T_source_target
-        self.cost = costs
+        self.cost = cost
 
 class IterativeRegistrationSolver:
     """ Abstract class for iterative registration solvers. """
@@ -101,7 +102,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
         orig_target_normals = target_normal_cloud.data.T
 
         # setup the problem
-        normal_norms = np.linalg.norm(target_normals, axis=1)
+        normal_norms = np.linalg.norm(orig_target_normals, axis=1)
         valid_inds = np.nonzero(normal_norms)
         orig_target_points = orig_target_points[valid_inds[0],:]
         orig_target_normals = orig_target_normals[valid_inds[0],:]
@@ -159,7 +160,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
                 s = source_corr_points[i:i+1,:].T
                 t = target_corr_points[i:i+1,:].T
                 n = target_corr_normals[i:i+1,:].T
-                G[:,:3] = utils.skew(s).T
+                G[:,:3] = skew(s).T
                 A += G.T.dot(n).dot(n.T).dot(G)
                 b += G.T.dot(n).dot(n.T).dot(t - s)
 
@@ -170,7 +171,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
 
             # create pose values from the solution
             R = np.eye(3)
-            R = R + utils.skew(v[:3])
+            R = R + skew(v[:3])
             U, S, V = np.linalg.svd(R)
             R = U.dot(V)
             t = v[3:]
