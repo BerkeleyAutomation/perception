@@ -255,6 +255,27 @@ class Image(object):
         """
         return np.c_[linear_inds / self.width, linear_inds % self.width]
 
+    def is_same_shape(self, other_im, check_channels=False):
+        """ Checks if two images have the same height and width (and optionally channels).
+        
+        Parameters
+        ----------
+        other_im : :obj:`Image`
+            image to compare
+        check_channels : bool
+            whether or not to check equality of the channels
+
+        Returns
+        -------
+        bool
+            True if the images are the same shape, False otherwise
+        """
+        if self.height == other_im.height and self.width == other_im.width:
+            if check_channels and self.channels != other_im.channels:
+                return False
+            return True
+        return False                
+
     def mask_by_ind(self, inds):
         """Create a new image by zeroing out data at locations not in the
         given indices.
@@ -438,16 +459,19 @@ class Image(object):
             A cropped Image of the same type.
         """
         if center_i is None:
-            center_i = self.height / 2
+            center_i = float(self.height) / 2
         if center_j is None:
-            center_j = self.width / 2
+            center_j = float(self.width) / 2
 
-        start_row = max(0, center_i - height / 2)
-        end_row = min(self.height -1, center_i + height / 2)
-        start_col = max(0, center_j - width / 2)
-        end_col = min(self.width - 1, center_j + width / 2)
+        start_row = int(np.floor(max(0, center_i - float(height) / 2)))
+        end_row = int(np.floor(min(self.height, center_i + float(height) / 2)))
+        start_col = int(np.floor(max(0, center_j - float(width) / 2)))
+        end_col = int(np.floor(min(self.width, center_j + float(width) / 2)))
 
-        return type(self)(self._data[start_row:end_row+1, start_col:end_col+1], self._frame)
+        if end_row-start_row != height or end_col-start_col != width:
+            raise ValueError('Cannot crop image of shape (%d,%d) to image of shape (%d,%d)' %(self.height, self.width, height, width))
+
+        return type(self)(self._data[start_row:end_row, start_col:end_col], self._frame)
 
     def focus(self, height, width, center_i=None, center_j=None):
         """Zero out all of the image outside of a crop box.
@@ -896,6 +920,40 @@ class ColorImage(Image):
             box_data[i,max_j,:] = 255 * np.ones(self.channels)
 
         return ColorImage(box_data, self._frame)
+
+    def segment_kmeans(self, color_weight, num_clusters):
+        """
+        Segment a color image using KMeans based on spatial and color distances.
+        Black pixels will automatically be assigned to their own 'background' cluster.
+
+        Parameters
+        ----------
+        color_weight : float
+            weighting between the color distance and spatial distance
+        num_clusters : int
+            number of clusters to use
+
+        Returns
+        -------
+        :obj:`SegmentationImage`
+            image containing the segment labels
+        """
+        # form features array
+        label_offset = 1
+        nonzero_px = np.where(self.data != 0.0)
+        nonzero_px = np.c_[nonzero_px[0], nonzero_px[1]]
+        color_vals = self.data[nonzero_px[:,0], nonzero_px[:,1], :]
+        num_nonzero = nonzero_px.shape[0]
+        features = np.c_[nonzero_px, color_weight * color_vals.astype(np.float32)]
+        
+        # perform KMeans clustering
+        kmeans = sc.KMeans(n_clusters=num_clusters)
+        labels = kmeans.fit_predict(features)
+        
+        # create output label array
+        label_im = np.zeros([self.height, self.width]).astype(np.uint8)
+        label_im[nonzero_px[:,0], nonzero_px[:,1]] = labels + label_offset
+        return SegmentationImage(label_im, frame=self.frame)
 
     def to_grayscale(self):
         """Converts the color image to grayscale using OpenCV.
@@ -1605,6 +1663,57 @@ class BinaryImage(Image):
                 occupied = False
 
         return pixel
+
+    def add_frame(self, left_boundary, right_boundary, upper_boundary, lower_boundary):
+        """ Adds a frame to the image, e.g. turns the boundaries white
+        
+        Parameters
+        ----------
+        left_boundary : int
+            the leftmost boundary of the frame
+        right_boundary : int
+            the rightmost boundary of the frame (must be greater than left_boundary)
+        upper_boundary : int
+            the upper boundary of the frame
+        lower_boundary : int
+            the lower boundary of the frame (must be greater than upper_boundary)
+
+        Returns
+        -------
+        :obj:`BinaryImage`
+            binary image with white (255) on the boundaries
+        """
+        # check valid boundary pixels
+        left_boundary = max(0, left_boundary)
+        right_boundary = min(self.width-1, right_boundary)
+        upper_boundary = max(0, upper_boundary)
+        lower_boundary = min(self.height-1, lower_boundary)
+
+        if right_boundary < left_boundary:
+            raise ValueError('Left boundary must be smaller than the right boundary')
+        if upper_boundary > lower_boundary:
+            raise ValueError('Upper boundary must be smaller than the lower boundary')
+
+        # fill in border pixels
+        bordered_data = self.data.copy()
+        bordered_data[:upper_boundary,:] = 255
+        bordered_data[lower_boundary:,:] = 255
+        bordered_data[:,:left_boundary] = 255
+        bordered_data[:,right_boundary:] = 255
+        return BinaryImage(bordered_data, frame=self._frame)
+
+    def most_free_pixel(self):
+        """ Find the black pixel with the largest distance from the white pixels.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+            2-vector containing the most free pixel
+        """
+        dist_tf = snm.distance_transform_edt(255 - self.data)
+        max_px = np.where(dist_tf == np.max(dist_tf))
+        free_pixel = np.array([max_px[0][0], max_px[1][0]])
+        return free_pixel
 
     def to_color(self):
         """Creates a ColorImage from the binary image.
