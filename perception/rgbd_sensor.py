@@ -21,7 +21,7 @@ class RgbdSensor(object):
         """
         pass
 
-    def restart(self):
+    def reset(self):
         """Restarts the sensor stream.
         """
         self.stop()
