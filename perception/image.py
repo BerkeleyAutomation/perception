@@ -1196,8 +1196,13 @@ class DepthImage(Image):
         if len(data.shape) == 3 and data.shape[2] != 1:
             raise ValueError('Illegal data type. Depth images only support single channel')
 
-    def _image_data(self):
+    def _image_data(self, normalize=False):
         """Returns the data in image format, with scaling and conversion to uint8 types.
+        
+        Parameters
+        ----------
+        normalize : bool
+            whether or not to normalize by the min and max depth of the image
 
         Returns
         -------
@@ -1206,7 +1211,13 @@ class DepthImage(Image):
             second is columns, and the third is a set of 3 RGB values, each of
             which is simply the depth entry scaled to between 0 and 255.
         """
-        depth_data = (self._data * (255.0 / constants.MAX_DEPTH)).squeeze()
+        if normalize:
+            min_depth = np.min(self._data)
+            max_depth = np.max(self._data)
+            depth_data = (self._data - min_depth) / (max_depth - min_depth)
+            depth_data = 255.0 * depth_data.squeeze()
+        else:
+            depth_data = (self._data * (255.0 / constants.MAX_DEPTH)).squeeze()
         im_data = np.zeros([self.height, self.width, 3])
         im_data[:,:,0] = depth_data
         im_data[:,:,1] = depth_data
