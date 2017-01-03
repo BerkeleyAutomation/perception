@@ -7,7 +7,6 @@ from unittest import TestCase
 
 import logging
 import numpy as np
-import IPython
 
 from constants import *
 
@@ -17,6 +16,8 @@ from perception import PointToPlaneICPSolver, PointToPlaneFeatureMatcher
 class TestRegistration(TestCase):
 
     def test_registration(self):
+        np.random.seed(101)
+
         source_points = np.random.rand(3, NUM_POINTS).astype(np.float32)
         source_normals = np.random.rand(3, NUM_POINTS).astype(np.float32)
         source_normals = source_normals / np.tile(np.linalg.norm(source_normals, axis=0)[np.newaxis,:], [3,1])

@@ -6,7 +6,6 @@ from unittest import TestCase
 
 import logging
 import numpy as np
-import IPython
 
 from constants import *
 
