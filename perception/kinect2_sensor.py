@@ -319,8 +319,9 @@ class Kinect2Sensor(RgbdSensor):
                 color_depth_map)
 
 class VirtualKinect2Sensor(RgbdSensor):
-    """Class for a virtualized Kinect v2 sensor that uses pre-captured images
-    instead of actually connecting to a sensor.
+    """ Class for a virtual Kinect v2 sensor that uses pre-captured images
+    stored to disk instead of actually connecting to a sensor.
+    For debugging purposes.
     """ 
 
     def __init__(self, path_to_images, frame=None):
