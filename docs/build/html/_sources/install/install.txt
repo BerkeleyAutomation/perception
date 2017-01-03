@@ -5,13 +5,15 @@ Dependencies
 ~~~~~~~~~~~~
 The `perception` module depends on the Berkeley AutoLab's `core`_ module,
 which can be installed using `pip install` on the source repo.
+The module primarily wraps `OpenCV`_ version >= 2.11 which can be installed using pip.
 
-Furthermore, the `perception` module depends on `Tensorflow`_ and `pylibfreenect2`_.
-Install these according to their website's instructions before proceeding.
+Furthermore, the `perception` module optionally depends on `Tensorflow`_ and `pylibfreenect2`_ for Convolutional Neural Networks and Kinect2 sensor usage, repectively.
+Install these according to their website's instructions if their functionality is required.
 
 However, installing our repo using `pip` will install these automatically.
 
 .. _core: https://github.com/mmatl/core
+.. _OpenCV: https://pypi.python.org/pypi/opencv-python
 .. _Tensorflow: http://tflearn.org/installation/
 .. _pylibfreenect2: http://r9y9.github.io/pylibfreenect2/installation.html
 

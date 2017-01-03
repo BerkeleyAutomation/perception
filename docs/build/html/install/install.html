@@ -34,7 +34,7 @@
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="perception 0.0.1 documentation" href="../index.html"/>
-        <link rel="next" title="Image Classes" href="../api/image.html"/>
+        <link rel="next" title="Camera Intrinsics" href="../api/camera_intrinsics.html"/>
         <link rel="prev" title="Berkeley AutoLab Perception Documentation" href="../index.html"/> 
 
   
@@ -97,7 +97,13 @@
 </ul>
 <p class="caption"><span class="caption-text">API Documentation</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/camera_intrinsics.html">Camera Intrinsics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cnn.html">Convolutional Neural Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/detector.html">Detection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/features.html">Features</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/image.html">Image Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/rgbd_sensor.html">RGBD Sensors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/video.html">Video Classes</a></li>
 </ul>
 
             
@@ -147,9 +153,10 @@
 <div class="section" id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <p>The <cite>perception</cite> module depends on the Berkeley AutoLab&#8217;s <a class="reference external" href="https://github.com/mmatl/core">core</a> module,
-which can be installed using <cite>pip install</cite> on the source repo.</p>
-<p>Furthermore, the <cite>perception</cite> module depends on <a class="reference external" href="http://tflearn.org/installation/">Tensorflow</a> and <a class="reference external" href="http://r9y9.github.io/pylibfreenect2/installation.html">pylibfreenect2</a>.
-Install these according to their website&#8217;s instructions before proceeding.</p>
+which can be installed using <cite>pip install</cite> on the source repo.
+The module primarily wraps <a class="reference external" href="https://pypi.python.org/pypi/opencv-python">OpenCV</a> version &gt;= 2.11 which can be installed using pip.</p>
+<p>Furthermore, the <cite>perception</cite> module optionally depends on <a class="reference external" href="http://tflearn.org/installation/">Tensorflow</a> and <a class="reference external" href="http://r9y9.github.io/pylibfreenect2/installation.html">pylibfreenect2</a> for Convolutional Neural Networks and Kinect2 sensor usage, repectively.
+Install these according to their website&#8217;s instructions if their functionality is required.</p>
 <p>However, installing our repo using <cite>pip</cite> will install these automatically.</p>
 <p>Any other dependencies will be installed automatically when <cite>perception</cite> is
 installed with <cite>pip</cite>.</p>
@@ -212,7 +219,7 @@ generated in this manner can be found in <cite>docs/build</cite>.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../api/image.html" class="btn btn-neutral float-right" title="Image Classes" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../api/camera_intrinsics.html" class="btn btn-neutral float-right" title="Camera Intrinsics" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../index.html" class="btn btn-neutral" title="Berkeley AutoLab Perception Documentation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>

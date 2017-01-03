@@ -1,5 +1,4 @@
 from camera_intrinsics import CameraIntrinsics
-from cnn import AlexNetWeights, AlexNet, conv
 from detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector
 from feature_extractors import FeatureExtractor, CNNBatchFeatureExtractor, CNNReusableBatchFeatureExtractor
 from feature_matcher import Correspondences, NormalCorrespondences, FeatureMatcher, RawDistanceFeatureMatcher, PointToPlaneFeatureMatcher
@@ -9,6 +8,13 @@ from object_render import RenderMode, ObjectRender, QueryImageBundle
 from registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
 from rgbd_sensor import RgbdSensor
 from video_recorder import VideoRecorder
+
+try:
+    from cnn import AlexNetWeights, AlexNet, conv
+except Exception:
+    print 'Unable to import ConvNet modules! Likely due to missing tensorflow.'
+    print 'TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup'
+    
 
 try:
     from kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, Kinect2SensorFactory, load_images

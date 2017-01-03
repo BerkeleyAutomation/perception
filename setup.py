@@ -11,7 +11,6 @@ requirements = [
     'opencv-python',
     'cycler',
     'tensorflow',
-    'protobuf',
     'Pillow',
     'core'
 ]
