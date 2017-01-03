@@ -4,6 +4,7 @@ Author: Jeff
 """
 from abc import ABCMeta, abstractmethod
 import os
+import IPython
 
 import cv2
 import numpy as np
@@ -296,7 +297,7 @@ class Image(object):
         new_data = np.zeros(self.shape)
         for ind in inds:
             new_data[ind[0], ind[1]] = self.data[ind[0], ind[1]]
-        return type(self)(new_data, self.frame)
+        return type(self)(new_data.astype(self.data.dtype), self.frame)
 
     def mask_by_linear_ind(self, linear_inds):
         """Create a new image by zeroing out data at locations not in the
@@ -769,8 +770,8 @@ class ColorImage(Image):
         if data.dtype.type is not np.uint8:
             raise ValueError('Illegal data type. Color images only support uint8 arrays')
 
-        if len(data.shape) == 3 and data.shape[2] != 1 and data.shape[2] != 3:
-            raise ValueError('Illegal data type. Color images only support one or three channels')
+        if len(data.shape) != 3 or data.shape[2] != 3:
+            raise ValueError('Illegal data type. Color images only support three channels')
 
     def _image_data(self):
         """Returns the data in image format, with scaling and conversion to uint8 types.
@@ -1578,7 +1579,7 @@ class GrayscaleImage(Image):
     """A grayscale image in which individual pixels have a single uint8 channel.
     """
 
-    def __init__(self, data, frame):
+    def __init__(self, data, frame='unspecified'):
         """Create a grayscale image from an array of data.
 
         Parameters
@@ -2048,7 +2049,7 @@ class BinaryImage(Image):
 class SegmentationImage(Image):
     """An image containing integer-valued segment labels.
     """
-    def __init__(self, data, frame):
+    def __init__(self, data, frame='unspecified'):
         """Create a BinaryImage image from an array of data.
 
         Parameters

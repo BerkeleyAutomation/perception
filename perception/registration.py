@@ -39,7 +39,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
 
     Attributes
     ----------
-    sample_size : int
+1    sample_size : int
         number of randomly sampled points to use per iteration
     cost_sample_size : int
         number of randomly sampled points to use for cost evaluations
@@ -57,7 +57,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
     
     def register(self, source_point_cloud, target_point_cloud,
                  source_normal_cloud, target_normal_cloud, matcher,
-                 num_iterations=1, compute_total_cost=True, vis=False):
+                 num_iterations=1, compute_total_cost=True, match_centroids=False,
+                 vis=False):
         """
         Iteratively register objects to one another using a modified version of point to plane ICP.
         The cost func is PointToPlane_COST + gamma * PointToPoint_COST.
@@ -79,6 +80,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
             the number of iterations to run
         compute_total_cost : bool
             whether or not to compute the total cost upon termination.
+        match_centroids : bool
+            whether or not to match the centroids of the point clouds
         
         Returns
         -------
@@ -117,7 +120,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
         target_mean_point = np.mean(orig_target_points, axis=0)
         R_sol = np.eye(3)
         t_sol = np.zeros([3, 1]) #init with diff between means
-        t_sol[:,0] = target_mean_point - source_mean_point
+        if match_centroids:
+            t_sol[:,0] = target_mean_point - source_mean_point
 
         # iterate through
         for i in range(num_iterations):
