@@ -10,7 +10,7 @@ The module primarily wraps `OpenCV`_ version >= 2.11 which can be installed usin
 Furthermore, the `perception` module optionally depends on `Tensorflow`_ and `pylibfreenect2`_ for Convolutional Neural Networks and Kinect2 sensor usage, repectively.
 Install these according to their website's instructions if their functionality is required.
 
-However, installing our repo using `pip` will install these automatically.
+Installing our repo using `pip` will attempt to install these automatically.
 
 .. _core: https://github.com/mmatl/core
 .. _OpenCV: https://pypi.python.org/pypi/opencv-python

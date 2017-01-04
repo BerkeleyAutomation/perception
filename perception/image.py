@@ -1396,6 +1396,24 @@ class DepthImage(Image):
         data[ind[0], ind[1]] = 0.0
         return DepthImage(data, self._frame)
 
+    def combine_with(self, depth_im):
+        """
+        Replaces all zeros in the source depth image with the value of a different depth image
+
+        Parameters
+        ----------
+        depth_im : :obj:`DepthImage`
+            depth image to combine with
+
+        Returns
+        -------
+        :obj:`DepthImage`
+            the combined depth image
+        """
+        new_data = self.data.copy()
+        new_data[new_data == 0] = depth_im.data[new_data == 0]
+        return DepthImage(new_data, frame=self.frame)
+
     def to_binary(self, threshold=0.0):
         """Creates a BinaryImage from the depth image. Points where the depth
         is greater than threshold are converted to ones, and all other points
