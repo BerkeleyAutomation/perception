@@ -5,7 +5,8 @@ from feature_matcher import Correspondences, NormalCorrespondences, FeatureMatch
 from features import Feature, LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
 from image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, SegmentationImage, BinaryImage, PointCloudImage, NormalCloudImage
 from object_render import RenderMode, ObjectRender, QueryImageBundle
-from registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
+from chessboard_registration import ChessboardRegistrationResult, CameraChessboardRegistration
+from point_registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
 from rgbd_sensor import RgbdSensor
 from video_recorder import VideoRecorder
 

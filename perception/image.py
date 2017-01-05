@@ -828,11 +828,11 @@ class ColorImage(Image):
         """Finds the corners of an sx X sy chessboard in the image.
 
         Parameters
+        ----------
         sx : int
-            Number of x-direction squares.
-
+            Number of chessboard corners in x-direction.
         sy : int
-            Number of y-direction squares.
+            Number of chessboard corners in y-direction.
 
         Returns
         -------
