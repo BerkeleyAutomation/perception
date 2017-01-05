@@ -7,11 +7,18 @@ import os
 import IPython
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import PIL.Image as PImage
+
 import scipy.misc as sm
+import scipy.signal as ssg
+import scipy.ndimage.filters as sf
+import scipy.ndimage.morphology as snm
 import scipy.spatial.distance as ssd
-import matplotlib.pyplot as plt
+
+import sklearn.cluster as sc
+import sklearn.mixture as smx
 
 from core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
 
