@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage.morphology as snm
 
-from alan.core import Box
+from core import Box
 from image import BinaryImage, ColorImage, DepthImage
 
 class RgbdDetection(object):

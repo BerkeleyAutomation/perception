@@ -1953,13 +1953,13 @@ class BinaryImage(Image):
         cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
         occupied = True
         if np.all(cur_px_y >= 0) and np.all(cur_px_y < self.height) and np.all(cur_px_x >= 0) and np.all(cur_px_x < self.width):
-            occupied = np.all(self[cur_px_y, cur_px_x] >= self._threshold)
+            occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
         while occupied:
             pixel = pixel + t * direction
             cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
             cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
             if np.all(cur_px_y >= 0) and np.all(cur_px_y < self.height) and np.all(cur_px_x >= 0) and np.all(cur_px_x < self.width):
-                occupied = np.all(self[cur_px_y, cur_px_x] >= self._threshold)
+                occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
             else:
                 occupied = False
 
