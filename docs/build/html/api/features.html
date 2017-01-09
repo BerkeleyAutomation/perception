@@ -1,0 +1,679 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Features &mdash; perception 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="perception 0.0.1 documentation" href="../index.html"/>
+        <link rel="next" title="Image Classes" href="image.html"/>
+        <link rel="prev" title="Detection" href="detector.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> perception
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="camera_intrinsics.html">Camera Intrinsics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cnn.html">Convolutional Neural Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detector.html">Detection</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Features</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#featureextractor">FeatureExtractor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cnnbatchfeatureextractor">CNNBatchFeatureExtractor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cnnreusablebatchfeatureextractor">CNNReusableBatchFeatureExtractor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#feature">Feature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bagoffeatures">BagOfFeatures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#localfeature">LocalFeature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#globalfeature">GlobalFeature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shotfeature">SHOTFeature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mvcnnfeature">MVCNNFeature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#correspondences">Correspondences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#normalcorrespondences">NormalCorrespondences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#featurematcher">FeatureMatcher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rawdistancefeaturematcher">RawDistanceFeatureMatcher</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pointtoplanefeaturematcher">PointToPlaneFeatureMatcher</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="image.html">Image Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rgbd_sensor.html">RGBD Sensors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="video.html">Video Classes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">perception</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li>Features</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/features.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="features">
+<h1>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h1>
+<p>Classes for encapsulatng and modifying feature vectors.</p>
+<div class="section" id="featureextractor">
+<h2>FeatureExtractor<a class="headerlink" href="#featureextractor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.FeatureExtractor">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">FeatureExtractor</code><a class="headerlink" href="#perception.FeatureExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="perception.FeatureExtractor.extract">
+<code class="descname">extract</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.FeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of extracted features for an image
+:param image: object to extract for
+:type image: <code class="xref py py-obj docutils literal"><span class="pre">Image</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="cnnbatchfeatureextractor">
+<h2>CNNBatchFeatureExtractor<a class="headerlink" href="#cnnbatchfeatureextractor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.CNNBatchFeatureExtractor">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">CNNBatchFeatureExtractor</code><span class="sig-paren">(</span><em>config</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.CNNBatchFeatureExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.feature_extractors.FeatureExtractor</span></code></p>
+<p>Extract feature descriptors for images in a giant batch using Convolutional Neural Networks.</p>
+<dl class="attribute">
+<dt id="CNNBatchFeatureExtractor.cnn">
+<code class="descname">cnn</code><a class="headerlink" href="#CNNBatchFeatureExtractor.cnn" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">AlexNet</span></code> &#8211; the convolutional neural network to use</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.CNNBatchFeatureExtractor.open">
+<code class="descname">open</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.CNNBatchFeatureExtractor.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the tensorflow session. For memory management.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.CNNBatchFeatureExtractor.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.CNNBatchFeatureExtractor.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the tensorflow session. For memory management.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.CNNBatchFeatureExtractor.extract">
+<code class="descname">extract</code><span class="sig-paren">(</span><em>images</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.CNNBatchFeatureExtractor.extract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Form feature descriptors for a set of images.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>images</strong> (<code class="xref py py-obj docutils literal"><span class="pre">list</span></code> of :obj`Image` or :obj`numpy.ndarray`) &#8211; images to extract features for</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="cnnreusablebatchfeatureextractor">
+<h2>CNNReusableBatchFeatureExtractor<a class="headerlink" href="#cnnreusablebatchfeatureextractor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.CNNReusableBatchFeatureExtractor">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">CNNReusableBatchFeatureExtractor</code><span class="sig-paren">(</span><em>cnn</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.CNNReusableBatchFeatureExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.feature_extractors.CNNBatchFeatureExtractor</span></code></p>
+<p>Extract feature descriptors for images in a giant batch. Allows you to initialize the extractor with a pre-existing CNN, for memory management reasons.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="feature">
+<h2>Feature<a class="headerlink" href="#feature" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.Feature">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">Feature</code><a class="headerlink" href="#perception.Feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Abstract class for features</p>
+</dd></dl>
+
+</div>
+<div class="section" id="bagoffeatures">
+<h2>BagOfFeatures<a class="headerlink" href="#bagoffeatures" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.BagOfFeatures">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">BagOfFeatures</code><span class="sig-paren">(</span><em>features=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.BagOfFeatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for a list of features, created for the sake of future bag-of-words reps.</p>
+<dl class="attribute">
+<dt id="BagOfFeatures.features">
+<code class="descname">features</code><a class="headerlink" href="#BagOfFeatures.features" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal"><span class="pre">Feature</span></code> &#8211; list of feature objects</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.BagOfFeatures.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>feature</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.BagOfFeatures.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new feature to the bag.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>feature</strong> (<code class="xref py py-obj docutils literal"><span class="pre">Feature</span></code>) &#8211; feature to add</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.BagOfFeatures.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>features</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.BagOfFeatures.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a list of features to the bag.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>feature</strong> (<code class="xref py py-obj docutils literal"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal"><span class="pre">Feature</span></code>) &#8211; features to add</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.BagOfFeatures.feature">
+<code class="descname">feature</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.BagOfFeatures.feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a feature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> (<em>int</em>) &#8211; index of feature in list</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">Feature</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.BagOfFeatures.feature_subset">
+<code class="descname">feature_subset</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.BagOfFeatures.feature_subset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns some subset of the features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<code class="xref py py-obj docutils literal"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal"><span class="pre">int</span></code>) &#8211; indices of the features in the list</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal"><span class="pre">Feature</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.BagOfFeatures.descriptors">
+<code class="descname">descriptors</code><a class="headerlink" href="#perception.BagOfFeatures.descriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a nice array of the descriptors</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.BagOfFeatures.reference_frames">
+<code class="descname">reference_frames</code><a class="headerlink" href="#perception.BagOfFeatures.reference_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a nice array of the reference frames</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.BagOfFeatures.keypoints">
+<code class="descname">keypoints</code><a class="headerlink" href="#perception.BagOfFeatures.keypoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a nice array of the keypoints</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.BagOfFeatures.normals">
+<code class="descname">normals</code><a class="headerlink" href="#perception.BagOfFeatures.normals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a nice array of the normals</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="localfeature">
+<h2>LocalFeature<a class="headerlink" href="#localfeature" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.LocalFeature">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">LocalFeature</code><span class="sig-paren">(</span><em>descriptor</em>, <em>rf</em>, <em>point</em>, <em>normal</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.LocalFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.features.Feature</span></code></p>
+<p>Local (e.g. pointwise) features on shape surfaces.</p>
+<dl class="attribute">
+<dt id="LocalFeature.descriptor">
+<code class="descname">descriptor</code><a class="headerlink" href="#LocalFeature.descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; vector to describe the point</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="LocalFeature.reference_frame">
+<code class="descname">reference_frame</code><a class="headerlink" href="#LocalFeature.reference_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; reference frame of the descriptor, as an array</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="LocalFeature.point">
+<code class="descname">point</code><a class="headerlink" href="#LocalFeature.point" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; 3D point on shape surface that descriptor corresponds to</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="LocalFeature.normal">
+<code class="descname">normal</code><a class="headerlink" href="#LocalFeature.normal" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; 3D surface normal on shape surface at corresponding point</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="globalfeature">
+<h2>GlobalFeature<a class="headerlink" href="#globalfeature" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.GlobalFeature">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">GlobalFeature</code><span class="sig-paren">(</span><em>key</em>, <em>descriptor</em>, <em>pose=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.GlobalFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.features.Feature</span></code></p>
+<p>Global features of a full shape surface.</p>
+<dl class="attribute">
+<dt id="GlobalFeature.key">
+<code class="descname">key</code><a class="headerlink" href="#GlobalFeature.key" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; object key in database that descriptor corresponds to</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GlobalFeature.descriptor">
+<code class="descname">descriptor</code><a class="headerlink" href="#GlobalFeature.descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; vector to describe the object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="GlobalFeature.pose">
+<code class="descname">pose</code><a class="headerlink" href="#GlobalFeature.pose" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">core.RigidTransform</span></code> &#8211; pose of object for the descriptor, if relevant</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="shotfeature">
+<h2>SHOTFeature<a class="headerlink" href="#shotfeature" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.SHOTFeature">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">SHOTFeature</code><span class="sig-paren">(</span><em>descriptor</em>, <em>rf</em>, <em>point</em>, <em>normal</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.SHOTFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.features.LocalFeature</span></code></p>
+<p>Signature of Oriented Histogram (SHOT) features</p>
+</dd></dl>
+
+</div>
+<div class="section" id="mvcnnfeature">
+<h2>MVCNNFeature<a class="headerlink" href="#mvcnnfeature" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.MVCNNFeature">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">MVCNNFeature</code><span class="sig-paren">(</span><em>key</em>, <em>descriptor</em>, <em>pose=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.MVCNNFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.features.GlobalFeature</span></code></p>
+<p>Multi-View Convolutional Neural Network (MV-CNN) descriptor</p>
+</dd></dl>
+
+</div>
+<div class="section" id="correspondences">
+<h2>Correspondences<a class="headerlink" href="#correspondences" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.Correspondences">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">Correspondences</code><span class="sig-paren">(</span><em>index_map</em>, <em>source_points</em>, <em>target_points</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.Correspondences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for point-set correspondences.</p>
+<dl class="attribute">
+<dt id="Correspondences.index_map">
+<code class="descname">index_map</code><a class="headerlink" href="#Correspondences.index_map" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">list</span></code> of int &#8211; maps list indices (source points) to target point indices</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Correspondences.source_points">
+<code class="descname">source_points</code><a class="headerlink" href="#Correspondences.source_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nx3 <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; set of source points for registration</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Correspondences.target_points">
+<code class="descname">target_points</code><a class="headerlink" href="#Correspondences.target_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nx3 <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; set of target points for registration</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Correspondences.num_matches">
+<code class="descname">num_matches</code><a class="headerlink" href="#Correspondences.num_matches" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; the total number of matches</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="normalcorrespondences">
+<h2>NormalCorrespondences<a class="headerlink" href="#normalcorrespondences" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.NormalCorrespondences">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">NormalCorrespondences</code><span class="sig-paren">(</span><em>index_map</em>, <em>source_points</em>, <em>target_points</em>, <em>source_normals</em>, <em>target_normals</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.NormalCorrespondences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.feature_matcher.Correspondences</span></code></p>
+<p>Wrapper for point-set correspondences with surface normals.</p>
+<dl class="attribute">
+<dt id="NormalCorrespondences.index_map">
+<code class="descname">index_map</code><a class="headerlink" href="#NormalCorrespondences.index_map" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">list</span></code> of int &#8211; maps list indices (source points) to target point indices</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="NormalCorrespondences.source_points">
+<code class="descname">source_points</code><a class="headerlink" href="#NormalCorrespondences.source_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nx3 <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; set of source points for registration</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="NormalCorrespondences.target_points">
+<code class="descname">target_points</code><a class="headerlink" href="#NormalCorrespondences.target_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nx3 <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; set of target points for registration</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="NormalCorrespondences.source_normals">
+<code class="descname">source_normals</code><a class="headerlink" href="#NormalCorrespondences.source_normals" title="Permalink to this definition">¶</a></dt>
+<dd><p>normalized Nx3 <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; set of source normals for registration</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="NormalCorrespondences.target_normals">
+<code class="descname">target_normals</code><a class="headerlink" href="#NormalCorrespondences.target_normals" title="Permalink to this definition">¶</a></dt>
+<dd><p>normalized Nx3 <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; set of target points for registration</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="NormalCorrespondences.num_matches">
+<code class="descname">num_matches</code><a class="headerlink" href="#NormalCorrespondences.num_matches" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; the total number of matches</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="featurematcher">
+<h2>FeatureMatcher<a class="headerlink" href="#featurematcher" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.FeatureMatcher">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">FeatureMatcher</code><a class="headerlink" href="#perception.FeatureMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Generic feature matching between local features on a source and target object using nearest neighbors.</p>
+<dl class="staticmethod">
+<dt id="perception.FeatureMatcher.get_point_index">
+<em class="property">static </em><code class="descname">get_point_index</code><span class="sig-paren">(</span><em>point</em>, <em>all_points</em>, <em>eps=0.0001</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.FeatureMatcher.get_point_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the index of a point in an array</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.FeatureMatcher.match">
+<code class="descname">match</code><span class="sig-paren">(</span><em>source_obj</em>, <em>target_obj</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.FeatureMatcher.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches features between a source and target object. Source and target object types depend on subclass implementation.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="rawdistancefeaturematcher">
+<h2>RawDistanceFeatureMatcher<a class="headerlink" href="#rawdistancefeaturematcher" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.RawDistanceFeatureMatcher">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">RawDistanceFeatureMatcher</code><a class="headerlink" href="#perception.RawDistanceFeatureMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.feature_matcher.FeatureMatcher</span></code></p>
+<dl class="method">
+<dt id="perception.RawDistanceFeatureMatcher.match">
+<code class="descname">match</code><span class="sig-paren">(</span><em>source_obj_features</em>, <em>target_obj_features</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.RawDistanceFeatureMatcher.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches features between two graspable objects based on a full distance matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source_obj_features</strong> (<code class="xref py py-obj docutils literal"><span class="pre">BagOfFeatures</span></code>) &#8211; bag of the source objects features</li>
+<li><strong>target_obj_features</strong> (<code class="xref py py-obj docutils literal"><span class="pre">BagOfFeatures</span></code>) &#8211; bag of the target objects features</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>corrs</strong> &#8211; the correspondences between source and target</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-obj docutils literal"><span class="pre">Correspondences</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="pointtoplanefeaturematcher">
+<h2>PointToPlaneFeatureMatcher<a class="headerlink" href="#pointtoplanefeaturematcher" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.PointToPlaneFeatureMatcher">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">PointToPlaneFeatureMatcher</code><span class="sig-paren">(</span><em>dist_thresh=0.05</em>, <em>norm_thresh=0.75</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.PointToPlaneFeatureMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.feature_matcher.FeatureMatcher</span></code></p>
+<p>Match points using a point to plane criterion with thresholding.</p>
+<dl class="attribute">
+<dt id="PointToPlaneFeatureMatcher.dist_thresh">
+<code class="descname">dist_thresh</code><a class="headerlink" href="#PointToPlaneFeatureMatcher.dist_thresh" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; threshold distance to consider a match valid</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PointToPlaneFeatureMatcher.norm_thresh">
+<code class="descname">norm_thresh</code><a class="headerlink" href="#PointToPlaneFeatureMatcher.norm_thresh" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; threshold cosine distance alignment betwen normals to consider a match valid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.PointToPlaneFeatureMatcher.match">
+<code class="descname">match</code><span class="sig-paren">(</span><em>source_points</em>, <em>target_points</em>, <em>source_normals</em>, <em>target_normals</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.PointToPlaneFeatureMatcher.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches points between two point-normal sets. Uses the closest ip to choose matches, with distance for thresholding only.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source_point_cloud</strong> (Nx3 <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code>) &#8211; source object points</li>
+<li><strong>target_point_cloud</strong> (Nx3 <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code>) &#8211; target object points</li>
+<li><strong>source_normal_cloud</strong> (Nx3 <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code>) &#8211; source object outward-pointing normals</li>
+<li><strong>target_normal_cloud</strong> (<em>Nx3 :obj`numpy.ndarray`</em>) &#8211; target object outward-pointing normals</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the correspondences between source and target</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">obj`Correspondences`</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="image.html" class="btn btn-neutral float-right" title="Image Classes" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="detector.html" class="btn btn-neutral" title="Detection" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jeff Mahler.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

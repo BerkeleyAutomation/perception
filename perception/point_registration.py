@@ -2,11 +2,12 @@
 Classes for point set registration using variants of Iterated-Closest Point
 Author: Jeff Mahler
 """
+import logging
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from core import RigidTransform, PointCloud, NormalCloud
+from core import RigidTransform, PointCloud, NormalCloud, skew
 
 from feature_matcher import PointToPlaneFeatureMatcher
 
@@ -22,7 +23,7 @@ class RegistrationResult(object):
     """
     def __init__(self, T_source_target, cost):
         self.T_source_target = T_source_target
-        self.cost = costs
+        self.cost = cost
 
 class IterativeRegistrationSolver:
     """ Abstract class for iterative registration solvers. """
@@ -38,7 +39,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
 
     Attributes
     ----------
-    sample_size : int
+1    sample_size : int
         number of randomly sampled points to use per iteration
     cost_sample_size : int
         number of randomly sampled points to use for cost evaluations
@@ -56,7 +57,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
     
     def register(self, source_point_cloud, target_point_cloud,
                  source_normal_cloud, target_normal_cloud, matcher,
-                 num_iterations=1, compute_total_cost=True, vis=False):
+                 num_iterations=1, compute_total_cost=True, match_centroids=False,
+                 vis=False):
         """
         Iteratively register objects to one another using a modified version of point to plane ICP.
         The cost func is PointToPlane_COST + gamma * PointToPoint_COST.
@@ -78,6 +80,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
             the number of iterations to run
         compute_total_cost : bool
             whether or not to compute the total cost upon termination.
+        match_centroids : bool
+            whether or not to match the centroids of the point clouds
         
         Returns
         -------
@@ -101,7 +105,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
         orig_target_normals = target_normal_cloud.data.T
 
         # setup the problem
-        normal_norms = np.linalg.norm(target_normals, axis=1)
+        normal_norms = np.linalg.norm(orig_target_normals, axis=1)
         valid_inds = np.nonzero(normal_norms)
         orig_target_points = orig_target_points[valid_inds[0],:]
         orig_target_normals = orig_target_normals[valid_inds[0],:]
@@ -116,7 +120,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
         target_mean_point = np.mean(orig_target_points, axis=0)
         R_sol = np.eye(3)
         t_sol = np.zeros([3, 1]) #init with diff between means
-        t_sol[:,0] = target_mean_point - source_mean_point
+        if match_centroids:
+            t_sol[:,0] = target_mean_point - source_mean_point
 
         # iterate through
         for i in range(num_iterations):
@@ -159,7 +164,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
                 s = source_corr_points[i:i+1,:].T
                 t = target_corr_points[i:i+1,:].T
                 n = target_corr_normals[i:i+1,:].T
-                G[:,:3] = utils.skew(s).T
+                G[:,:3] = skew(s).T
                 A += G.T.dot(n).dot(n.T).dot(G)
                 b += G.T.dot(n).dot(n.T).dot(t - s)
 
@@ -170,7 +175,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
 
             # create pose values from the solution
             R = np.eye(3)
-            R = R + utils.skew(v[:3])
+            R = R + skew(v[:3])
             U, S, V = np.linalg.svd(R)
             R = U.dot(V)
             t = v[3:]

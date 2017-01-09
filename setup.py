@@ -11,12 +11,11 @@ requirements = [
     'opencv-python',
     'cycler',
     'tensorflow',
-    'protobuf',
     'Pillow',
     'core'
 ]
 
-dependency_links=['https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.10.0-cp27-none-linux_x86_64.whl']
+dependency_links=['https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0-cp27-none-linux_x86_64.whl']
 
 setup(name='perception',
       version='0.1.dev0',

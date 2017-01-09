@@ -2,33 +2,43 @@
 Alan Perception Module.
 Authors: Jeff, Jacky
 '''
-import logging
 from camera_intrinsics import CameraIntrinsics
 try:
-    from cnn import AlexNet, AlexNetWeights
-    from feature_extractors import CNNBatchFeatureExtractor
-except Exception, e:
-    logging.warn("Cannot import CNN related modules: \n{0}".format(str(e)))
-from feature_matcher import FeatureMatcher, PointToPlaneFeatureMatcher
-from features import LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
-from image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, BinaryImage
-try:
-    from kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, load_images
+    from cnn import AlexNet, AlexNetWeights, conv
+    from feature_extractors import FeatureExtractor, CNNBatchFeatureExtractor, CNNReusableBatchFeatureExtractor
 except Exception:
-    logging.warn("Cannot import kinect2_sensor!")
+    print 'Unable to import ConvNet modules! Likely due to missing tensorflow.'
+    print 'TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup'
+from feature_matcher import Correspondences, NormalCorrespondences, FeatureMatcher, RawDistanceFeatureMatcher, PointToPlaneFeatureMatcher
+from features import Feature, LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
+from image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, SegmentationImage, BinaryImage, PointCloudImage, NormalCloudImage
+from object_render import RenderMode, ObjectRender, QueryImageBundle
+from chessboard_registration import ChessboardRegistrationResult, CameraChessboardRegistration
+from point_registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
+from detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector
+
+try:
+    from kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
+except Exception:
+    print 'Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.'
+    print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
+
 from opencv_camera_sensor import OpenCVCameraSensor
 from registration import IterativeRegistrationSolver, PointToPlaneICPSolver, RegistrationResult
 from video_recorder import VideoRecorder
 from video_writer import write_video
 
-
-__all__ = ['Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage',
-          'AlexNet', 'AlexNetWeights',
-          'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode','Kinect2DepthMode', 'Kinect2Sensor',
-          'CameraIntrinsics',
-          'CNNBatchFeatureExtractor',
-          'FeatureMatcher','PointToPlaneFeatureMatcher',
-          'IterativeRegistrationSolver','PointToPlaneICPSolver','RegistrationResult',
-          "LocalFeature", "GlobalFeature", "SHOTFeature", "MVCNNFeature", "BagOfFeatures",
-          'VideoRecorder',
-          'OpenCVCameraSensor',
+__all__ = [
+    'CameraIntrinsics',
+    'AlexNetWeights', 'AlexNet', 'conv',
+    'RgbdDetection', 'RgbdDetector', 'RgbdForegroundMaskDetector', 'RgbdForegroundMaskQueryImageDetector',
+    'FeatureExtractor', 'CNNBatchFeatureExtractor', 'CNNReusableBatchFeatureExtractor',
+    'Correspondences', 'NormalCorrespondences', 'FeatureMatcher', 'RawDistanceFeatureMatcher', 'PointToPlaneFeatureMatcher',
+    'Feature', 'LocalFeature', 'GlobalFeature', 'SHOTFeature', 'MVCNNFeature', 'BagOfFeatures',
+    'Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage', 'SegmentationImage', 'BinaryImage', 'PointCloudImage', 'NormalCloudImage',
+    'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode', 'Kinect2DepthMode', 'Kinect2Sensor', 'VirtualKinect2Sensor', 'Kinect2SensorFactory', 'load_images',
+    'RenderMode', 'ObjectRender', 'QueryImageBundle',
+    'RegistrationResult', 'IterativeRegistrationSolver', 'PointToPlaneICPSolver',
+    'OpenCVCameraSensor',
+    'VideoRecorder',
+]

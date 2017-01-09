@@ -10,7 +10,7 @@ import time
 
 import constants as constants
 from cnn import AlexNet
-from image import Image, ColorImage
+from image import Image, ColorImage, DepthImage
 
 class FeatureExtractor:
     __metaclass__ = ABCMeta
@@ -58,17 +58,25 @@ class CNNBatchFeatureExtractor(FeatureExtractor):
             if not isinstance(image, Image):
                 new_images = []
                 for image in images:
-                    new_images.append(ColorImage(image, frame='unspecified'))
+                    if len(image.shape) > 2:
+                        new_images.append(ColorImage(image, frame='unspecified'))
+                    elif image.dtype == np.float32 or image.dtype == np.float64:
+                        new_images.append(DepthImage(image, frame='unspecified'))
+                    else:
+                        raise ValueError('Image type not understood')
                 images = new_images
                 break
-                #raise ValueError('Must use AUTOLAB Image object')
 
         im_height = images[0].height
         im_width = images[0].width
         channels = images[0].channels
-        image_arr = np.zeros([num_images, im_height, im_width, channels])
+        tensor_channels = 3
+        image_arr = np.zeros([num_images, im_height, im_width, tensor_channels])
         for j, image in enumerate(images):
-            image_arr[j,:,:,:] = image.raw_data
+            if channels == 3:
+                image_arr[j,:,:,:] = image.raw_data
+            else:
+                image_arr[j,:,:,:] = np.tile(image.raw_data, [1,1,1,3])
 
         # predict
         fp_start = time.time()

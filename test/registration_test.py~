@@ -1,0 +1,12 @@
+"""
+Tests the image class.
+Author: Jeff Mahler
+"""
+from unittest import TestCase
+import numpy as np
+from constants import *
+import IPython
+
+from perception import Image, ColorImage, DepthImage, BinaryImage, SegmentationImage, GrayscaleImage, IrImage, PointCloudImage, NormalCloudImage
+
+class TestImage(TestCase):

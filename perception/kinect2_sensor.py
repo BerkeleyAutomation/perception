@@ -204,7 +204,7 @@ class Kinect2Sensor(CameraSensor):
         """
         # check that everything is running
         if not self._running or self._device is None:
-            logging.warning('Kinect2 device %s not runnning. Aborting stop')
+            logging.warning('Kinect2 device %d not runnning. Aborting stop' %(self._device_num))
             return False
 
         # stop the device
@@ -320,9 +320,10 @@ class Kinect2Sensor(CameraSensor):
                 color_depth_map)
 
 class VirtualKinect2Sensor(CameraSensor):
-    """
-    Class to spoof the Kinect2Sensor when using pre-captured test images
-    """
+    """ Class for a virtual Kinect v2 sensor that uses pre-captured images
+    stored to disk instead of actually connecting to a sensor.
+    For debugging purposes.
+    """ 
 
     def __init__(self, path_to_images, frame=None):
         """Create a new virtualized Kinect v2 sensor.
@@ -508,6 +509,32 @@ class VirtualKinect2Sensor(CameraSensor):
             depths.append(depth)
 
         return Image.median_images(depths)
+
+class Kinect2SensorFactory:
+    """ Factory class for Kinect2 sensors. """
+
+    @staticmethod
+    def sensor(sensor_type, cfg):
+        """ Creates a Kinect2 sensor of the specified type.
+
+        Parameters
+        ----------
+        sensor_type : :obj:`str`
+            the type of the sensor (real or virtual)
+        cfg : :obj:`YamlConfig`
+            dictionary of parameters for sensor initialization
+        """
+        sensor_type = sensor_type.lower()
+        if sensor_type == 'real':
+            s = Kinect2Sensor(packet_pipeline_mode=cfg['pipeline_mode'],
+                              device_num=cfg['device_num'],
+                              frame=cfg['frame'])
+        elif sensor_type == 'virtual':
+            s = VirtualKinect2Sensor(cfg['image_dir'],
+                                     frame=cfg['frame'])
+        else:
+            raise ValueError('Kinect2 sensor type %s not supported' %(sensor_type))
+        return s
 
 def load_images(cfg):
     """Helper function for loading a set of color images, depth images, and IR

@@ -4,15 +4,25 @@ Author: Jeff
 """
 from abc import ABCMeta, abstractmethod
 import os
+import IPython
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import PIL.Image as PImage
-import scipy.misc as sm
-import scipy.spatial.distance as ssd
-import matplotlib.pyplot as plt
 
-from core import RigidTransform, Point, PointCloud, NormalCloud, PointNormalCloud, Box
+import scipy.misc as sm
+import scipy.signal as ssg
+import scipy.ndimage.filters as sf
+import scipy.ndimage.morphology as snm
+import scipy.spatial.distance as ssd
+
+
+import sklearn.cluster as sc
+import sklearn.mixture as smx
+
+from core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
+
 import constants as constants
 
 class Image(object):
@@ -295,7 +305,7 @@ class Image(object):
         new_data = np.zeros(self.shape)
         for ind in inds:
             new_data[ind[0], ind[1]] = self.data[ind[0], ind[1]]
-        return type(self)(new_data, self.frame)
+        return type(self)(new_data.astype(self.data.dtype), self.frame)
 
     def mask_by_linear_ind(self, linear_inds):
         """Create a new image by zeroing out data at locations not in the
@@ -433,6 +443,16 @@ class Image(object):
         data = method(self.data, *args, **kwargs)
         return type(self)(data.astype(self.type), self.frame)
 
+    def copy(self):
+        """ Returns a copy of this image.
+
+        Returns
+        -------
+        :obj:`Image`
+            copy of this image
+        """
+        return type(self)(self.data.copy(), self.frame)
+
     def crop(self, height, width, center_i=None, center_j=None):
         """Crop the image centered around center_i, center_j.
 
@@ -457,20 +477,31 @@ class Image(object):
         :obj:`Image`
             A cropped Image of the same type.
         """
+        # compute crop center px
+        height = int(np.round(height))
+        width = int(np.round(width))
         if center_i is None:
             center_i = float(self.height) / 2
         if center_j is None:
             center_j = float(self.width) / 2
 
-        start_row = int(np.floor(max(0, center_i - float(height) / 2)))
-        end_row = int(np.floor(min(self.height, center_i + float(height) / 2)))
-        start_col = int(np.floor(max(0, center_j - float(width) / 2)))
-        end_col = int(np.floor(min(self.width, center_j + float(width) / 2)))
+        # crop using PIL
+        desired_start_row = np.floor(center_i - float(height) / 2)
+        desired_end_row = np.floor(center_i + float(height) / 2)
+        desired_start_col = np.floor(center_j - float(width) / 2)
+        desired_end_col = np.floor(center_j + float(width) / 2)
 
-        if end_row-start_row != height or end_col-start_col != width:
-            raise ValueError('Cannot crop image of shape (%d,%d) to image of shape (%d,%d)' %(self.height, self.width, height, width))
+        pil_im = PImage.fromarray(self.data)
+        cropped_pil_im = pil_im.crop((desired_start_col,
+                                      desired_start_row,
+                                      desired_end_col,
+                                      desired_end_row))
+        crop_data = np.array(cropped_pil_im)
 
-        return type(self)(self._data[start_row:end_row, start_col:end_col], self._frame)
+        if crop_data.shape[0] != height or crop_data.shape[1] != width:
+            raise ValueError('Crop dims are incorrect')
+
+        return type(self)(crop_data.astype(self.data.dtype), self._frame)
 
     def focus(self, height, width, center_i=None, center_j=None):
         """Zero out all of the image outside of a crop box.
@@ -540,6 +571,85 @@ class Image(object):
         shifted_data[nonzero_px_tf[:,0], nonzero_px_tf[:,1], :] = self.data[nonzero_px[:,0], nonzero_px[:,1]].reshape(-1, self.channels)
 
         return type(self)(shifted_data.astype(self.data.dtype), frame=self._frame), diff_px
+
+    def transform(self, translation, theta):
+        """ Translate and rotate image.
+
+        Parameters
+        ----------
+        translation : :obj:`numpy.ndarray`
+            2-vector of the translation to perform, in pixels
+        theta : float
+            amount to rotate the image
+        """
+        theta = np.rad2deg(theta)
+        trans_map = np.float32([[1,0,translation[1]], [0,1,translation[0]]])
+        rot_map = cv2.getRotationMatrix2D(tuple(self.center), theta, 1)
+        trans_map_aff = np.r_[trans_map, [[0,0,1]]]
+        rot_map_aff = np.r_[rot_map, [[0,0,1]]]
+        full_map = rot_map_aff.dot(trans_map_aff)
+        full_map = full_map[:2,:]
+        im_data_tf = cv2.warpAffine(self.data, full_map, (self.height, self.width), flags=cv2.INTER_NEAREST)
+        return type(self)(im_data_tf.astype(self.data.dtype), frame=self._frame)
+
+    def nonzero_pixels(self):
+        """ Return an array of the nonzero pixels.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+             Nx2 array of the nonzero pixels
+        """
+        nonzero_px = np.where(self.data > 0)
+        nonzero_px = np.c_[nonzero_px[0], nonzero_px[1]]
+        return nonzero_px
+
+    def zero_pixels(self):
+        """ Return an array of the zero pixels.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+             Nx2 array of the zero pixels
+        """
+        zero_px = np.where(self.data == 0)
+        zero_px = np.c_[zero_px[0], zero_px[1]]
+        return zero_px
+
+    def finite_pixels(self):
+        """ Return an array of the finite pixels.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+             Nx2 array of the finite pixels
+        """
+        finite_px = np.where(np.isfinite(self.data))
+        finite_px = np.c_[finite_px[0], finite_px[1]]
+        return finite_px
+
+    def nonzero_data(self):
+        """ Returns the values in the image at the nonzero pixels
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+             NxC array of the nonzero data
+        """
+        nonzero_px = self.nonzero_pixels()
+        return self.data[nonzero_px[:,0], nonzero_px[:,1], ...]
+
+    def replace_zeros(self, val):
+        """ Replaces all zeros in the image with a specified value
+
+        Returns
+        -------
+        image dtype
+             value to replace zeros with
+        """
+        new_data = self.data.copy()
+        new_data[new_data == 0] = val
+        return type(self)(new_data.astype(self.data.dtype), frame=self._frame)
 
     def save(self, filename):
         """Writes the image to a file.
@@ -668,8 +778,8 @@ class ColorImage(Image):
         if data.dtype.type is not np.uint8:
             raise ValueError('Illegal data type. Color images only support uint8 arrays')
 
-        if len(data.shape) == 3 and data.shape[2] != 1 and data.shape[2] != 3:
-            raise ValueError('Illegal data type. Color images only support one or three channels')
+        if len(data.shape) != 3 or data.shape[2] != 3:
+            raise ValueError('Illegal data type. Color images only support three channels')
 
     def _image_data(self):
         """Returns the data in image format, with scaling and conversion to uint8 types.
@@ -726,11 +836,11 @@ class ColorImage(Image):
         """Finds the corners of an sx X sy chessboard in the image.
 
         Parameters
+        ----------
         sx : int
-            Number of x-direction squares.
-
+            Number of chessboard corners in x-direction.
         sy : int
-            Number of y-direction squares.
+            Number of chessboard corners in y-direction.
 
         Returns
         -------
@@ -788,7 +898,7 @@ class ColorImage(Image):
         data[ind[0], ind[1], :] = 0.0
         return ColorImage(data, self._frame)
 
-    def foreground_mask(self, tolerance, ignore_endpoints=True, use_hsv=False, scale=8, bgmodel=None):
+    def foreground_mask(self, tolerance, ignore_black=True, use_hsv=False, scale=8, bgmodel=None):
         """Creates a binary image mask for the foreground of an image against
         a uniformly colored background. The background is assumed to be the mode value of the histogram
         for each of the color channels.
@@ -799,9 +909,9 @@ class ColorImage(Image):
             A +/- level from the detected mean backgroud color. Pixels withing
             this range will be classified as background pixels and masked out.
 
-        ignore_endpoints : bool
-            If True, the first and last bins of the color histogram for each
-            channel will be ignored when computing the background model.
+        ignore_black : bool
+            If True, the zero pixels will be ignored
+            when computing the background model.
 
         use_hsv : bool
             If True, image will be converted to HSV for background model
@@ -824,14 +934,14 @@ class ColorImage(Image):
         """
         # get a background model
         if bgmodel is None:
-            bgmodel = self.background_model(ignore_endpoints=ignore_endpoints,
+            bgmodel = self.background_model(ignore_black=ignore_black,
                                             use_hsv=use_hsv,
                                             scale=scale)
 
         # get the bounds
         lower_bound = np.array([bgmodel[i] - tolerance for i in range(self.channels)])
         upper_bound = np.array([bgmodel[i] + tolerance for i in range(self.channels)])
-        orig_zero_indices = np.where(self._data == 0)
+        orig_zero_indices = np.where(np.sum(self._data, axis=2) == 0)
 
         # threshold
         binary_data = cv2.inRange(self.data, lower_bound, upper_bound)
@@ -840,15 +950,15 @@ class ColorImage(Image):
         binary_im = BinaryImage(binary_data.astype(np.uint8), frame=self.frame)
         return binary_im
 
-    def background_model(self, ignore_endpoints=True, use_hsv=False, scale=8):
+    def background_model(self, ignore_black=True, use_hsv=False, scale=8):
         """Creates a background model for the given image. The background
         color is given by the modes of each channel's histogram.
 
         Parameters
         ----------
-        ignore_endpoints : bool
-            If True, the first and last bins of the color histogram for each
-            channel will be ignored when computing the background model.
+        ignore_black : bool
+            If True, the zero pixels will be ignored
+            when computing the background model.
 
         use_hsv : bool
             If True, image will be converted to HSV for background model
@@ -881,8 +991,8 @@ class ColorImage(Image):
         # find the thesholds as the modes of the image
         modes = [0 for i in range(self.channels)]
         for i in range(self.channels):
-            if ignore_endpoints:
-                modes[i] = scale * (np.argmax(hists[i][1:-1]) + 1)
+            if ignore_black:
+                modes[i] = scale * (np.argmax(hists[i][1:]) + 1)
             else:
                 modes[i] = scale * np.argmax(hists[i])
 
@@ -920,17 +1030,31 @@ class ColorImage(Image):
 
         return ColorImage(box_data, self._frame)
 
-    def segment_kmeans(self, color_weight, num_clusters):
+    def nonzero_hsv_data(self):
+        """ Computes non zero hsv values.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+            array of the hsv values for the image
+        """
+        hsv_data = cv2.cvtColor(self.data, cv2.COLOR_BGR2HSV)
+        nonzero_px = self.nonzero_pixels()
+        return hsv_data[nonzero_px[:,0], nonzero_px[:,1], ...]
+
+    def segment_kmeans(self, rgb_weight, num_clusters, hue_weight=0.0):
         """
         Segment a color image using KMeans based on spatial and color distances.
         Black pixels will automatically be assigned to their own 'background' cluster.
 
         Parameters
         ----------
-        color_weight : float
-            weighting between the color distance and spatial distance
+        rgb_weight : float
+            weighting of RGB distance relative to spatial and hue distance
         num_clusters : int
             number of clusters to use
+        hue_weight : float
+            weighting of hue from hsv relative to spatial and RGB distance
 
         Returns
         -------
@@ -941,9 +1065,13 @@ class ColorImage(Image):
         label_offset = 1
         nonzero_px = np.where(self.data != 0.0)
         nonzero_px = np.c_[nonzero_px[0], nonzero_px[1]]
-        color_vals = self.data[nonzero_px[:,0], nonzero_px[:,1], :]
-        num_nonzero = nonzero_px.shape[0]
-        features = np.c_[nonzero_px, color_weight * color_vals.astype(np.float32)]
+
+        # get hsv data if specified
+        color_vals = rgb_weight * self._data[nonzero_px[:,0], nonzero_px[:,1], :]
+        if hue_weight > 0.0:
+            hsv_data = cv2.cvtColor(self.data, cv2.COLOR_BGR2HSV)
+            color_vals = np.c_[color_vals, hue_weight * hsv_data[nonzero_px[:,0], nonzero_px[:,1], :1]]
+        features = np.c_[nonzero_px, color_vals.astype(np.float32)]
 
         # perform KMeans clustering
         kmeans = sc.KMeans(n_clusters=num_clusters)
@@ -953,6 +1081,47 @@ class ColorImage(Image):
         label_im = np.zeros([self.height, self.width]).astype(np.uint8)
         label_im[nonzero_px[:,0], nonzero_px[:,1]] = labels + label_offset
         return SegmentationImage(label_im, frame=self.frame)
+
+    def inpaint(self, win_size=3, rescale_factor=1.0):
+        """ Fills in the zero pixels in the image.
+
+        Parameters
+        ----------
+        win_size : int
+            size of window to use for inpainting
+        rescale_factor : float
+            amount to rescale the image for inpainting, smaller numbers increase speed
+
+        Returns
+        -------
+        :obj:`ColorImage`
+            color image with zero pixels filled in
+        """
+        # resize the image
+        resized_data = self.resize(rescale_factor, interp='nearest').data
+
+        # inpaint smaller image
+        mask = 1 * (np.sum(resized_data, axis=2) == 0)
+        inpainted_data = cv2.inpaint(resized_data, mask.astype(np.uint8),
+                                     win_size, cv2.INPAINT_TELEA)
+        inpainted_im = ColorImage(inpainted_data, frame=self.frame)
+
+        # fill in zero pixels with inpainted and resized image
+        filled_data = inpainted_im.resize(1.0 / rescale_factor, interp='bilinear').data
+        new_data = self.data
+        new_data[self.data == 0] = filled_data[self.data == 0]
+        return ColorImage(new_data, frame=self.frame)
+
+    def to_binary(self, threshold=0.0):
+        """Converts the color image to binary.
+
+        Returns
+        -------
+        :obj:`BinaryImage`
+            Binary image corresponding to the nonzero px of the original image
+        """
+        data = 255 * (self._data > threshold)
+        return BinaryImage(data[:,:,0].astype(np.uint8), self._frame)
 
     def to_grayscale(self):
         """Converts the color image to grayscale using OpenCV.
@@ -1013,6 +1182,7 @@ class DepthImage(Image):
             string.
         """
         Image.__init__(self, data, frame)
+        self._data = self._data.astype(np.float32)
 
     def _check_valid_data(self, data):
         """Checks that the given data is a float array with one channel.
@@ -1034,8 +1204,13 @@ class DepthImage(Image):
         if len(data.shape) == 3 and data.shape[2] != 1:
             raise ValueError('Illegal data type. Depth images only support single channel')
 
-    def _image_data(self):
+    def _image_data(self, normalize=False):
         """Returns the data in image format, with scaling and conversion to uint8 types.
+
+        Parameters
+        ----------
+        normalize : bool
+            whether or not to normalize by the min and max depth of the image
 
         Returns
         -------
@@ -1044,7 +1219,13 @@ class DepthImage(Image):
             second is columns, and the third is a set of 3 RGB values, each of
             which is simply the depth entry scaled to between 0 and 255.
         """
-        depth_data = (self._data * (255.0 / constants.MAX_DEPTH)).squeeze()
+        if normalize:
+            min_depth = np.min(self._data)
+            max_depth = np.max(self._data)
+            depth_data = (self._data - min_depth) / (max_depth - min_depth)
+            depth_data = 255.0 * depth_data.squeeze()
+        else:
+            depth_data = (self._data * (255.0 / constants.MAX_DEPTH)).squeeze()
         im_data = np.zeros([self.height, self.width, 3])
         im_data[:,:,0] = depth_data
         im_data[:,:,1] = depth_data
@@ -1134,6 +1315,74 @@ class DepthImage(Image):
         data[ind[0], ind[1]] = 0.0
         return DepthImage(data, self._frame)
 
+    def threshold_gradients_pctile(self, thresh_pctile, min_mag=0.0):
+        """Creates a new DepthImage by zeroing out all depths
+        where the magnitude of the gradient at that point is
+        greater than some percentile of all gradients.
+
+        Parameters
+        ----------
+        thresh_pctile : float
+            percentile to threshold all gradients above
+        min_mag : float
+            minimum magnitude of the gradient
+
+        Returns
+        -------
+        :obj:`DepthImage`
+            A new DepthImage created from the thresholding operation.
+        """
+        data = np.copy(self._data)
+        gx, gy = self.gradients()
+        gradients = np.zeros([gx.shape[0], gx.shape[1], 2])
+        gradients[:,:,0] = gx
+        gradients[:,:,1] = gy
+        gradient_mags = np.linalg.norm(gradients, axis=2)
+        grad_thresh = np.percentile(gradient_mags, thresh_pctile)
+        ind = np.where((gradient_mags > grad_thresh) & (gradient_mags > min_mag))
+        data[ind[0], ind[1]] = 0.0
+        return DepthImage(data, self._frame)
+
+    def inpaint(self, rescale_factor=1.0):
+        """ Fills in the zero pixels in the image.
+
+        Parameters
+        ----------
+        rescale_factor : float
+            amount to rescale the image for inpainting, smaller numbers increase speed
+
+        Returns
+        -------
+        :obj:`DepthImage`
+            depth image with zero pixels filled in
+        """
+        # form inpaint kernel
+        inpaint_kernel = np.array([[1,1,1],[1,0,1],[1,1,1]])
+
+        # resize the image
+        resized_data = self.resize(rescale_factor, interp='nearest').data
+
+        # inpaint the smaller image
+        cur_data = resized_data.copy()
+        zeros = (cur_data == 0)
+        while np.any(zeros):
+            neighbors = ssg.convolve2d((cur_data != 0), inpaint_kernel,
+                                       mode='same', boundary='symm')
+            avg_depth = ssg.convolve2d(cur_data, inpaint_kernel,
+                                       mode='same', boundary='symm')
+            avg_depth[neighbors>0] = avg_depth[neighbors>0] / neighbors[neighbors>0]
+            avg_depth[neighbors==0] = 0
+            avg_depth[resized_data > 0] = resized_data[resized_data > 0]
+            cur_data = avg_depth
+            zeros = (cur_data == 0)
+
+        # fill in zero pixels with inpainted and resized image
+        inpainted_im = DepthImage(cur_data, frame=self.frame)
+        filled_data = inpainted_im.resize(1.0 / rescale_factor, interp='bilinear').data
+        new_data = self.data
+        new_data[self.data == 0] = filled_data[self.data == 0]
+        return DepthImage(new_data, frame=self.frame)
+
     def mask_binary(self, binary_im):
         """Create a new image by zeroing out data at locations
         where binary_im == 0.0.
@@ -1155,6 +1404,24 @@ class DepthImage(Image):
         data[ind[0], ind[1]] = 0.0
         return DepthImage(data, self._frame)
 
+    def combine_with(self, depth_im):
+        """
+        Replaces all zeros in the source depth image with the value of a different depth image
+
+        Parameters
+        ----------
+        depth_im : :obj:`DepthImage`
+            depth image to combine with
+
+        Returns
+        -------
+        :obj:`DepthImage`
+            the combined depth image
+        """
+        new_data = self.data.copy()
+        new_data[new_data == 0] = depth_im.data[new_data == 0]
+        return DepthImage(new_data, frame=self.frame)
+
     def to_binary(self, threshold=0.0):
         """Creates a BinaryImage from the depth image. Points where the depth
         is greater than threshold are converted to ones, and all other points
@@ -1174,17 +1441,31 @@ class DepthImage(Image):
         data = 255 * (self._data > threshold)
         return BinaryImage(data.astype(np.uint8), self._frame)
 
-    def to_color(self):
-        """Creates a ColorImage from the depth image, where whiter areas are
-        further from the camera.
+    def to_color(self, normalize=False):
+        """ Convert to a color image.
+
+        Parameters
+        ----------
+        normalize : bool
+             whether or not to normalize by the maximum depth
 
         Returns
         -------
         :obj:`ColorImage`
-            The newly-created grayscale color image.
+            color image corresponding to the depth image
         """
-        im_data = self._image_data()
+        im_data = self._image_data(normalize=normalize)
         return ColorImage(im_data, frame=self._frame)
+
+    def to_float(self):
+        """ Converts to 32-bit data.
+
+        Returns
+        -------
+        :obj:`DepthImage`
+            depth image with 32 bit float data
+        """
+        return DepthImage(self.data.astype(np.float32), frame=self.frame)
 
     def point_normal_cloud(self, camera_intr):
         """Computes a PointNormalCloud from the depth image.
@@ -1335,7 +1616,7 @@ class GrayscaleImage(Image):
     """A grayscale image in which individual pixels have a single uint8 channel.
     """
 
-    def __init__(self, data, frame):
+    def __init__(self, data, frame='unspecified'):
         """Create a grayscale image from an array of data.
 
         Parameters
@@ -1518,6 +1799,25 @@ class BinaryImage(Image):
         resized_data = sm.imresize(self._data, size, interp=interp)
         return BinaryImage(resized_data, self._frame)
 
+
+    def mask_binary(self, binary_im):
+        """ Takes AND operation with other binary image.
+
+        Parameters
+        ----------
+        binary_im : :obj:`BinaryImage`
+            binary image for and operation
+
+        Returns
+        -------
+        :obj:`BinaryImage`
+            AND of this binary image and other image
+        """
+        data = np.copy(self._data)
+        ind = np.where(binary_im.data == 0)
+        data[ind[0], ind[1], ...] = 0.0
+        return BinaryImage(data, self._frame)
+
     def prune_contours(self, area_thresh=1000.0, dist_thresh=20):
         """Removes all white connected components with area less than area_thresh.
 
@@ -1588,21 +1888,21 @@ class BinaryImage(Image):
         pruned_data[orig_zeros[0], orig_zeros[1]] = 0
         return BinaryImage(pruned_data.astype(np.uint8), self._frame)
 
-    def find_contours(self, area_thresh=1000.0):
-        """Returns a list of connected componenets with an area greater than
-        area_thresh.
+    def find_contours(self, min_area=0.0, max_area=np.inf):
+        """Returns a list of connected components with an area between
+        min_area and max_area.
 
         Parameters
         ----------
-        area_thresh : float
-            The minimal area for a connected component to be included.
+        min_area : float
+            The minimum area for a contour
+        max_area : float
+            The maximum area for a contour
 
         Returns
         -------
-        :obj:`list` of :obj:`tuple` of float, list, Box
-            A list of resuting contours. The first element of each is the
-            contour's area, the second is the set of points in the contour, and
-            the third is its bounding box as a Box element.
+        :obj:`list` of :obj:`Contour`
+            A list of resuting contours
         """
         # get all contours (connected components) from the binary image
         contours = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -1612,10 +1912,13 @@ class BinaryImage(Image):
         # find which contours need to be pruned
         for i in range(num_contours):
             area = cv2.contourArea(contours[0][i])
-            if area > area_thresh:
-                px = contours[0][i].squeeze()
-                bounding_box = Box(np.min(px, axis=0), np.max(px, axis=0), self._frame)
-                kept_contours.append((area, px, bounding_box))
+            if area > min_area and area < max_area:
+                boundary_px = contours[0][i].squeeze()
+                boundary_px_ij_swapped = np.zeros(boundary_px.shape)
+                boundary_px_ij_swapped[:,0] = boundary_px[:,1]
+                boundary_px_ij_swapped[:,1] = boundary_px[:,0]
+                kept_contours.append(Contour(boundary_px_ij_swapped, area=area, frame=self._frame))
+
         return kept_contours
 
     def closest_nonzero_pixel(self, pixel, direction, w=13, t=0.5):
@@ -1650,13 +1953,13 @@ class BinaryImage(Image):
         cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
         cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
         occupied = True
-        if np.any(cur_px_y >= 0) and np.any(cur_px_y < self.height) and np.any(cur_px_x >= 0) and np.any(cur_px_x < self.width):
+        if np.all(cur_px_y >= 0) and np.all(cur_px_y < self.height) and np.all(cur_px_x >= 0) and np.all(cur_px_x < self.width):
             occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
         while occupied:
             pixel = pixel + t * direction
             cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
             cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
-            if np.any(cur_px_y >= 0) and np.any(cur_px_y < self.height) and np.any(cur_px_x >= 0) and np.any(cur_px_x < self.width):
+            if np.all(cur_px_y >= 0) and np.all(cur_px_y < self.height) and np.all(cur_px_x >= 0) and np.all(cur_px_x < self.width):
                 occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
             else:
                 occupied = False
@@ -1714,6 +2017,34 @@ class BinaryImage(Image):
         free_pixel = np.array([max_px[0][0], max_px[1][0]])
         return free_pixel
 
+    def diff_with_target(self, binary_im):
+        """ Creates a color image to visualize the overlap between two images.
+        Nonzero pixels that match in both images are green.
+        Nonzero pixels of this image that aren't in the other image are yellow
+        Nonzero pixels of the other image that aren't in this image are red
+
+        Parameters
+        ----------
+        binary_im : :obj:`BinaryImage`
+            binary image to take the difference with
+
+        Returns
+        -------
+        :obj:`ColorImage`
+            color image to visualize the image difference
+        """
+        red = np.array([255,0,0])
+        yellow = np.array([255,255,0])
+        green = np.array([0,255,0])
+        overlap_data = np.zeros([self.height, self.width, 3])
+        unfilled_px = np.where((self.data == 0) & (binary_im.data > 0))
+        overlap_data[unfilled_px[0], unfilled_px[1], :] = red
+        filled_px = np.where((self.data > 0) & (binary_im.data > 0))
+        overlap_data[filled_px[0], filled_px[1], :] = green
+        spurious_px = np.where((self.data > 0) & (binary_im.data == 0))
+        overlap_data[spurious_px[0], spurious_px[1], :] = yellow
+        return ColorImage(overlap_data.astype(np.uint8), frame=self.frame)
+
     def to_color(self):
         """Creates a ColorImage from the binary image.
 
@@ -1751,6 +2082,121 @@ class BinaryImage(Image):
         if len(data.shape) > 2 and data.shape[2] > 1:
             data = data[:,:,0]
         return BinaryImage(data, frame)
+
+class SegmentationImage(Image):
+    """An image containing integer-valued segment labels.
+    """
+    def __init__(self, data, frame='unspecified'):
+        """Create a BinaryImage image from an array of data.
+
+        Parameters
+        ----------
+        data : :obj:`numpy.ndarray`
+            An array of data with which to make the image. The first dimension
+            of the data should index rows, the second columns, and the third
+            individual pixel elements (only one channel, all uint8).
+            The integer-valued data should correspond to segment labels.
+
+        frame : :obj:`str`
+            A string representing the frame of reference in which this image
+            lies.
+
+        Raises
+        ------
+        ValueError
+            If the data is not a properly-formatted ndarray or frame is not a
+            string.
+        """
+        self._num_segments = np.max(data)+1
+        Image.__init__(self, data, frame)
+
+    def _check_valid_data(self, data):
+        """ Checks for uint8, single channel """
+        if data.dtype.type is not np.uint8:
+            raise ValueError('Illegal data type. Segmentation images only support 8-bit uint arrays')
+
+        if len(data.shape) == 3 and data.shape[2] != 1:
+            raise ValueError('Illegal data type. Segmentation images only support single channel ')
+
+    @property
+    def num_segments(self):
+        return self._num_segments
+
+    def _image_data(self):
+        return self._data
+
+    def border_pixels(self, grad_sigma=0.5, grad_lower_thresh=0.1, grad_upper_thresh=1.0):
+        """
+        Returns the pixels on the boundary between all segments, excluding the zero segment.
+
+        Parameters
+        ----------
+        grad_sigma : float
+            standard deviation used for gaussian gradient filter
+        grad_lower_thresh : float
+            lower threshold on gradient threshold used to determine the boundary pixels
+        grad_upper_thresh : float
+            upper threshold on gradient threshold used to determine the boundary pixels
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+             Nx2 array of pixels on the boundary
+        """
+        # boundary pixels
+        boundary_im = np.ones(self.shape)
+        for i in range(1, self.num_segments):
+            label_border_im = self.data.copy()
+            label_border_im[self.data == 0] = i
+            grad_mag = sf.gaussian_gradient_magnitude(label_border_im.astype(np.float32), sigma=grad_sigma)
+
+            nonborder_px = np.where((grad_mag < grad_lower_thresh) | (grad_mag > grad_upper_thresh))
+            boundary_im[nonborder_px[0], nonborder_px[1]] = 0
+
+        # return boundary pixels
+        border_px = np.where(boundary_im > 0)
+        border_px = np.c_[border_px[0], border_px[1]]
+        return border_px
+
+    def segment_mask(self, segnum):
+        """ Returns a binary image of just the segment corresponding to the given number.
+
+        Parameters
+        ----------
+        segnum : int
+            the number of the segment to generate a mask for
+
+        Returns
+        -------
+        :obj:`BinaryImage`
+             binary image data
+        """
+        binary_data = np.zeros(self.shape)
+        binary_data[self.data == segnum+1] = 255
+        return BinaryImage(binary_data.astype(np.uint8), frame=self.frame)
+
+    def resize(self, size, interp='nearest'):
+        """Resize the image.
+
+        Parameters
+        ----------
+        size : int, float, or tuple
+            * int   - Percentage of current size.
+            * float - Fraction of current size.
+            * tuple - Size of the output image.
+
+        interp : :obj:`str`, optional
+            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
+            'bicubic', or 'cubic')
+        """
+        resized_data = sm.imresize(self.data, size, interp=interp, mode='L')
+        return SegmentationImage(resized_data, self._frame)
+
+    @staticmethod
+    def open(filename, frame='unspecified'):
+        """ Opens a segmentation image """
+        data = Image.load_data(filename)
+        return SegmentationImage(data, frame)
 
 class PointCloudImage(Image):
     """A point cloud image in which individual pixels have three float channels.

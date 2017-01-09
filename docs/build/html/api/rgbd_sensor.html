@@ -1,0 +1,589 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>RGBD Sensors &mdash; perception 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="perception 0.0.1 documentation" href="../index.html"/>
+        <link rel="prev" title="Image Classes" href="image.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> perception
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="camera_intrinsics.html">Camera Intrinsics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image.html">Image Classes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">RGBD Sensors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#rgbdsensor">RgbdSensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kinect2sensor">Kinect2Sensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#virtualkinect2sensor">VirtualKinect2Sensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kinect2sensorfactory">Kinect2SensorFactory</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">perception</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li>RGBD Sensors</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/rgbd_sensor.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="rgbd-sensors">
+<h1>RGBD Sensors<a class="headerlink" href="#rgbd-sensors" title="Permalink to this headline">¶</a></h1>
+<p>Interfaces for RGBD (color + depth) sensors.</p>
+<div class="section" id="rgbdsensor">
+<h2>RgbdSensor<a class="headerlink" href="#rgbdsensor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.RgbdSensor">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">RgbdSensor</code><a class="headerlink" href="#perception.RgbdSensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Abstract base class for red-green-blue-depth sensors.</p>
+<dl class="method">
+<dt id="perception.RgbdSensor.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdSensor.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the sensor stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.RgbdSensor.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdSensor.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the sensor stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.RgbdSensor.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdSensor.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restarts the sensor stream.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.RgbdSensor.frames">
+<code class="descname">frames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdSensor.frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the latest set of frames.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="kinect2sensor">
+<h2>Kinect2Sensor<a class="headerlink" href="#kinect2sensor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.Kinect2Sensor">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">Kinect2Sensor</code><span class="sig-paren">(</span><em>packet_pipeline_mode=1</em>, <em>registration_mode=1</em>, <em>depth_mode=0</em>, <em>device_num=0</em>, <em>frame=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.Kinect2Sensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.rgbd_sensor.RgbdSensor</span></code></p>
+<p>Class for interacting with a Kinect v2 RGBD sensor.</p>
+<dl class="method">
+<dt id="perception.Kinect2Sensor.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>packet_pipeline_mode=1</em>, <em>registration_mode=1</em>, <em>depth_mode=0</em>, <em>device_num=0</em>, <em>frame=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.Kinect2Sensor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a Kinect v2 sensor with the given configuration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>packet_pipeline_mode</strong> (<em>int</em>) &#8211; Either Kinect2PacketPipelineMode.OPENGL or
+Kinect2PacketPipelineMode.CPU &#8211; indicates packet processing type.</li>
+<li><strong>registration_mode</strong> (<em>int</em>) &#8211; Either Kinect2RegistrationMode.NONE or
+Kinect2RegistrationMode.COLOR_TO_DEPT &#8211; The mode for registering
+a color image to the IR camera frame of reference.</li>
+<li><strong>depth_mode</strong> (<em>int</em>) &#8211; Either Kinect2DepthMode.METERS or Kinect2DepthMode.MILLIMETERS &#8211;
+the units for depths returned from the Kinect frame arrays.</li>
+<li><strong>device_num</strong> (<em>int</em>) &#8211; The sensor&#8217;s device number on the USB bus.</li>
+<li><strong>frame</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; The name of the frame of reference in which the sensor resides.
+If None, this will be set to &#8216;kinect2_num&#8217;, where num is replaced
+with the device number.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.Kinect2Sensor.__del__">
+<code class="descname">__del__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.Kinect2Sensor.__del__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically stop the sensor for safety.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.Kinect2Sensor.color_intrinsics">
+<code class="descname">color_intrinsics</code><a class="headerlink" href="#perception.Kinect2Sensor.color_intrinsics" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; The camera intrinsics for the Kinect&#8217;s color camera.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.Kinect2Sensor.ir_intrinsics">
+<code class="descname">ir_intrinsics</code><a class="headerlink" href="#perception.Kinect2Sensor.ir_intrinsics" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; The camera intrinsics for the Kinect&#8217;s IR camera.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.Kinect2Sensor.is_running">
+<code class="descname">is_running</code><a class="headerlink" href="#perception.Kinect2Sensor.is_running" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; True if the stream is running, or false otherwise.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.Kinect2Sensor.frame">
+<code class="descname">frame</code><a class="headerlink" href="#perception.Kinect2Sensor.frame" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the sensor.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.Kinect2Sensor.color_frame">
+<code class="descname">color_frame</code><a class="headerlink" href="#perception.Kinect2Sensor.color_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the color sensor.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.Kinect2Sensor.ir_frame">
+<code class="descname">ir_frame</code><a class="headerlink" href="#perception.Kinect2Sensor.ir_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the IR sensor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.Kinect2Sensor.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.Kinect2Sensor.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the Kinect v2 sensor stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If the Kinect v2 is not detected.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.Kinect2Sensor.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.Kinect2Sensor.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the Kinect2 sensor stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the stream was stopped, False if the device was already
+stopped or was not otherwise available.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.Kinect2Sensor.frames">
+<code class="descname">frames</code><span class="sig-paren">(</span><em>skip_registration=False</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.Kinect2Sensor.frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a new frame from the Kinect and convert it to a ColorImage,
+a DepthImage, and an IrImage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>skip_registration</strong> (<em>bool</em>) &#8211; If True, the registration step is skipped.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The ColorImage, DepthImage, and IrImage of the current frame.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">tuple</span></code> of <code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">IrImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code> &#8211; If the Kinect stream is not running.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.Kinect2Sensor.median_depth_img">
+<code class="descname">median_depth_img</code><span class="sig-paren">(</span><em>num_img=1</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.Kinect2Sensor.median_depth_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect a series of depth images and return the median of the set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_img</strong> (<em>int</em>) &#8211; The number of consecutive frames to process.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The median DepthImage collected from the frames.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="virtualkinect2sensor">
+<h2>VirtualKinect2Sensor<a class="headerlink" href="#virtualkinect2sensor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.VirtualKinect2Sensor">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">VirtualKinect2Sensor</code><span class="sig-paren">(</span><em>path_to_images</em>, <em>frame=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.VirtualKinect2Sensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.rgbd_sensor.RgbdSensor</span></code></p>
+<p>Class for a virtual Kinect v2 sensor that uses pre-captured images
+stored to disk instead of actually connecting to a sensor.
+For debugging purposes.</p>
+<dl class="method">
+<dt id="perception.VirtualKinect2Sensor.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>path_to_images</em>, <em>frame=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.VirtualKinect2Sensor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new virtualized Kinect v2 sensor.</p>
+<p>This requires a directory containing a specific set of files.</p>
+<p>First, the directory must contain a set of images, where each
+image has three files:</p>
+<blockquote>
+<div><ul class="simple">
+<li>color_{#}.png</li>
+<li>depth_{#}.npy</li>
+<li>ir_{#}.npy</li>
+</ul>
+</div></blockquote>
+<p>In these, the {#} is replaced with the integer index for the
+image. These indices should start at zero and increase
+consecutively.</p>
+<p>Second, the directory must contain CameraIntrisnics files
+for the color and ir cameras:</p>
+<blockquote>
+<div><ul class="simple">
+<li>{frame}_color.intr</li>
+<li>{frame}_ir.intr</li>
+</ul>
+</div></blockquote>
+<p>In these, the {frame} is replaced with the reference frame
+name that is passed as a parameter to this function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path_to_images</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; The path to a directory containing images that the virtualized
+sensor will return.</li>
+<li><strong>frame</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; The name of the frame of reference in which the sensor resides.
+If None, this will be discovered from the files in the directory.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.VirtualKinect2Sensor.path_to_images">
+<code class="descname">path_to_images</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.path_to_images" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The path to a directory containing images that the virtualized
+sensor will return.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.VirtualKinect2Sensor.is_running">
+<code class="descname">is_running</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.is_running" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; True if the stream is running, or false otherwise.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.VirtualKinect2Sensor.frame">
+<code class="descname">frame</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.frame" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the sensor.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.VirtualKinect2Sensor.color_frame">
+<code class="descname">color_frame</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.color_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the color sensor.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.VirtualKinect2Sensor.ir_frame">
+<code class="descname">ir_frame</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.ir_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the IR sensor.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.VirtualKinect2Sensor.color_intrinsics">
+<code class="descname">color_intrinsics</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.color_intrinsics" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; The camera intrinsics for the Kinect&#8217;s color camera.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="perception.VirtualKinect2Sensor.ir_intrinsics">
+<code class="descname">ir_intrinsics</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.ir_intrinsics" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; The camera intrinsics for the Kinect&#8217;s IR camera.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.VirtualKinect2Sensor.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.VirtualKinect2Sensor.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the Kinect v2 sensor stream.</p>
+<p>In this virtualized sensor, this simply resets the image index to zero.
+Everytime start is called, we start the stream again at the first image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.VirtualKinect2Sensor.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.VirtualKinect2Sensor.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the Kinect2 sensor stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the stream was stopped, False if the device was already
+stopped or was not otherwise available.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.VirtualKinect2Sensor.frames">
+<code class="descname">frames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.VirtualKinect2Sensor.frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the next frame from the image directory and convert it to a ColorImage,
+a DepthImage, and an IrImage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>skip_registration</strong> (<em>bool</em>) &#8211; If True, the registration step is skipped.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The ColorImage, DepthImage, and IrImage of the current frame.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">tuple</span></code> of <code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">IrImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code> &#8211; If the Kinect stream is not running or if all images in the
+directory have been used.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.VirtualKinect2Sensor.median_depth_img">
+<code class="descname">median_depth_img</code><span class="sig-paren">(</span><em>num_img=1</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.VirtualKinect2Sensor.median_depth_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect a series of depth images and return the median of the set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_img</strong> (<em>int</em>) &#8211; The number of consecutive frames to process.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The median DepthImage collected from the frames.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="kinect2sensorfactory">
+<h2>Kinect2SensorFactory<a class="headerlink" href="#kinect2sensorfactory" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.Kinect2SensorFactory">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">Kinect2SensorFactory</code><a class="headerlink" href="#perception.Kinect2SensorFactory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory class for Kinect2 sensors.</p>
+<dl class="staticmethod">
+<dt id="perception.Kinect2SensorFactory.sensor">
+<em class="property">static </em><code class="descname">sensor</code><span class="sig-paren">(</span><em>sensor_type</em>, <em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.Kinect2SensorFactory.sensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Kinect2 sensor of the specified type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sensor_type</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; the type of the sensor (real or virtual)</li>
+<li><strong>cfg</strong> (<code class="xref py py-obj docutils literal"><span class="pre">YamlConfig</span></code>) &#8211; dictionary of parameters for sensor initialization</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="image.html" class="btn btn-neutral" title="Image Classes" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jeff Mahler.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

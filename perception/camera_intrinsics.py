@@ -131,6 +131,67 @@ class CameraIntrinsics(object):
         """
         return self._K
 
+    def crop(self, height, width, crop_ci, crop_cj):
+        """ Convert to new camera intrinsics for crop of image from original camera.
+
+        Parameters
+        ----------
+        height : int
+            height of crop window
+        width : int
+            width of crop window
+        crop_ci : int
+            row of crop window center
+        crop_cj : int
+            col of crop window center
+
+        Returns
+        -------
+        :obj:`CameraIntrinsics`
+            camera intrinsics for cropped window
+        """
+        cx = self.cx + float(width-1)/2 - crop_cj
+        cy = self.cy + float(height-1)/2 - crop_ci
+        cropped_intrinsics = CameraIntrinsics(frame=self.frame,
+                                              fx=self.fx,
+                                              fy=self.fy,
+                                              skew=self.skew,
+                                              cx=cx, cy=cy,
+                                              height=height,
+                                              width=width)
+        return cropped_intrinsics
+
+    def resize(self, scale):
+        """ Convert to new camera intrinsics with parameters for resized image.
+        
+        Parameters
+        ----------
+        scale : float
+            the amount to rescale the intrinsics
+        
+        Returns
+        -------
+        :obj:`CameraIntrinsics`
+            camera intrinsics for resized image        
+        """
+        center_x = float(self.width-1) / 2
+        center_y = float(self.height-1) / 2
+        orig_cx_diff = self.cx - center_x
+        orig_cy_diff = self.cy - center_y
+        height = scale * self.height
+        width = scale * self.width
+        scaled_center_x = float(width-1) / 2
+        scaled_center_y = float(height-1) / 2
+        fx = scale * self.fx
+        fy = scale * self.fy
+        skew = scale * self.skew
+        cx = scaled_center_x + scale * orig_cx_diff
+        cy = scaled_center_y + scale * orig_cy_diff
+        scaled_intrinsics = CameraIntrinsics(frame=self.frame,
+                                              fx=fx, fy=fy, skew=skew, cx=cx, cy=cy,
+                                              height=height, width=width)
+        return scaled_intrinsics
+
     def project(self, point_cloud, round_px=True):
         """Projects a point cloud onto the camera image plane.
 
