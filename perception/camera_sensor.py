@@ -33,3 +33,4 @@ class CameraSensor(object):
         """Returns the latest set of frames.
         """
         pass
+

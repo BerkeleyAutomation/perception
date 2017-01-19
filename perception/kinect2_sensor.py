@@ -1,5 +1,5 @@
 """
-Class for interfacing with the Kinect v2 RGBD sensor
+Class for interfacing with the Primesense RGBD sensor
 Author: Jeff Mahler
 """
 import copy

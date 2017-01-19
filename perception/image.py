@@ -537,10 +537,10 @@ class Image(object):
         if center_j is None:
             center_j = self.width / 2
 
-        start_row = max(0, center_i - height / 2)
-        end_row = min(self.height -1, center_i + height / 2)
-        start_col = max(0, center_j - width / 2)
-        end_col = min(self.width - 1, center_j + width / 2)
+        start_row = int(max(0, center_i - height / 2))
+        end_row = int(min(self.height -1, center_i + height / 2))
+        start_col = int(max(0, center_j - width / 2))
+        end_col = int(min(self.width - 1, center_j + width / 2))
 
         focus_data = np.zeros(self._data.shape)
         focus_data[start_row:end_row+1, start_col:end_col+1] = self._data[start_row:end_row+1,
