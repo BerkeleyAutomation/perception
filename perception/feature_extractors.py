@@ -99,4 +99,3 @@ class CNNReusableBatchFeatureExtractor(CNNBatchFeatureExtractor):
     """ Extract feature descriptors for images in a giant batch. Allows you to initialize the extractor with a pre-existing CNN, for memory management reasons. """
     def __init__(self, cnn):
         self.cnn_ = cnn
-

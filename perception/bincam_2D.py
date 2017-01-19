@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 # from alan.lfd_slware.options import SLVOptions
-from alan.lfd_amazon.options import AmazonOptions
+#from alan.lfd_amazon.options import AmazonOptions
 from bgSegmentation import segmentBG, bgBoundsByMode
 from basicImaging import addDim, deNoise
 

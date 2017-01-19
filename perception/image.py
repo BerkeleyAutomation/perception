@@ -7,9 +7,14 @@ import os
 import IPython
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import PIL.Image as PImage
+
 import scipy.misc as sm
+import scipy.signal as ssg
+import scipy.ndimage.filters as sf
+import scipy.ndimage.morphology as snm
 import scipy.spatial.distance as ssd
 import scipy.signal as ssg
 import matplotlib.pyplot as plt
@@ -27,7 +32,7 @@ import constants as constants
 class Image(object):
     """Abstract wrapper class for images.
     """
-    __metaclass__ = ABCMeta    
+    __metaclass__ = ABCMeta
 
     def __init__(self, data, frame='unspecified'):
         """Create an image from an array of data.
@@ -37,7 +42,7 @@ class Image(object):
         data : :obj:`numpy.ndarray`
             An array of data with which to make the image. The first dimension
             of the data should index rows, the second columns, and the third
-            individual pixel elements (i.e. R,G,B values). Alternatively, 
+            individual pixel elements (i.e. R,G,B values). Alternatively,
             if the matrix is one dimensional, it will be interpreted as an
             N by 1 image with single element list at each pixel,
             and if the matrix is two dimensional, it
@@ -265,7 +270,7 @@ class Image(object):
 
     def is_same_shape(self, other_im, check_channels=False):
         """ Checks if two images have the same height and width (and optionally channels).
-        
+
         Parameters
         ----------
         other_im : :obj:`Image`
@@ -282,7 +287,7 @@ class Image(object):
             if check_channels and self.channels != other_im.channels:
                 return False
             return True
-        return False                
+        return False
 
     def mask_by_ind(self, inds):
         """Create a new image by zeroing out data at locations not in the
@@ -344,7 +349,7 @@ class Image(object):
             if check_channels and self.channels != other_im.channels:
                 return False
             return True
-        return False                
+        return False
 
     @staticmethod
     def median_images(images):
@@ -444,7 +449,7 @@ class Image(object):
 
     def copy(self):
         """ Returns a copy of this image.
-        
+
         Returns
         -------
         :obj:`Image`
@@ -649,7 +654,7 @@ class Image(object):
         new_data = self.data.copy()
         new_data[new_data == 0] = val
         return type(self)(new_data.astype(self.data.dtype), frame=self._frame)
-        
+
     def save(self, filename):
         """Writes the image to a file.
 
@@ -835,11 +840,11 @@ class ColorImage(Image):
         """Finds the corners of an sx X sy chessboard in the image.
 
         Parameters
+        ----------
         sx : int
-            Number of x-direction squares.
-
+            Number of chessboard corners in x-direction.
         sy : int
-            Number of y-direction squares.
+            Number of chessboard corners in y-direction.
 
         Returns
         -------
@@ -978,7 +983,7 @@ class ColorImage(Image):
             pil_im = PImage.fromarray(self._data)
             pil_im = pil_im.convert('HSV')
             data = np.asarray(pil_im)
- 
+
         # generate histograms for each channel
         bounds = (0, np.iinfo(np.uint8).max + 1)
         num_bins = bounds[1] / scale
@@ -1205,7 +1210,7 @@ class DepthImage(Image):
 
     def _image_data(self, normalize=False):
         """Returns the data in image format, with scaling and conversion to uint8 types.
-        
+
         Parameters
         ----------
         normalize : bool
@@ -1312,7 +1317,7 @@ class DepthImage(Image):
         gradient_mags = np.linalg.norm(gradients, axis=2)
         ind = np.where(gradient_mags > grad_thresh)
         data[ind[0], ind[1]] = 0.0
-        return DepthImage(data, self._frame)        
+        return DepthImage(data, self._frame)
 
     def threshold_gradients_pctile(self, thresh_pctile, min_mag=0.0):
         """Creates a new DepthImage by zeroing out all depths
@@ -1340,7 +1345,7 @@ class DepthImage(Image):
         grad_thresh = np.percentile(gradient_mags, thresh_pctile)
         ind = np.where((gradient_mags > grad_thresh) & (gradient_mags > min_mag))
         data[ind[0], ind[1]] = 0.0
-        return DepthImage(data, self._frame)        
+        return DepthImage(data, self._frame)
 
     def inpaint(self, rescale_factor=1.0):
         """ Fills in the zero pixels in the image.
@@ -1451,7 +1456,7 @@ class DepthImage(Image):
         ----------
         normalize : bool
              whether or not to normalize by the maximum depth
-        
+
         Returns
         -------
         :obj:`ColorImage`
@@ -1487,7 +1492,7 @@ class DepthImage(Image):
         normal_cloud_im = point_cloud_im.normal_cloud_im()
         point_cloud = point_cloud_im.to_point_cloud()
         normal_cloud = normal_cloud_im.to_normal_cloud()
-        return PointNormalCloud(point_cloud.data, normal_cloud.data, frame=self._frame)        
+        return PointNormalCloud(point_cloud.data, normal_cloud.data, frame=self._frame)
 
     @staticmethod
     def open(filename, frame='unspecified'):
@@ -1805,12 +1810,12 @@ class BinaryImage(Image):
 
     def mask_binary(self, binary_im):
         """ Takes AND operation with other binary image.
-        
+
         Parameters
         ----------
         binary_im : :obj:`BinaryImage`
             binary image for and operation
-       
+
         Returns
         -------
         :obj:`BinaryImage`
@@ -1911,7 +1916,7 @@ class BinaryImage(Image):
         _, contours, _ = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         num_contours = len(contours)
         kept_contours = []
-        
+
         # find which contours need to be pruned
         for i in range(num_contours):
             area = cv2.contourArea(contours[i])
@@ -1920,7 +1925,7 @@ class BinaryImage(Image):
                 boundary_px_ij_swapped = np.zeros(boundary_px.shape)
                 boundary_px_ij_swapped[:,0] = boundary_px[:,1]
                 boundary_px_ij_swapped[:,1] = boundary_px[:,0]
-                kept_contours.append(Contour(boundary_px_ij_swapped, area=area, frame=self._frame))        
+                kept_contours.append(Contour(boundary_px_ij_swapped, area=area, frame=self._frame))
 
         return kept_contours
 
@@ -1957,13 +1962,13 @@ class BinaryImage(Image):
         cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
         occupied = True
         if np.all(cur_px_y >= 0) and np.all(cur_px_y < self.height) and np.all(cur_px_x >= 0) and np.all(cur_px_x < self.width):
-            occupied = np.all(self[cur_px_y, cur_px_x] >= self._threshold)
+            occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
         while occupied:
             pixel = pixel + t * direction
             cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
             cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
             if np.all(cur_px_y >= 0) and np.all(cur_px_y < self.height) and np.all(cur_px_x >= 0) and np.all(cur_px_x < self.width):
-                occupied = np.all(self[cur_px_y, cur_px_x] >= self._threshold)
+                occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
             else:
                 occupied = False
 
@@ -1971,7 +1976,7 @@ class BinaryImage(Image):
 
     def add_frame(self, left_boundary, right_boundary, upper_boundary, lower_boundary):
         """ Adds a frame to the image, e.g. turns the boundaries white
-        
+
         Parameters
         ----------
         left_boundary : int
@@ -2030,7 +2035,7 @@ class BinaryImage(Image):
         ----------
         binary_im : :obj:`BinaryImage`
             binary image to take the difference with
-        
+
         Returns
         -------
         :obj:`ColorImage`
@@ -2045,7 +2050,7 @@ class BinaryImage(Image):
         filled_px = np.where((self.data > 0) & (binary_im.data > 0))
         overlap_data[filled_px[0], filled_px[1], :] = green
         spurious_px = np.where((self.data > 0) & (binary_im.data == 0))
-        overlap_data[spurious_px[0], spurious_px[1], :] = yellow        
+        overlap_data[spurious_px[0], spurious_px[1], :] = yellow
         return ColorImage(overlap_data.astype(np.uint8), frame=self.frame)
 
     def to_color(self):
@@ -2090,7 +2095,7 @@ class SegmentationImage(Image):
     """An image containing integer-valued segment labels.
     """
     def __init__(self, data, frame='unspecified'):
-        """Create a BinaryImage image from an array of data.
+        """Create a Segmentation image from an array of data.
 
         Parameters
         ----------
@@ -2112,7 +2117,7 @@ class SegmentationImage(Image):
         """
         self._num_segments = np.max(data)+1
         Image.__init__(self, data, frame)
-        
+
     def _check_valid_data(self, data):
         """ Checks for uint8, single channel """
         if data.dtype.type is not np.uint8:
@@ -2120,7 +2125,7 @@ class SegmentationImage(Image):
 
         if len(data.shape) == 3 and data.shape[2] != 1:
             raise ValueError('Illegal data type. Segmentation images only support single channel ')
-    
+
     @property
     def num_segments(self):
         return self._num_segments
@@ -2131,7 +2136,7 @@ class SegmentationImage(Image):
     def border_pixels(self, grad_sigma=0.5, grad_lower_thresh=0.1, grad_upper_thresh=1.0):
         """
         Returns the pixels on the boundary between all segments, excluding the zero segment.
-        
+
         Parameters
         ----------
         grad_sigma : float
@@ -2163,12 +2168,12 @@ class SegmentationImage(Image):
 
     def segment_mask(self, segnum):
         """ Returns a binary image of just the segment corresponding to the given number.
-        
+
         Parameters
         ----------
         segnum : int
             the number of the segment to generate a mask for
-        
+
         Returns
         -------
         :obj:`BinaryImage`

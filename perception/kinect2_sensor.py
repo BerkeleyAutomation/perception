@@ -15,7 +15,7 @@ except:
 
 from camera_intrinsics import CameraIntrinsics
 from image import ColorImage, DepthImage, IrImage, Image
-from rgbd_sensor import RgbdSensor
+from camera_sensor import CameraSensor
 
 class Kinect2PacketPipelineMode:
     """Type of pipeline for Kinect packet processing.
@@ -41,7 +41,8 @@ class Kinect2DepthMode:
     METERS = 0
     MILLIMETERS = 1
 
-class Kinect2Sensor(RgbdSensor):
+class Kinect2Sensor(CameraSensor):
+    # constants for image height and width (in case they're needed somewhere)
     """Class for interacting with a Kinect v2 RGBD sensor.
     """
 
@@ -318,8 +319,8 @@ class Kinect2Sensor(RgbdSensor):
                 IrImage(ir_arr.astype(np.uint16), self._ir_frame),
                 color_depth_map)
 
-class VirtualKinect2Sensor(RgbdSensor):
-    """ Class for a virtual Kinect v2 sensor that uses pre-captured images
+class VirtualKinect2Sensor(CameraSensor):
+    """Class for a virtual Kinect v2 sensor that uses pre-captured images
     stored to disk instead of actually connecting to a sensor.
     For debugging purposes.
     """ 
@@ -331,17 +332,17 @@ class VirtualKinect2Sensor(RgbdSensor):
 
         First, the directory must contain a set of images, where each
         image has three files:
-            - color_{#}.png
-            - depth_{#}.npy
-            - ir_{#}.npy
+        - color_{#}.png
+        - depth_{#}.npy
+        - ir_{#}.npy
         In these, the {#} is replaced with the integer index for the
         image. These indices should start at zero and increase
         consecutively.
 
         Second, the directory must contain CameraIntrisnics files
         for the color and ir cameras:
-            - {frame}_color.intr
-            - {frame}_ir.intr
+        - {frame}_color.intr
+        - {frame}_ir.intr
         In these, the {frame} is replaced with the reference frame
         name that is passed as a parameter to this function.
 
@@ -532,7 +533,7 @@ class Kinect2SensorFactory:
             s = VirtualKinect2Sensor(cfg['image_dir'],
                                      frame=cfg['frame'])
         else:
-            raise ValueError('Kinect2 sensor type %s not supported' %(sensor_type)) 
+            raise ValueError('Kinect2 sensor type %s not supported' %(sensor_type))
         return s
 
 def load_images(cfg):

@@ -307,7 +307,7 @@ class CameraIntrinsics(object):
         if depth_image.frame != self._frame:
             raise ValueError('Cannot deproject points in frame %s from camera with frame %s' %(depth_image.frame, self._frame))
 
-        # create homogeneous pixels 
+        # create homogeneous pixels
         row_indices = np.arange(depth_image.height)
         col_indices = np.arange(depth_image.width)
         pixel_grid = np.meshgrid(col_indices, row_indices)
@@ -371,7 +371,7 @@ class CameraIntrinsics(object):
             raise ValueError('Cannot deproject pixel in frame %s from camera with frame %s' %(pixel.frame, self._frame))
 
         point_3d = depth * np.linalg.inv(self._K).dot(np.r_[pixel.data, 1.0])
-        return Point(data=point_3d, frame=self._frame)        
+        return Point(data=point_3d, frame=self._frame)
 
     def save(self, filename):
         """Save the CameraIntrinsics object to a .intr file.
@@ -430,4 +430,3 @@ class CameraIntrinsics(object):
                                 skew=ci['_skew'],
                                 height=ci['_height'],
                                 width=ci['_width'])
-

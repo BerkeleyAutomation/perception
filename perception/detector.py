@@ -299,8 +299,6 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
         crop_width = cfg['image_width']
         depth_grad_thresh = cfg['depth_grad_thresh']
 
-        depth_offset = cfg['kinect2_noise_offset']
-
         w = cfg['filter_dim']
 
         half_crop_height = float(crop_height) / 2
@@ -310,7 +308,7 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
         fill_depth = np.max(depth_im.data[depth_im.data > 0])
 
         kinect2_denoising = False
-        if 'kinect2_denoising' in cfg.keys():
+        if 'kinect2_denoising' in cfg.keys() and cfg['kinect2_denoising']:
             kinect2_denoising = True
             depth_offset = cfg['kinect2_noise_offset']
             max_depth = cfg['kinect2_noise_max_depth']
@@ -378,7 +376,6 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
                 binary_mask_data = binary_thumbnail.data
                 depth_mask_data = depth_thumbnail.mask_binary(binary_thumbnail).data
                 depth_mask_data += depth_offset
-                #depth_data[depth_data > max_depth] = min_depth
                 depth_data[binary_mask_data > 0] = depth_mask_data[binary_mask_data > 0]
                 depth_thumbnail = DepthImage(depth_data, depth_thumbnail.frame)
 
