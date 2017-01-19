@@ -11,6 +11,7 @@ class RenderMode(object):
     """
     SEGMASK = 'segmask'
     DEPTH = 'depth'
+    DEPTH_SCENE = 'depth_scene'
     SCALED_DEPTH = 'scaled_depth'
     COLOR = 'color'
 

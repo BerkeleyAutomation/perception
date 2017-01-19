@@ -11,7 +11,14 @@ import numpy as np
 import PIL.Image as PImage
 import scipy.misc as sm
 import scipy.spatial.distance as ssd
+import scipy.signal as ssg
 import matplotlib.pyplot as plt
+
+import sklearn.cluster as sc
+import sklearn.mixture as smx
+import scipy.ndimage.filters as sf
+import scipy.spatial.distance as ssd
+import scipy.ndimage.morphology as snm
 
 from core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
 
@@ -1411,7 +1418,11 @@ class DepthImage(Image):
             the combined depth image
         """
         new_data = self.data.copy()
+        # replace zero pixels
         new_data[new_data == 0] = depth_im.data[new_data == 0]
+        # take closest pixel
+        new_data[new_data > depth_im.data] = depth_im.data[new_data > depth_im.data]
+
         return DepthImage(new_data, frame=self.frame)
 
     def to_binary(self, threshold=0.0):
@@ -1788,7 +1799,7 @@ class BinaryImage(Image):
         :obj:`BinaryImage`
             The resized image.
         """
-        resized_data = sm.imresize(self._data, size, interp=interp)
+        resized_data = sm.imresize(self.data, size, interp=interp)
         return BinaryImage(resized_data, self._frame)
 
 
@@ -1829,8 +1840,8 @@ class BinaryImage(Image):
             The new pruned binary image.
         """
         # get all contours (connected components) from the binary image
-        contours = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        num_contours = len(contours[0])
+        _, contours, _ = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        num_contours = len(contours)
         middle_pixel = np.array(self.shape)[:2] / 2
         middle_pixel = middle_pixel.reshape(1,2)
         center_contour = None
@@ -1838,16 +1849,16 @@ class BinaryImage(Image):
 
         # find which contours need to be pruned
         for i in range(num_contours):
-            area = cv2.contourArea(contours[0][i])
+            area = cv2.contourArea(contours[i])
             if area > area_thresh:
                 # check close to origin
                 fill = np.zeros([self.height, self.width, 3])
-                cv2.fillPoly(fill, pts=[contours[0][i]], color=(255,255,255))
+                cv2.fillPoly(fill, pts=[contours[i]], color=(255,255,255))
                 nonzero_px = np.where(fill > 0)
                 nonzero_px = np.c_[nonzero_px[0], nonzero_px[1]]
                 dists = ssd.cdist(middle_pixel, nonzero_px)
                 min_dist = np.min(dists)
-                pruned_contours.append((contours[0][i], min_dist))
+                pruned_contours.append((contours[i], min_dist))
 
         if len(pruned_contours) == 0:
             return None
@@ -1897,15 +1908,15 @@ class BinaryImage(Image):
             A list of resuting contours
         """
         # get all contours (connected components) from the binary image
-        contours = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        num_contours = len(contours[0])
+        _, contours, _ = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        num_contours = len(contours)
         kept_contours = []
         
         # find which contours need to be pruned
         for i in range(num_contours):
-            area = cv2.contourArea(contours[0][i])
+            area = cv2.contourArea(contours[i])
             if area > min_area and area < max_area:
-                boundary_px = contours[0][i].squeeze()
+                boundary_px = contours[i].squeeze()
                 boundary_px_ij_swapped = np.zeros(boundary_px.shape)
                 boundary_px_ij_swapped[:,0] = boundary_px[:,1]
                 boundary_px_ij_swapped[:,1] = boundary_px[:,0]

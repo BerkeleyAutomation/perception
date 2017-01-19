@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage.morphology as snm
 
-from alan.core import Box
+from core import Box
 from image import BinaryImage, ColorImage, DepthImage
 
 class RgbdDetection(object):
@@ -300,7 +300,6 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
         depth_grad_thresh = cfg['depth_grad_thresh']
 
         depth_offset = cfg['kinect2_noise_offset']
-        max_depth = cfg['kinect2_noise_max_depth']
 
         w = cfg['filter_dim']
 
@@ -314,6 +313,7 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
         if 'kinect2_denoising' in cfg.keys():
             kinect2_denoising = True
             depth_offset = cfg['kinect2_noise_offset']
+            max_depth = cfg['kinect2_noise_max_depth']
 
         # mask image using background detection
         bgmodel = color_im.background_model()
