@@ -2087,7 +2087,7 @@ class SegmentationImage(Image):
     """An image containing integer-valued segment labels.
     """
     def __init__(self, data, frame='unspecified'):
-        """Create a BinaryImage image from an array of data.
+        """Create a Segmentation image from an array of data.
 
         Parameters
         ----------

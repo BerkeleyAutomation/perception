@@ -26,8 +26,8 @@ BinaryImage
 .. autoclass:: perception.BinaryImage
 
 SegmentationImage
-~~~~~~~~~~~
-.. autoclass:: perception.BinaryImage
+~~~~~~~~~~~~~~~~~
+.. autoclass:: perception.SegmentationImage
 
 PointCloudImage
 ~~~~~~~~~~~~~~~

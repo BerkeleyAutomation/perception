@@ -1,10 +1,6 @@
-RGBD Sensors
-============
-Interfaces for RGBD (color + depth) sensors.
-
-RgbdSensor
-~~~~~~~~~~
-.. autoclass:: perception.RgbdSensor
+Kinect Sensor
+=============
+Interfaces for the Kinect 2 RGBD sesnor.
 
 Kinect2Sensor
 ~~~~~~~~~~~~~

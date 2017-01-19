@@ -24,7 +24,6 @@ except Exception:
     print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
 
 from opencv_camera_sensor import OpenCVCameraSensor
-from registration import IterativeRegistrationSolver, PointToPlaneICPSolver, RegistrationResult
 from video_recorder import VideoRecorder
 from video_writer import write_video
 
