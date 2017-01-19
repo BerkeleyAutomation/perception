@@ -1,27 +1,31 @@
+'''
+Alan Perception Module.
+Authors: Jeff, Jacky
+'''
 from camera_intrinsics import CameraIntrinsics
-from detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector
-from feature_extractors import FeatureExtractor, CNNBatchFeatureExtractor, CNNReusableBatchFeatureExtractor
+try:
+    from cnn import AlexNet, AlexNetWeights, conv
+    from feature_extractors import FeatureExtractor, CNNBatchFeatureExtractor, CNNReusableBatchFeatureExtractor
+except Exception:
+    print 'Unable to import ConvNet modules! Likely due to missing tensorflow.'
+    print 'TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup'
 from feature_matcher import Correspondences, NormalCorrespondences, FeatureMatcher, RawDistanceFeatureMatcher, PointToPlaneFeatureMatcher
 from features import Feature, LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
 from image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, SegmentationImage, BinaryImage, PointCloudImage, NormalCloudImage
 from object_render import RenderMode, ObjectRender, QueryImageBundle
 from chessboard_registration import ChessboardRegistrationResult, CameraChessboardRegistration
 from point_registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
-from rgbd_sensor import RgbdSensor
-from video_recorder import VideoRecorder
-
-try:
-    from cnn import AlexNetWeights, AlexNet, conv
-except Exception:
-    print 'Unable to import ConvNet modules! Likely due to missing tensorflow.'
-    print 'TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup'
-    
+from detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector
 
 try:
     from kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
 except Exception:
     print 'Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.'
     print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
+
+from opencv_camera_sensor import OpenCVCameraSensor
+from video_recorder import VideoRecorder
+from video_writer import write_video
 
 __all__ = [
     'CameraIntrinsics',
@@ -34,6 +38,6 @@ __all__ = [
     'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode', 'Kinect2DepthMode', 'Kinect2Sensor', 'VirtualKinect2Sensor', 'Kinect2SensorFactory', 'load_images',
     'RenderMode', 'ObjectRender', 'QueryImageBundle',
     'RegistrationResult', 'IterativeRegistrationSolver', 'PointToPlaneICPSolver',
-    'RgbdSensor',
-    'VideoRecorder'
+    'OpenCVCameraSensor',
+    'VideoRecorder',
 ]

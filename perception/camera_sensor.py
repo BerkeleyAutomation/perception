@@ -1,12 +1,13 @@
 """
-Abstract class for RGBD sensors.
+Abstract class for Camera sensors.
 Author: Jeff Mahler
 """
 from abc import ABCMeta, abstractmethod
 
-class RgbdSensor(object):
-    """Abstract base class for red-green-blue-depth sensors.
+class CameraSensor(object):
+    """Abstract base class for camera sensors.
     """
+
     __metaclass__ = ABCMeta
 
     @abstractmethod
@@ -32,4 +33,3 @@ class RgbdSensor(object):
         """Returns the latest set of frames.
         """
         pass
-

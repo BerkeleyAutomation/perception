@@ -311,6 +311,7 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
         if 'kinect2_denoising' in cfg.keys() and cfg['kinect2_denoising']:
             kinect2_denoising = True
             depth_offset = cfg['kinect2_noise_offset']
+            max_depth = cfg['kinect2_noise_max_depth']
 
         # mask image using background detection
         bgmodel = color_im.background_model()
