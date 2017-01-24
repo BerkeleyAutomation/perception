@@ -134,7 +134,7 @@ class PrimesenseSensor(CameraSensor):
         """ Stop the sensor """
         # check that everything is running
         if not self._running or self._device is None:
-            logging.warning('Primesense not runnning. Aborting stop')
+            logging.warning('Primesense not running. Aborting stop')
             return False
 
         # stop streams
@@ -203,7 +203,7 @@ class PrimesenseSensor(CameraSensor):
         depth_im = self._read_depth_image()
         return color_im, depth_im, None
 
-    def median_depth_img(self, num_img=1):
+    def median_depth_img(self, num_img=1, fill_depth=0.0):
         """Collect a series of depth images and return the median of the set.
 
         Parameters
@@ -222,5 +222,28 @@ class PrimesenseSensor(CameraSensor):
             _, depth, _ = self.frames()
             depths.append(depth)
 
-        return Image.median_images(depths)
+        median_depth = Image.median_images(depths)
+        median_depth.data[median_depth.data == 0.0] = fill_depth
+        return median_depth
+
+    def min_depth_img(self, num_img=1):
+        """Collect a series of depth images and return the min of the set.
+
+        Parameters
+        ----------
+        num_img : int
+            The number of consecutive frames to process.
+
+        Returns
+        -------
+        :obj:`DepthImage`
+            The min DepthImage collected from the frames.
+        """
+        depths = []
+
+        for _ in range(num_img):
+            _, depth, _ = self.frames()
+            depths.append(depth)
+
+        return Image.min_images(depths)
 

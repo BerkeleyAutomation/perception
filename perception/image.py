@@ -366,11 +366,34 @@ class Image(object):
             A new Image of the same type whose data is the median of all of
             the images' data.
         """
-        images_data = [image.data for image in images]
+        images_data = np.array([image.data for image in images])
         median_image_data = np.median(images_data, axis=0)
 
         an_image = images[0]
         return type(an_image)(median_image_data.astype(an_image.data.dtype), an_image.frame)
+
+    @staticmethod
+    def min_images(images):
+        """Create a min Image from a list of Images.
+
+        Parameters
+        ----------
+        :obj:`list` of :obj:`Image`
+            A list of Image objects.
+
+        Returns
+        -------
+        :obj:`Image`
+            A new Image of the same type whose data is the min of all of
+            the images' data.
+        """
+        images_data = np.array([image.data for image in images])
+        images_data[images_data == 0] = np.inf
+        min_image_data = np.min(images_data, axis=0)
+        min_image_data[min_image_data == np.inf] = 0.0
+
+        an_image = images[0]
+        return type(an_image)(min_image_data.astype(an_image.data.dtype), an_image.frame)
 
     def __getitem__(self, indices):
         """Index the image's data array.
@@ -643,7 +666,7 @@ class Image(object):
         nonzero_px = self.nonzero_pixels()
         return self.data[nonzero_px[:,0], nonzero_px[:,1], ...]
 
-    def replace_zeros(self, val):
+    def replace_zeros(self, val, zero_thresh=0.0):
         """ Replaces all zeros in the image with a specified value
 
         Returns
@@ -652,7 +675,7 @@ class Image(object):
              value to replace zeros with
         """
         new_data = self.data.copy()
-        new_data[new_data == 0] = val
+        new_data[new_data <= zero_thresh] = val
         return type(self)(new_data.astype(self.data.dtype), frame=self._frame)
 
     def save(self, filename):
@@ -984,21 +1007,28 @@ class ColorImage(Image):
             pil_im = pil_im.convert('HSV')
             data = np.asarray(pil_im)
 
+        # find the black pixels
+        nonblack_pixels = np.where(np.sum(self.data, axis=2) > 0)
+        r_data = self.r_data
+        g_data = self.g_data
+        b_data = self.b_data
+        if ignore_black:
+            r_data = r_data[nonblack_pixels[0], nonblack_pixels[1]]
+            g_data = g_data[nonblack_pixels[0], nonblack_pixels[1]]
+            b_data = b_data[nonblack_pixels[0], nonblack_pixels[1]]
+
         # generate histograms for each channel
         bounds = (0, np.iinfo(np.uint8).max + 1)
         num_bins = bounds[1] / scale
-        r_hist, _ = np.histogram(self.r_data, bins=num_bins, range=bounds)
-        g_hist, _ = np.histogram(self.g_data, bins=num_bins, range=bounds)
-        b_hist, _ = np.histogram(self.b_data, bins=num_bins, range=bounds)
+        r_hist, _ = np.histogram(r_data, bins=num_bins, range=bounds)
+        g_hist, _ = np.histogram(g_data, bins=num_bins, range=bounds)
+        b_hist, _ = np.histogram(b_data, bins=num_bins, range=bounds)
         hists = (r_hist, g_hist, b_hist)
 
         # find the thesholds as the modes of the image
         modes = [0 for i in range(self.channels)]
         for i in range(self.channels):
-            if ignore_black:
-                modes[i] = scale * (np.argmax(hists[i][1:]) + 1)
-            else:
-                modes[i] = scale * np.argmax(hists[i])
+            modes[i] = scale * np.argmax(hists[i])
 
         return modes
 
