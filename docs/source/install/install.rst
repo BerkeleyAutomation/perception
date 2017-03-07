@@ -4,15 +4,17 @@ Installation Instructions
 Dependencies
 ~~~~~~~~~~~~
 The `perception` module depends on the Berkeley AutoLab's `core`_ module,
-which can be installed using `pip install` on the source repo.
+which can be installed using the instructions `here`_.
 The module primarily wraps `OpenCV`_ version >= 2.11 which can be installed using pip.
 
-Furthermore, the `perception` module optionally depends on `Tensorflow`_ and `pylibfreenect2`_ for Convolutional Neural Networks and Kinect2 sensor usage, repectively.
+Furthermore, the `perception` module optionally depends on `Tensorflow`_ and `pylibfreenect2`_
+for Convolutional Neural Networks and Kinect2 sensor usage, repectively.
 Install these according to their website's instructions if their functionality is required.
 
 Installing our repo using `pip` will attempt to install these automatically.
 
-.. _core: https://github.com/mmatl/core
+.. _here: https://BerkeleyAutomation.github.io/core
+.. _core: https://github.com/BerkeleyAutomation/core
 .. _OpenCV: https://pypi.python.org/pypi/opencv-python
 .. _Tensorflow: http://tflearn.org/installation/
 .. _pylibfreenect2: http://r9y9.github.io/pylibfreenect2/installation.html
@@ -24,9 +26,9 @@ Cloning the Repository
 ~~~~~~~~~~~~~~~~~~~~~~
 You can clone or download our source code from `Github`_. ::
 
-    $ git clone git@github.com:mmatl/perception.git
+    $ git clone git@github.com:BerkeleyAutomation/perception.git
 
-.. _Github: https://github.com/mmatl/perception
+.. _Github: https://github.com/BerkeleyAutomation/perception
 
 Installation
 ~~~~~~~~~~~~
@@ -64,7 +66,7 @@ To install the dependencies required, simply run ::
 
     $ pip install -r docs_requirements.txt
 
-Then, go to the `docs` directory and run `make` with the appropriate target.
+Then, go to the `docs` directory and run ``make`` with the appropriate target.
 For example, ::
 
     $ cd docs/
@@ -73,3 +75,14 @@ For example, ::
 will generate a set of web pages. Any documentation files
 generated in this manner can be found in `docs/build`.
 
+Deploying Documentation
+~~~~~~~~~~~~~~~~~~~~~~~
+To deploy documentation to the Github Pages site for the repository,
+simply push any changes to the documentation source to master
+and then run ::
+
+    $ . gh_deploy.sh
+
+from the `docs` folder. This script will automatically checkout the
+``gh-pages`` branch, build the documentation from source, and push it
+to Github.

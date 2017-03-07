@@ -11,9 +11,8 @@ import time
 from mpl_toolkits.mplot3d import Axes3D
 
 from core import RigidTransform, YamlConfig
+from perception import CameraChessboardRegistration, RgbdSensorFactory
 from yumipy import YuMiRobot
-
-from perception import CameraChessboardRegistration, Kinect2Sensor, Kinect2PacketPipelineMode
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
@@ -27,12 +26,9 @@ if __name__ == '__main__':
     # get camera sensor object
     for sensor_frame, sensor_config in config['sensors'].iteritems():
         # open sensor
-        device_num = sensor_config['device_num']
         sensor_type = sensor_config['type']
-        if sensor_type == 'kinect2':
-            sensor = Kinect2Sensor(device_num=device_num, frame=sensor_frame, packet_pipeline_mode=Kinect2PacketPipelineMode.CPU)
-        else:
-            raise ValueError('Sensor type %s not supported!' %(sensor_type))
+        sensor_config['frame'] = sensor_frame
+        sensor = RgbdSensorFactory.sensor(sensor_type, sensor_config)
         sensor.start()
         ir_intrinsics = sensor.ir_intrinsics
 
@@ -87,17 +83,17 @@ if __name__ == '__main__':
             # move robot to pose
             y = YuMiRobot()
             y.reset_home()
-            y.right.close_gripper()
+            y.left.close_gripper()
             time.sleep(1)
 
             T_lift = RigidTransform(translation=(0,0,0.1), from_frame='cb', to_frame='cb')
             T_gripper_world_lift = T_lift * T_gripper_world
-            y.right.goto_pose(T_gripper_world_lift)
-            y.right.goto_pose(T_gripper_world)
+            y.left.goto_pose(T_gripper_world_lift)
+            y.left.goto_pose(T_gripper_world)
 
             # wait for human measurement
             yesno = raw_input('Take measurement. Hit [ENTER] when done')
-            y.right.goto_pose(T_gripper_world_lift)
+            y.left.goto_pose(T_gripper_world_lift)
             y.reset_home()
             y.open_grippers()  
             y.stop()

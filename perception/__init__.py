@@ -17,14 +17,29 @@ from chessboard_registration import ChessboardRegistrationResult, CameraChessboa
 from point_registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
 from detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector
 
+from camera_sensor import CameraSensor
+from video_recorder import VideoRecorder
+
+try:
+    from cnn import AlexNetWeights, AlexNet, conv
+except Exception:
+    print 'Unable to import ConvNet modules! Likely due to missing tensorflow.'
+    print 'TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup'
+    
 try:
     from kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
 except Exception:
     print 'Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.'
     print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
 
+try:
+    from primesense_sensor import PrimesenseSensor, PrimesenseRegistrationMode
+except Exception:
+    print 'Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.'
+    print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
+
 from opencv_camera_sensor import OpenCVCameraSensor
-from registration import IterativeRegistrationSolver, PointToPlaneICPSolver, RegistrationResult
+from rgbd_sensors import RgbdSensorFactory
 from video_recorder import VideoRecorder
 from video_writer import write_video
 
@@ -37,6 +52,7 @@ __all__ = [
     'Feature', 'LocalFeature', 'GlobalFeature', 'SHOTFeature', 'MVCNNFeature', 'BagOfFeatures',
     'Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage', 'SegmentationImage', 'BinaryImage', 'PointCloudImage', 'NormalCloudImage',
     'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode', 'Kinect2DepthMode', 'Kinect2Sensor', 'VirtualKinect2Sensor', 'Kinect2SensorFactory', 'load_images',
+    'RgbdSensorFactory', 'PrimesenseSensor', 'PrimesenseRegistrationMode',
     'RenderMode', 'ObjectRender', 'QueryImageBundle',
     'RegistrationResult', 'IterativeRegistrationSolver', 'PointToPlaneICPSolver',
     'OpenCVCameraSensor',

@@ -2,7 +2,7 @@
 chessboard_registration:
   corners_x: 6 # number of corners in the x direction
   corners_y: 9 # number of corners in the y direction
-  num_transform_avg: 5 # number corner detections to average together
+  num_transform_avg: 10 # number corner detections to average together
   num_images: 5 # number of depth images to take median of for noise reduction
   color_image_rescale_factor: 4.0 # rate to upsame the color image for detections
   
@@ -16,13 +16,16 @@ chessboard_tf: /home/autolab/Public/alan/calib/chessboard/chessboard_to_world.tf
 
 # SENSOR CALIBRATION LIST
 sensors:
-   kinect2_overhead:
-      device_num: 0
-      type: kinect2
+   primesense_overhead:
+      auto_white_balance: 0
+      type: primesense
+   #kinect2_overhead:
+   #   device_num: 0
+   #   type: kinect2
 
 # ROBOT VERIFICATION PARAMS
-use_robot: 0
+use_robot: 1
 cb_thickness: 0.00312
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
-gripper_offset_z: 0.10
+gripper_offset_z: 0.02

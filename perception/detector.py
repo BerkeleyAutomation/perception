@@ -13,6 +13,7 @@ import scipy.ndimage.morphology as snm
 
 from core import Box
 from image import BinaryImage, ColorImage, DepthImage
+from object_render import RenderMode
 
 class RgbdDetection(object):
     """ Struct to wrap the results of rgbd detection.
@@ -85,12 +86,27 @@ class RgbdDetection(object):
         return self.camera_intr
 
     @property
+    def virtual_camera_intrinsics(self):
+        return self.camera_intr
+
+    @property
     def point_normal_cloud(self):
         if self.camera_intr is None:
             return None
         point_normal_cloud = self.depth_thumbnail.point_normal_cloud(self.camera_intr)
         point_normal_cloud.remove_zero_points()
         return point_normal_cloud
+
+    def image(self, render_mode):
+        """ Get the image associated with a particular render mode """
+        if render_mode == RenderMode.SEGMASK:
+            return self.query_im
+        elif render_mode == RenderMode.COLOR:
+            return self.color_im
+        elif render_mode == RenderMode.DEPTH:
+            return self.depth_im
+        else:
+            raise ValueError('Render mode %s not supported' %(render_mode))
 
 class RgbdDetector(object):
     """ Wraps methods for as many distinct objects in the image as possible.
@@ -311,6 +327,7 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
         if 'kinect2_denoising' in cfg.keys() and cfg['kinect2_denoising']:
             kinect2_denoising = True
             depth_offset = cfg['kinect2_noise_offset']
+            max_depth = cfg['kinect2_noise_max_depth']
 
         # mask image using background detection
         bgmodel = color_im.background_model()

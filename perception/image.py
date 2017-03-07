@@ -16,10 +16,14 @@ import scipy.signal as ssg
 import scipy.ndimage.filters as sf
 import scipy.ndimage.morphology as snm
 import scipy.spatial.distance as ssd
-
+import scipy.signal as ssg
+import matplotlib.pyplot as plt
 
 import sklearn.cluster as sc
 import sklearn.mixture as smx
+import scipy.ndimage.filters as sf
+import scipy.spatial.distance as ssd
+import scipy.ndimage.morphology as snm
 
 from core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
 
@@ -362,11 +366,34 @@ class Image(object):
             A new Image of the same type whose data is the median of all of
             the images' data.
         """
-        images_data = [image.data for image in images]
+        images_data = np.array([image.data for image in images])
         median_image_data = np.median(images_data, axis=0)
 
         an_image = images[0]
         return type(an_image)(median_image_data.astype(an_image.data.dtype), an_image.frame)
+
+    @staticmethod
+    def min_images(images):
+        """Create a min Image from a list of Images.
+
+        Parameters
+        ----------
+        :obj:`list` of :obj:`Image`
+            A list of Image objects.
+
+        Returns
+        -------
+        :obj:`Image`
+            A new Image of the same type whose data is the min of all of
+            the images' data.
+        """
+        images_data = np.array([image.data for image in images])
+        images_data[images_data == 0] = np.inf
+        min_image_data = np.min(images_data, axis=0)
+        min_image_data[min_image_data == np.inf] = 0.0
+
+        an_image = images[0]
+        return type(an_image)(min_image_data.astype(an_image.data.dtype), an_image.frame)
 
     def __getitem__(self, indices):
         """Index the image's data array.
@@ -533,10 +560,10 @@ class Image(object):
         if center_j is None:
             center_j = self.width / 2
 
-        start_row = max(0, center_i - height / 2)
-        end_row = min(self.height -1, center_i + height / 2)
-        start_col = max(0, center_j - width / 2)
-        end_col = min(self.width - 1, center_j + width / 2)
+        start_row = int(max(0, center_i - height / 2))
+        end_row = int(min(self.height -1, center_i + height / 2))
+        start_col = int(max(0, center_j - width / 2))
+        end_col = int(min(self.width - 1, center_j + width / 2))
 
         focus_data = np.zeros(self._data.shape)
         focus_data[start_row:end_row+1, start_col:end_col+1] = self._data[start_row:end_row+1,
@@ -639,7 +666,7 @@ class Image(object):
         nonzero_px = self.nonzero_pixels()
         return self.data[nonzero_px[:,0], nonzero_px[:,1], ...]
 
-    def replace_zeros(self, val):
+    def replace_zeros(self, val, zero_thresh=0.0):
         """ Replaces all zeros in the image with a specified value
 
         Returns
@@ -648,7 +675,7 @@ class Image(object):
              value to replace zeros with
         """
         new_data = self.data.copy()
-        new_data[new_data == 0] = val
+        new_data[new_data <= zero_thresh] = val
         return type(self)(new_data.astype(self.data.dtype), frame=self._frame)
 
     def save(self, filename):
@@ -980,21 +1007,28 @@ class ColorImage(Image):
             pil_im = pil_im.convert('HSV')
             data = np.asarray(pil_im)
 
+        # find the black pixels
+        nonblack_pixels = np.where(np.sum(self.data, axis=2) > 0)
+        r_data = self.r_data
+        g_data = self.g_data
+        b_data = self.b_data
+        if ignore_black:
+            r_data = r_data[nonblack_pixels[0], nonblack_pixels[1]]
+            g_data = g_data[nonblack_pixels[0], nonblack_pixels[1]]
+            b_data = b_data[nonblack_pixels[0], nonblack_pixels[1]]
+
         # generate histograms for each channel
         bounds = (0, np.iinfo(np.uint8).max + 1)
         num_bins = bounds[1] / scale
-        r_hist, _ = np.histogram(self.r_data, bins=num_bins, range=bounds)
-        g_hist, _ = np.histogram(self.g_data, bins=num_bins, range=bounds)
-        b_hist, _ = np.histogram(self.b_data, bins=num_bins, range=bounds)
+        r_hist, _ = np.histogram(r_data, bins=num_bins, range=bounds)
+        g_hist, _ = np.histogram(g_data, bins=num_bins, range=bounds)
+        b_hist, _ = np.histogram(b_data, bins=num_bins, range=bounds)
         hists = (r_hist, g_hist, b_hist)
 
         # find the thesholds as the modes of the image
         modes = [0 for i in range(self.channels)]
         for i in range(self.channels):
-            if ignore_black:
-                modes[i] = scale * (np.argmax(hists[i][1:]) + 1)
-            else:
-                modes[i] = scale * np.argmax(hists[i])
+            modes[i] = scale * np.argmax(hists[i])
 
         return modes
 
@@ -1419,7 +1453,11 @@ class DepthImage(Image):
             the combined depth image
         """
         new_data = self.data.copy()
+        # replace zero pixels
         new_data[new_data == 0] = depth_im.data[new_data == 0]
+        # take closest pixel
+        new_data[new_data > depth_im.data] = depth_im.data[new_data > depth_im.data]
+
         return DepthImage(new_data, frame=self.frame)
 
     def to_binary(self, threshold=0.0):
@@ -1796,7 +1834,7 @@ class BinaryImage(Image):
         :obj:`BinaryImage`
             The resized image.
         """
-        resized_data = sm.imresize(self._data, size, interp=interp)
+        resized_data = sm.imresize(self.data, size, interp=interp)
         return BinaryImage(resized_data, self._frame)
 
 
@@ -1837,8 +1875,8 @@ class BinaryImage(Image):
             The new pruned binary image.
         """
         # get all contours (connected components) from the binary image
-        contours = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        num_contours = len(contours[0])
+        _, contours, _ = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        num_contours = len(contours)
         middle_pixel = np.array(self.shape)[:2] / 2
         middle_pixel = middle_pixel.reshape(1,2)
         center_contour = None
@@ -1846,16 +1884,16 @@ class BinaryImage(Image):
 
         # find which contours need to be pruned
         for i in range(num_contours):
-            area = cv2.contourArea(contours[0][i])
+            area = cv2.contourArea(contours[i])
             if area > area_thresh:
                 # check close to origin
                 fill = np.zeros([self.height, self.width, 3])
-                cv2.fillPoly(fill, pts=[contours[0][i]], color=(255,255,255))
+                cv2.fillPoly(fill, pts=[contours[i]], color=(255,255,255))
                 nonzero_px = np.where(fill > 0)
                 nonzero_px = np.c_[nonzero_px[0], nonzero_px[1]]
                 dists = ssd.cdist(middle_pixel, nonzero_px)
                 min_dist = np.min(dists)
-                pruned_contours.append((contours[0][i], min_dist))
+                pruned_contours.append((contours[i], min_dist))
 
         if len(pruned_contours) == 0:
             return None
@@ -1905,15 +1943,15 @@ class BinaryImage(Image):
             A list of resuting contours
         """
         # get all contours (connected components) from the binary image
-        contours = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        num_contours = len(contours[0])
+        _, contours, _ = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        num_contours = len(contours)
         kept_contours = []
 
         # find which contours need to be pruned
         for i in range(num_contours):
-            area = cv2.contourArea(contours[0][i])
+            area = cv2.contourArea(contours[i])
             if area > min_area and area < max_area:
-                boundary_px = contours[0][i].squeeze()
+                boundary_px = contours[i].squeeze()
                 boundary_px_ij_swapped = np.zeros(boundary_px.shape)
                 boundary_px_ij_swapped[:,0] = boundary_px[:,1]
                 boundary_px_ij_swapped[:,1] = boundary_px[:,0]
@@ -2087,7 +2125,7 @@ class SegmentationImage(Image):
     """An image containing integer-valued segment labels.
     """
     def __init__(self, data, frame='unspecified'):
-        """Create a BinaryImage image from an array of data.
+        """Create a Segmentation image from an array of data.
 
         Parameters
         ----------

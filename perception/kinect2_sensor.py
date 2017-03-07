@@ -1,5 +1,5 @@
 """
-Class for interfacing with the Kinect v2 RGBD sensor
+Class for interfacing with the Primesense RGBD sensor
 Author: Jeff Mahler
 """
 import copy
@@ -320,7 +320,7 @@ class Kinect2Sensor(CameraSensor):
                 color_depth_map)
 
 class VirtualKinect2Sensor(CameraSensor):
-    """ Class for a virtual Kinect v2 sensor that uses pre-captured images
+    """Class for a virtual Kinect v2 sensor that uses pre-captured images
     stored to disk instead of actually connecting to a sensor.
     For debugging purposes.
     """ 
@@ -332,17 +332,17 @@ class VirtualKinect2Sensor(CameraSensor):
 
         First, the directory must contain a set of images, where each
         image has three files:
-            - color_{#}.png
-            - depth_{#}.npy
-            - ir_{#}.npy
+        - color_{#}.png
+        - depth_{#}.npy
+        - ir_{#}.npy
         In these, the {#} is replaced with the integer index for the
         image. These indices should start at zero and increase
         consecutively.
 
         Second, the directory must contain CameraIntrisnics files
         for the color and ir cameras:
-            - {frame}_color.intr
-            - {frame}_ir.intr
+        - {frame}_color.intr
+        - {frame}_ir.intr
         In these, the {frame} is replaced with the reference frame
         name that is passed as a parameter to this function.
 
