@@ -15,6 +15,17 @@ except:
 
 from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, IrImage, Image
 
+try:
+    import rospy
+except ImportError:
+    logging.warning("Failed to import ROS in primesense_sensor.py")
+try:
+    from perception.srv import *
+    ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
+    ImageBuffer._response_class = ImageBufferResponse
+except ImportError:
+    logging.warning('primesense_sensor.py not installed as catkin package. ROS functionality not available.')
+
 class PrimesenseRegistrationMode:
     """Primesense registration mode.
     """
@@ -247,3 +258,24 @@ class PrimesenseSensor(CameraSensor):
 
         return Image.min_images(depths)
 
+class PrimesenseSensor_ROS(PrimesenseSensor):
+    def start(self):
+        """For PrimesenseSensor, start/stop by launching/stopping
+        the associated ROS sevices"""
+        raise NotImplementedError("Start sensor using ROS launch")
+    def stop(self):
+        """For PrimesenseSensor, start/stop by launching/stopping
+        the associated ROS sevices"""
+        raise NotImplementedError("Start sensor using ROS kill")
+    
+    def _ros_read_images(self, stream_buffer, number):
+        """ Reads images from a stream buffer"""
+        
+        rospy.wait_for_service(stream_buffer, timeout = 10)
+        ros_image_buffer = rospy.ServiceProxy(stream_buffer, ImageBuffer)
+        ret = ros_image_buffer(number)
+        
+        # Special handling for 1 element, since dstack's behavior is different
+        if number == 1:
+            return[ret.data[0]]
+        return np.dsplit(ret.data, number)
