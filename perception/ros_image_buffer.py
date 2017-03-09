@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import argparse
-from sensor_msgs import Image
+from sensor_msgs.msg import Image
 from perception.srv import *
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
