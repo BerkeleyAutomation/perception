@@ -263,11 +263,11 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
     def start(self):
         """For PrimesenseSensor, start/stop by launching/stopping
         the associated ROS sevices"""
-        raise NotImplementedError("Start sensor using ROS launch")
+        raise NotImplementedError("Start sensor using roslaunch")
     def stop(self):
         """For PrimesenseSensor, start/stop by launching/stopping
         the associated ROS sevices"""
-        raise NotImplementedError("Start sensor using ROS kill")
+        raise NotImplementedError("Stop sensor using rosnode kill or by ctr-c its terminal")
     
     def _ros_read_images(self, stream_buffer, number):
         """ Reads images from a stream buffer"""
