@@ -24,15 +24,16 @@ if __name__ == '__main__':
     if not args.absolute:
         stream_to_buffer = rospy.get_namespace() + stream_to_buffer
     
-    rospy.init_node('{0}/stream_image_buffer'.format(stream_to_buffer))
+    rospy.init_node('stream_image_buffer')
     
+    bridge = CvBridge()
     buffer_of_images = []
     def callback(data):
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(data)
+            cv_image = bridge.imgmsg_to_cv2(data)
         except CvBridgeError as e:
             print(e)
-        buffer_of_images.insert(0, np.asArray(cv_image, dtype='float32'))
+        buffer_of_images.insert(0, np.asarray(cv_image, dtype='float32'))
         if(len(buffer_of_images) > bufsize):
             buffer_of_images.pop()
 
@@ -42,7 +43,11 @@ if __name__ == '__main__':
         to_return = buffer_of_images[:min(bufsize, req.num_requested)]
         image_shape = to_return[0].shape
         images_per_frame = 1 if len(images_shape) == 2 else image_shape[2]
-        return ImageBufferResponse(images_per_frame, np.dstack((to_return)))
+        
+        ret = np.dstack(to_return)
+        return ImageBufferResponse(images_per_frame, ret.ravel(), *ret.shape)
+    
+    s = rospy.Service('stream_image_buffer', ImageBuffer, handle_request)
     
     rospy.spin()
     

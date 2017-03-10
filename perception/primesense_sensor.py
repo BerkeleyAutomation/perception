@@ -275,8 +275,9 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         rospy.wait_for_service(stream_buffer, timeout = 10)
         ros_image_buffer = rospy.ServiceProxy(stream_buffer, ImageBuffer)
         ret = ros_image_buffer(number)
+        data = ret.data.reshape(ret.arr_dim1, ret.arr_dim2, ret.arr_dim3)
         
         # Special handling for 1 element, since dstack's behavior is different
         if number == 1:
-            return[ret.data[0]]
-        return np.dsplit(ret.data, number)
+            return[data[0]]
+        return np.dsplit(data, number)
