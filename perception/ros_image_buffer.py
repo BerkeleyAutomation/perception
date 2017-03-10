@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+from rospy import numpy_msg
 import argparse
 from sensor_msgs.msg import Image
 from perception.srv import *

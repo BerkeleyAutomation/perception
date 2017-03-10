@@ -17,6 +17,7 @@ from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, I
 
 try:
     import rospy
+    from rospy import numpy_msg
 except ImportError:
     logging.warning("Failed to import ROS in primesense_sensor.py")
 try:
