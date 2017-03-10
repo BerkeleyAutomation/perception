@@ -19,9 +19,9 @@ if __name__ == '__main__':
                         help="Specify the number of images to buffer (default 100)")
     args = parser.parse_args()
     
-    bufsize = args['bufsize']
-    stream_to_buffer = args['instream']
-    if not args['absolute']:
+    bufsize = args.bufsize
+    stream_to_buffer = args.instream
+    if not args.absolute:
         stream_to_buffer = rospy.get_namespace() + stream_to_buffer
     
     rospy.init_node('{0}/stream_image_buffer'.format(stream_to_buffer))
