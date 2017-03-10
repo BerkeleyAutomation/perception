@@ -1,6 +1,7 @@
 uint32 num_requested
 ---
 uint8 depth_per
+string dtype
 float32[] data
 uint32 arr_dim1
 uint32 arr_dim2

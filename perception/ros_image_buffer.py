@@ -45,7 +45,7 @@ if __name__ == '__main__':
         images_per_frame = 1 if len(image_shape) == 2 else image_shape[2]
         
         ret = np.dstack(to_return)
-        return ImageBufferResponse(images_per_frame, ret.ravel(), *ret.shape)
+        return ImageBufferResponse(images_per_frame, str(ret.dtype), ret.ravel(), *ret.shape)
     
     s = rospy.Service('stream_image_buffer', ImageBuffer, handle_request)
     
