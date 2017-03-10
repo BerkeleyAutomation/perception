@@ -42,7 +42,7 @@ if __name__ == '__main__':
     def handle_request(req):
         to_return = buffer_of_images[:min(bufsize, req.num_requested)]
         image_shape = to_return[0].shape
-        images_per_frame = 1 if len(images_shape) == 2 else image_shape[2]
+        images_per_frame = 1 if len(image_shape) == 2 else image_shape[2]
         
         ret = np.dstack(to_return)
         return ImageBufferResponse(images_per_frame, ret.ravel(), *ret.shape)
