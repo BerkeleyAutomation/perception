@@ -23,10 +23,8 @@ class OpenCVCameraSensor(CameraSensor):
         self.flush()
 
     def flush(self):
-        start = time()
         for _ in range(6):
             self._sensor.read()
-        print 'took {}s per frame'.format((time() - start)/6)
 
     def stop(self):
         """ Stops the OpenCVCameraSensor Stream """
