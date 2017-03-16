@@ -315,8 +315,11 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
 
     @property
     def is_running(self):
-        """bool : True if the stream is running, or false otherwise.
+        """bool : True if the image buffers are running, or false otherwise.
+        
+        Note: This DOES NOT say if the actual camera stream is running
         """
+        # TODO: make this a request to image_buffer that asks image_buffer if it has recent data 
         try:
             rospy.wait_for_service(self._depth_image_buffer, timeout = 10)
             rospy.wait_for_service(self._color_image_buffer, timeout = 10)
@@ -344,3 +347,32 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         else:
             color_image = np.fliplr(color_image.astype(np.uint8))
         return ColorImage(color_image, frame=self._frame)
+    
+class PrimesenseSensorFactory:
+    """ Factory class for Primesense RGBD sensor interfaces. """
+    
+    #TODO: add this to __init__, and change the rgbd_sensors factory
+
+    @staticmethod
+    def PrimesenseSensor(arm_type, **kwargs):
+        """Initializes a PrimesenseSensor interface. 
+
+        Parameters
+        ----------
+        arm_type : string
+            Type of Primesense sensor interface. One of {'driver', 'ros'}
+            'driver' creates a PrimesenseSensor object that uses openni2 directly
+            'ros'    creates a PrimesenseSensor object that communicates through ROS
+        **kwargs : keyword arguments to pass to the arm constructor
+        """
+        if arm_type == 'driver':
+            return YuMiArm(name, **kwargs)
+        elif arm_type == 'ros':
+            for setting in ('auto_white_balance', 'auto_exposure', 'enable_depth_color_sync', 'registration_mode'):
+                if setting in kwargs.keys():
+                    logging.warning('Setting {0} not available for ROS'.format(setting))
+                    del kwargs[setting]
+            return PrimesenseSensor_ROS(**kwargs)
+        else:
+            raise ValueError('PrimesenseSensor type {} not supported'.format(arm_type))
+        
