@@ -260,14 +260,36 @@ class PrimesenseSensor(CameraSensor):
         return Image.min_images(depths)
 
 class PrimesenseSensor_ROS(PrimesenseSensor):
+    def __init__(self, depth_image_buffer='primesense/depth/image_raw/stream_image_buffer', depth_absolute=False,
+                 color_image_buffer='primesense/depth/image_raw/stream_image_buffer', color_absolute=False,
+                 flip_images=True, frame=None):
+        
+        #TODO: more elegant way of setting depth/color image buffers
+        
+        self._depth_image_buffer = depth_image_buffer
+        self._color_stream = color_image_buffer
+        
+        if depth_absolute:
+            self._depth_image_buffer = rospy.get_namespace() + self._depth_image_buffer
+        if color_absolute:
+            self._color_image_buffer = rospy.get_namespace() + self._color_image_buffer  
+
+        self._flip_images = flip_images
+        self._frame = frame
+
+        if self._frame is None:
+            self._frame = 'primesense'
+        self._color_frame = '%s_color' %(self._frame)
+        self._ir_frame = self._frame # same as color since we normally use this one
+        
     def start(self):
         """For PrimesenseSensor, start/stop by launching/stopping
-        the associated ROS sevices"""
-        raise NotImplementedError("Start sensor using roslaunch")
+        the associated ROS services"""
+        pass
     def stop(self):
         """For PrimesenseSensor, start/stop by launching/stopping
-        the associated ROS sevices"""
-        raise NotImplementedError("Stop sensor using rosnode kill or by ctr-c its terminal")
+        the associated ROS services"""
+        pass
     
     def _ros_read_images(self, stream_buffer, number):
         """ Reads images from a stream buffer"""
@@ -281,3 +303,44 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         if number == 1:
             return [data]
         return np.dsplit(data, number)
+
+    @property
+    def ir_intrinsics(self):
+        """:obj:`CameraIntrinsics` : The camera intrinsics for the primesense IR camera.
+        """
+        return CameraIntrinsics(self._ir_frame, PrimesenseSensor.FOCAL_X, PrimesenseSensor.FOCAL_Y,
+                                PrimesenseSensor.CENTER_X, PrimesenseSensor.CENTER_Y,
+                                height=PrimesenseSensor.DEPTH_IM_HEIGHT,
+                                width=PrimesenseSensor.DEPTH_IM_WIDTH)
+
+    @property
+    def is_running(self):
+        """bool : True if the stream is running, or false otherwise.
+        """
+        try:
+            rospy.wait_for_service(self._depth_image_buffer, timeout = 10)
+            rospy.wait_for_service(self._color_image_buffer, timeout = 10)
+        except e:
+            return False
+        return
+     
+    def _read_depth_image(self):
+        """ Reads a depth image from the device """
+        # Get image from stream buffer
+        depth_image = self._ros_read_images(self._depth_image_buffer, 1)
+        depth_image = depth_image * MM_TO_METERS # convert to meters
+        if self._flip_images:
+            depth_image = np.flipud(depth_image)
+        else:
+            depth_image = np.fliplr(depth_image)
+        return DepthImage(depth_image, frame=self._frame)
+    
+    def _read_color_image(self):
+        """ Reads a color image from the device """
+        # Get image from stream buffer
+        depth_image = self._ros_read_images(self._color_image_buffer, 1)
+        if self._flip_images:
+            color_image = np.flipud(color_image.astype(np.uint8))
+        else:
+            color_image = np.fliplr(color_image.astype(np.uint8))
+        return ColorImage(color_image, frame=self._frame)

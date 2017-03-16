@@ -12,6 +12,11 @@ try:
 except:
     raise RuntimeError("image_buffer unavailable outside of catkin package")
 
+# TODO:
+# Timestamps
+# Giving a warning if stale data is being returned/delete stale data 
+# Launchfile for launching image buffer and primesense camera
+
 # Modify ImageBuffer to work with numpy arrays
 ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
 ImageBuffer._response_class = ImageBufferResponse
@@ -81,6 +86,10 @@ if __name__ == '__main__':
     def handle_request(req):
         """Request-handling for returning a bunch of images stuck together
         """
+        # Check if request fits in buffer
+        if req.num_requested > len(buffer_of_images):
+            raise RuntimeError("Number of images requested exceeds buffer size")
+        
         # Cut out the images we're returning, save their shape
         to_return = buffer_of_images[:min(bufsize, req.num_requested)]
         image_shape = to_return[0].shape
