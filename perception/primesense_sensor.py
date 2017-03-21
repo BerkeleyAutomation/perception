@@ -347,7 +347,6 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
             depth_images[i] = depth_images[i] * MM_TO_METERS # convert to meters
             if self._flip_images:
                 depth_images[i] = np.flipud(depth_images[i])
-            else:
                 depth_images[i] = np.fliplr(depth_images[i])
             depth_images[i] = DepthImage(depth_images[i], frame=self._frame) 
         return depth_images
@@ -357,7 +356,6 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         for i in range(0, num_images):
             if self._flip_images:
                 color_images[i] = np.flipud(color_images[i].astype(np.uint8))
-            else:
                 color_images[i] = np.fliplr(color_images[i].astype(np.uint8))
             color_images[i] = ColorImage(color_images[i], frame=self._frame) 
         return color_images
@@ -369,7 +367,6 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         """ Wrapper to maintain compatibility """
         return self._read_color_images(1)[0]
         
-    
     def median_depth_img(self, num_img=1, fill_depth=0.0):
         """Collect a series of depth images and return the median of the set.
 
