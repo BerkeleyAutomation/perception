@@ -261,7 +261,7 @@ class PrimesenseSensor(CameraSensor):
 
 class PrimesenseSensor_ROS(PrimesenseSensor):
     def __init__(self, depth_image_buffer='primesense/depth/stream_image_buffer', depth_absolute=False,
-                 color_image_buffer='primesense/depth/stream_image_buffer', color_absolute=False,
+                 color_image_buffer='primesense/rgb/stream_image_buffer', color_absolute=False,
                  flip_images=True, frame=None):
         
         #TODO: more elegant way of setting depth/color image buffers
