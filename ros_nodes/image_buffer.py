@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+ROS node that buffers a ROS image stream and allows for grabbing many images simultaneously
+"""
 import logging
 import argparse
 import rospy
@@ -22,32 +25,26 @@ ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
 ImageBuffer._response_class = ImageBufferResponse
 
 if __name__ == '__main__':
-    # Enable logger
-    logging.getLogger().setLevel(logging.INFO)
-    
-    # Initialize and run argument parser 
-    parser = argparse.ArgumentParser(description="Initialize a ROS image buffer")
-    parser.add_argument('instream', metavar='in', type=str, help="The stream to buffer")
-    parser.add_argument('-a', '--absolute', dest='absolute', action='store_true',
-                        help="Make the path to the ROS stream absolute (do not prepend ROS_NAMESPACE)")
-    parser.add_argument('--bufsize', dest='bufsize', default=100, type=int,
-                        help="Specify the number of images to buffer (default 100)")
-    parser.add_argument('-r', '--show_framerate', dest='show_framerate', action='store_true',
-                        help="Show a framerate message every 10 seconds")
-    args = parser.parse_args()
-    
-    # Set buffer size and target stream
-    bufsize = args.bufsize
-    stream_to_buffer = args.instream
-    if not args.absolute:
-        stream_to_buffer = rospy.get_namespace() + stream_to_buffer
-    
-    # Initialize the node. This is overwritten most of the time by roslaunch
+    # Initialize the node.
     rospy.init_node('stream_image_buffer')
+    
+    # Arguments:
+    # instream:       string,             ROS image stream to buffer
+    # absolute:       bool, optional      if True, current frame is not prepended to instream (default False)
+    # bufsize:        int, optional       Maximum size of image buffer (number of images stored)
+    # show_framerate: bool, optional      If True, logs number of frames received in the last 10 seconds
+    instream       = rospy.get_param('~instream')
+    absolute       = rospy.get_param('~absolute', False)
+    bufsize        = rospy.get_param('~bufsize', 100)
+    show_framerate = rospy.get_param('~show_framerate', True)
+    
+    stream_to_buffer = instream
+    if not absolute:
+        stream_to_buffer = rospy.get_namespace() + stream_to_buffer
     
     # Initialize the CvBridge and image buffer list, as well as misc counting things
     bridge = CvBridge()
-    buffer_of_images = []
+    buffer = []
     dtype = 'float32'
     if args.show_framerate:
         images_so_far = 0
@@ -67,9 +64,9 @@ if __name__ == '__main__':
         # Save dtype before we float32-ify it
         dtype = str(cv_image.dtype)
         # Insert and roll buffer
-        buffer_of_images.insert(0, np.asarray(cv_image, dtype='float32'))
-        if(len(buffer_of_images) > bufsize):
-            buffer_of_images.pop()
+        buffer.insert(0, (np.asarray(cv_image, dtype='float32'), rospy.get_time()))
+        if(len(buffer) > bufsize):
+            buffer.pop()
         
         # Stuff for showing framerate if that option is checked
         if args.show_framerate:
@@ -86,18 +83,30 @@ if __name__ == '__main__':
     def handle_request(req):
         """Request-handling for returning a bunch of images stuck together
         """
-        # Check if request fits in buffer
-        if req.num_requested > len(buffer_of_images):
-            raise RuntimeError("Number of images requested exceeds buffer size")
+        # Register time of request
+        req_time = rospy.get_time()
         
-        # Cut out the images we're returning, save their shape
-        to_return = buffer_of_images[:min(bufsize, req.num_requested)]
-        image_shape = to_return[0].shape
+        # Check if request fits in buffer
+        if req.num_requested > len(buffer):
+            raise RuntimeError("Number of images requested exceeds current buffer size")
+        
+        # Cut out the images and timestamps we're returning, save image shape
+        ret_images, ret_times = zip(*buffer[:req.num_requested])
+        image_shape = ret_images[0].shape
         images_per_frame = 1 if len(image_shape) == 2 else image_shape[2]
         
+        # Get timestamps in desired mode
+        if req.timing_mode == 0:
+            ret_times = np.asarry(ret_times)
+        elif req.timing_mode == 1:
+            ret_times = np.asarry([req_time - time for time in ret_times])
+        else:
+            raise RuntimeError("{0} is not a value for timing_mode".format(timing_mode))
+        
         # Stack and unravel images because ROS doesn't like multidimensional arrays
-        ret = np.dstack(to_return)
-        return ImageBufferResponse(images_per_frame, dtype, ret.ravel(), *ret.shape)
+        ret_images = np.dstack(ret_images)
+        
+        return ImageBufferResponse(ret_times, ret_images.ravel(), images_per_frame, dtype, *ret_images.shape)
     
     # Initialize service with our request handler
     s = rospy.Service('stream_image_buffer', ImageBuffer, handle_request)

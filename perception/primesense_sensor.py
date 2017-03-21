@@ -291,13 +291,36 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         the associated ROS services"""
         pass
     
-    def _ros_read_images(self, stream_buffer, number):
-        """ Reads images from a stream buffer"""
+    def _ros_read_images(self, stream_buffer, number, staleness_limit = 10.):
+        """ Reads images from a stream buffer
+        
+        Parameters
+        ----------
+        stream_buffer : string
+            absolute path to the image buffer service
+        number : int
+            The number of frames to get. Must be less than the image buffer service's
+            current buffer size
+        staleness_limit : float, optional
+            Max value of how many seconds old the oldest image is. If the oldest image
+            grabbed is older than this value, a RuntimeError is thrown.
+            
+            If None, staleness is ignored.
+        Returns
+        -------
+        List of nump.ndarray objects, each one an image
+        Images are in reverse chronological order (newest first)
+        """
         
         rospy.wait_for_service(stream_buffer, timeout = 10)
         ros_image_buffer = rospy.ServiceProxy(stream_buffer, ImageBuffer)
-        ret = ros_image_buffer(number)
-        data = ret.data.reshape(ret.arr_dim1, ret.arr_dim2, ret.arr_dim3).astype(ret.dtype)
+        ret = ros_image_buffer(number, 1)
+        if not staleness_limit == None:
+            if ret.timestamps[-1] > staleness_limit:
+                raise RuntimeError("Got data {0} seconds old, more than allowed {1} seconds"
+                                   .format(ret.timestamps[-1], staleness_limit))
+            
+        data = ret.data.reshape(ret.data_dim1, ret.data_dim2, ret.data_dim3).astype(ret.dtype)
         
         # Special handling for 1 element, since dstack's behavior is different
         if number == 1:
@@ -305,48 +328,83 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         return np.dsplit(data, number)
 
     @property
-    def ir_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the primesense IR camera.
-        """
-        return CameraIntrinsics(self._ir_frame, PrimesenseSensor.FOCAL_X, PrimesenseSensor.FOCAL_Y,
-                                PrimesenseSensor.CENTER_X, PrimesenseSensor.CENTER_Y,
-                                height=PrimesenseSensor.DEPTH_IM_HEIGHT,
-                                width=PrimesenseSensor.DEPTH_IM_WIDTH)
-
-    @property
     def is_running(self):
         """bool : True if the image buffers are running, or false otherwise.
         
-        Note: This DOES NOT say if the actual camera stream is running
+        Does this by grabbing one frame with staleness checking
         """
-        # TODO: make this a request to image_buffer that asks image_buffer if it has recent data 
         try:
-            rospy.wait_for_service(self._depth_image_buffer, timeout = 10)
-            rospy.wait_for_service(self._color_image_buffer, timeout = 10)
+            self._read_depth_image()
+            self._read_color_image()
         except e:
             return False
         return
-     
-    def _read_depth_image(self):
-        """ Reads a depth image from the device """
-        # Get image from stream buffer
-        depth_image = self._ros_read_images(self._depth_image_buffer, 1)
-        depth_image = depth_image * MM_TO_METERS # convert to meters
-        if self._flip_images:
-            depth_image = np.flipud(depth_image)
-        else:
-            depth_image = np.fliplr(depth_image)
-        return DepthImage(depth_image, frame=self._frame)
     
+    def _read_depth_images(self, num_images):
+        """ Reads depth images from the device """
+        depth_images = self._ros_read_images(self._depth_image_buffer, num_images)
+        for i in range(0, num_images):
+            depth_images[i] = depth_images[i] * MM_TO_METERS # convert to meters
+            if self._flip_images:
+                depth_images[i] = np.flipud(depth_images[i])
+            else:
+                depth_images[i] = np.fliplr(depth_images[i])
+            depth_images[i] = DepthImage(depth_images[i], frame=self._frame) 
+        return depth_images
+    def _read_color_images(self, num_images):
+        """ Reads color images from the device """
+        color_images = self._ros_read_images(self._color_image_buffer, num_images)
+        for i in range(0, num_images):
+            if self._flip_images:
+                color_images[i] = np.flipud(color_images[i])
+            else:
+                color_images[i] = np.fliplr(color_images[i])
+            color_images[i] = ColorImage(color_images[i], frame=self._frame) 
+        return color_images
+    
+    def _read_depth_image(self):
+        """ Wrapper to maintain compatibility """
+        return self._read_depth_images(1)[0]
     def _read_color_image(self):
-        """ Reads a color image from the device """
-        # Get image from stream buffer
-        depth_image = self._ros_read_images(self._color_image_buffer, 1)
-        if self._flip_images:
-            color_image = np.flipud(color_image.astype(np.uint8))
-        else:
-            color_image = np.fliplr(color_image.astype(np.uint8))
-        return ColorImage(color_image, frame=self._frame)
+        """ Wrapper to maintain compatibility """
+        return self._read_color_images(1)[0]
+        
+    
+    def median_depth_img(self, num_img=1, fill_depth=0.0):
+        """Collect a series of depth images and return the median of the set.
+
+        Parameters
+        ----------
+        num_img : int
+            The number of consecutive frames to process.
+
+        Returns
+        -------
+        :obj:`DepthImage`
+            The median DepthImage collected from the frames.
+        """
+        depths = _self.read_depth_images(num_img)
+
+        median_depth = Image.median_images(depths)
+        median_depth.data[median_depth.data == 0.0] = fill_depth
+        return median_depth
+
+    def min_depth_img(self, num_img=1):
+        """Collect a series of depth images and return the min of the set.
+
+        Parameters
+        ----------
+        num_img : int
+            The number of consecutive frames to process.
+
+        Returns
+        -------
+        :obj:`DepthImage`
+            The min DepthImage collected from the frames.
+        """
+        depths = self._read_depth_images(num_img)
+
+        return Image.min_images(depths)
     
 class PrimesenseSensorFactory:
     """ Factory class for Primesense RGBD sensor interfaces. """
@@ -354,16 +412,17 @@ class PrimesenseSensorFactory:
     #TODO: add this to __init__, and change the rgbd_sensors factory
 
     @staticmethod
-    def PrimesenseSensor(arm_type, **kwargs):
+    def PrimesenseSensor(primesense_type, **kwargs):
         """Initializes a PrimesenseSensor interface. 
 
         Parameters
         ----------
-        arm_type : string
-            Type of Primesense sensor interface. One of {'driver', 'ros'}
-            'driver' creates a PrimesenseSensor object that uses openni2 directly
+        primesense_type : string
+            Type of Primesense sensor interface. One of {'direct', 'ros'}
+            'direct'  creates a PrimesenseSensor object that uses openni2 directly
             'ros'    creates a PrimesenseSensor object that communicates through ROS
-        **kwargs : keyword arguments to pass to the arm constructor
+        **kwargs : dict
+            keyword arguments to pass to the arm constructor
         """
         if arm_type == 'driver':
             return YuMiArm(name, **kwargs)
