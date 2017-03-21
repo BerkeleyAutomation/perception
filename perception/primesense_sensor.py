@@ -267,7 +267,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         #TODO: more elegant way of setting depth/color image buffers
         
         self._depth_image_buffer = depth_image_buffer
-        self._color_stream = color_image_buffer
+        self._color_image_buffer = color_image_buffer
         
         if depth_absolute:
             self._depth_image_buffer = rospy.get_namespace() + self._depth_image_buffer
@@ -424,9 +424,9 @@ class PrimesenseSensorFactory:
         **kwargs : dict
             keyword arguments to pass to the arm constructor
         """
-        if arm_type == 'driver':
+        if primesense_type == 'driver':
             return YuMiArm(name, **kwargs)
-        elif arm_type == 'ros':
+        elif primesense_type == 'ros':
             for setting in ('auto_white_balance', 'auto_exposure', 'enable_depth_color_sync', 'registration_mode'):
                 if setting in kwargs.keys():
                     logging.warning('Setting {0} not available for ROS'.format(setting))

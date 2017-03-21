@@ -85,9 +85,9 @@ if __name__ == '__main__':
         
         # Get timestamps in desired mode
         if req.timing_mode == 0:
-            ret_times = np.asarry(ret_times)
+            ret_times = np.asarray(ret_times)
         elif req.timing_mode == 1:
-            ret_times = np.asarry([req_time - time for time in ret_times])
+            ret_times = np.asarray([req_time - time for time in ret_times])
         else:
             raise RuntimeError("{0} is not a value for timing_mode".format(timing_mode))
         
