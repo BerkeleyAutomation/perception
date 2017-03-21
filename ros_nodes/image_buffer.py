@@ -102,7 +102,7 @@ if __name__ == '__main__':
     if show_framerate:
         r = rospy.Rate(0.1)
         while not rospy.is_shutdown():
-            rospy.loginfo("{0} frames recorded in the past 10 seconds".format(images_so_far))
+            rospy.loginfo("{0} frames recorded in the past 10 seconds from {1}".format(images_so_far, instream))
             images_so_far = 0
             r.sleep()
     else:

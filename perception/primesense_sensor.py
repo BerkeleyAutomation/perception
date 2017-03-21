@@ -260,8 +260,8 @@ class PrimesenseSensor(CameraSensor):
         return Image.min_images(depths)
 
 class PrimesenseSensor_ROS(PrimesenseSensor):
-    def __init__(self, depth_image_buffer='primesense/depth/image_raw/stream_image_buffer', depth_absolute=False,
-                 color_image_buffer='primesense/depth/image_raw/stream_image_buffer', color_absolute=False,
+    def __init__(self, depth_image_buffer='primesense/depth/stream_image_buffer', depth_absolute=False,
+                 color_image_buffer='primesense/depth/stream_image_buffer', color_absolute=False,
                  flip_images=True, frame=None):
         
         #TODO: more elegant way of setting depth/color image buffers
@@ -356,9 +356,9 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         color_images = self._ros_read_images(self._color_image_buffer, num_images)
         for i in range(0, num_images):
             if self._flip_images:
-                color_images[i] = np.flipud(color_images[i])
+                color_images[i] = np.flipud(color_images[i].astype(np.uint8))
             else:
-                color_images[i] = np.fliplr(color_images[i])
+                color_images[i] = np.fliplr(color_images[i].astype(np.uint8))
             color_images[i] = ColorImage(color_images[i], frame=self._frame) 
         return color_images
     
