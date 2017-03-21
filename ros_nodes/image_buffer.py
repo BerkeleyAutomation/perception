@@ -46,18 +46,12 @@ if __name__ == '__main__':
     bridge = CvBridge()
     buffer = []
     dtype = 'float32'
-    if args.show_framerate:
-        images_so_far = 0
-        time_old = rospy.get_rostime()
-        ten_secs = rospy.Duration(10, 0)
+    images_so_far = 0
     def callback(data):
         """Callback function for subscribing to an Image topic and creating a buffer
         """
         global dtype
-        if args.show_framerate:
-            global images_so_far
-            global time_old
-            global ten_secs
+        global images_so_far
             
         # Get cv image (which is a numpy array) from data
         cv_image = bridge.imgmsg_to_cv2(data)
@@ -68,14 +62,8 @@ if __name__ == '__main__':
         if(len(buffer) > bufsize):
             buffer.pop()
         
-        # Stuff for showing framerate if that option is checked
-        if args.show_framerate:
-            images_so_far += 1
-            time_new = rospy.get_rostime()
-            if time_new - time_old >= ten_secs:
-                print("{0} frames recorded in the past 10 seconds".format(images_so_far))
-                time_old = time_new
-                images_so_far = 0
+        # for showing framerate
+        images_so_far += 1
                 
     # Initialize subscriber with our callback
     rospy.Subscriber(stream_to_buffer, Image, callback)
@@ -111,5 +99,12 @@ if __name__ == '__main__':
     # Initialize service with our request handler
     s = rospy.Service('stream_image_buffer', ImageBuffer, handle_request)
     
-    rospy.spin()
+    if show_framerate:
+        r = rospy.Rate(0.1)
+        while not rospy.is_shutdown():
+            rospy.loginfo("{0} frames recorded in the past 10 seconds".format(images_so_far))
+            images_so_far = 0
+            r.sleep()
+    else:
+        rospy.spin()
     
