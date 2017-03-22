@@ -155,6 +155,9 @@ class PrimesenseSensor(CameraSensor):
         if self._color_stream:
             self._color_stream.stop()
         self._running = False
+        
+        # Unload openni2
+        openni2.unload()
         return True
 
     def _read_depth_image(self):
