@@ -33,7 +33,7 @@ except Exception:
     print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
 
 try:
-    from primesense_sensor import PrimesenseSensor, PrimesenseRegistrationMode
+    from primesense_sensor import PrimesenseSensor, PrimesenseSensor_ROS, PrimesenseRegistrationMode
 except Exception:
     print 'Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.'
     print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'

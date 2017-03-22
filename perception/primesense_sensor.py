@@ -19,7 +19,7 @@ try:
     import rospy
     from rospy import numpy_msg
 except ImportError:
-    logging.warning("Failed to import ROS in primesense_sensor.py")
+    logging.warning("Failed to import ROS in primesense_sensor.py. ROS functionality not available")
 try:
     from perception.srv import *
     ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
