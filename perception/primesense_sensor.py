@@ -275,9 +275,12 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
     the current ROS namespace).
     """
     def __init__(self, depth_image_buffer= None, depth_absolute=False, color_image_buffer=None, color_absolute=False,
-                 flip_images=True, frame=None):  
+                 flip_images=True, frame=None, staleness_limit=10., timeout=10):  
         self._flip_images = flip_images
         self._frame = frame
+        
+        self.staleness_limit = staleness_limit
+        self.timeout = timeout
 
         if self._frame is None:
             self._frame = 'primesense'
@@ -324,7 +327,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         Images are in reverse chronological order (newest first)
         """
         
-        rospy.wait_for_service(stream_buffer, timeout = 10)
+        rospy.wait_for_service(stream_buffer, timeout = self.timeout)
         ros_image_buffer = rospy.ServiceProxy(stream_buffer, ImageBuffer)
         ret = ros_image_buffer(number, 1)
         if not staleness_limit == None:
@@ -353,7 +356,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
     
     def _read_depth_images(self, num_images):
         """ Reads depth images from the device """
-        depth_images = self._ros_read_images(self._depth_image_buffer, num_images)
+        depth_images = self._ros_read_images(self._depth_image_buffer, num_images, self.staleness_limit)
         for i in range(0, num_images):
             depth_images[i] = depth_images[i] * MM_TO_METERS # convert to meters
             if self._flip_images:
@@ -363,7 +366,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         return depth_images
     def _read_color_images(self, num_images):
         """ Reads color images from the device """
-        color_images = self._ros_read_images(self._color_image_buffer, num_images)
+        color_images = self._ros_read_images(self._color_image_buffer, num_images, self.staleness_limit)
         for i in range(0, num_images):
             if self._flip_images:
                 color_images[i] = np.flipud(color_images[i].astype(np.uint8))
