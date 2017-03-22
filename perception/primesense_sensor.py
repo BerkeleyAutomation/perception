@@ -263,20 +263,19 @@ class PrimesenseSensor(CameraSensor):
         return Image.min_images(depths)
 
 class PrimesenseSensor_ROS(PrimesenseSensor):
-    def __init__(self, depth_image_buffer='primesense/depth/stream_image_buffer', depth_absolute=False,
-                 color_image_buffer='primesense/rgb/stream_image_buffer', color_absolute=False,
-                 flip_images=True, frame=None):
-        
-        #TODO: more elegant way of setting depth/color image buffers
-        
-        self._depth_image_buffer = depth_image_buffer
-        self._color_image_buffer = color_image_buffer
-        
-        if depth_absolute:
-            self._depth_image_buffer = rospy.get_namespace() + self._depth_image_buffer
-        if color_absolute:
-            self._color_image_buffer = rospy.get_namespace() + self._color_image_buffer  
-
+    """ ROS-based version of Primesense RGBD sensor interface
+    
+    Requires starting the openni2 ROS driver and the two stream_image_buffer (image_buffer.py)
+    ros services for depth and color images. By default, the class will look for the depth_image buffer
+    and color_image buffers under "{frame}/depth/stream_image_buffer" and "{frame}/rgb/stream_image_buffer"
+    respectively (within the current ROS namespace).
+    
+    This can be changed by passing in depth_image_buffer, color_image_buffer (which change where the program
+    looks for the buffer services) and depth_absolute, color_absolute (which changes whether the program prepends
+    the current ROS namespace).
+    """
+    def __init__(self, depth_image_buffer= None, depth_absolute=False, color_image_buffer=None, color_absolute=False,
+                 flip_images=True, frame=None):  
         self._flip_images = flip_images
         self._frame = frame
 
@@ -284,6 +283,16 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
             self._frame = 'primesense'
         self._color_frame = '%s_color' %(self._frame)
         self._ir_frame = self._frame # same as color since we normally use this one
+        
+        # Set image buffer locations
+        self._depth_image_buffer = ('{0}/depth/stream_image_buffer'.format(frame)
+                                    if depth_image_buffer == None else depth_image_buffer)
+        self._color_image_buffer = ('{0}/depth/stream_image_buffer'.format(frame)
+                                    if color_image_buffer == None else color_image_buffer)
+        if not depth_absolute:
+            self._depth_image_buffer = rospy.get_namespace() + self._depth_image_buffer
+        if not color_absolute:
+            self._color_image_buffer = rospy.get_namespace() + self._color_image_buffer
         
     def start(self):
         """For PrimesenseSensor, start/stop by launching/stopping
@@ -405,33 +414,4 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         depths = self._read_depth_images(num_img)
 
         return Image.min_images(depths)
-    
-class PrimesenseSensorFactory:
-    """ Factory class for Primesense RGBD sensor interfaces. """
-    
-    #TODO: add this to __init__, and change the rgbd_sensors factory
-
-    @staticmethod
-    def PrimesenseSensor(primesense_type, **kwargs):
-        """Initializes a PrimesenseSensor interface. 
-
-        Parameters
-        ----------
-        primesense_type : string
-            Type of Primesense sensor interface. One of {'direct', 'ros'}
-            'direct'  creates a PrimesenseSensor object that uses openni2 directly
-            'ros'    creates a PrimesenseSensor object that communicates through ROS
-        **kwargs : dict
-            keyword arguments to pass to the arm constructor
-        """
-        if primesense_type == 'driver':
-            return YuMiArm(name, **kwargs)
-        elif primesense_type == 'ros':
-            for setting in ('auto_white_balance', 'auto_exposure', 'enable_depth_color_sync', 'registration_mode'):
-                if setting in kwargs.keys():
-                    logging.warning('Setting {0} not available for ROS'.format(setting))
-                    del kwargs[setting]
-            return PrimesenseSensor_ROS(**kwargs)
-        else:
-            raise ValueError('PrimesenseSensor type {} not supported'.format(arm_type))
         
