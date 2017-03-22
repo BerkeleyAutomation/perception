@@ -287,7 +287,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         # Set image buffer locations
         self._depth_image_buffer = ('{0}/depth/stream_image_buffer'.format(frame)
                                     if depth_image_buffer == None else depth_image_buffer)
-        self._color_image_buffer = ('{0}/depth/stream_image_buffer'.format(frame)
+        self._color_image_buffer = ('{0}/rgb/stream_image_buffer'.format(frame)
                                     if color_image_buffer == None else color_image_buffer)
         if not depth_absolute:
             self._depth_image_buffer = rospy.get_namespace() + self._depth_image_buffer
@@ -346,11 +346,10 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         Does this by grabbing one frame with staleness checking
         """
         try:
-            self._read_depth_image()
-            self._read_color_image()
-        except e:
+            self.frames()
+        except:
             return False
-        return
+        return True
     
     def _read_depth_images(self, num_images):
         """ Reads depth images from the device """
