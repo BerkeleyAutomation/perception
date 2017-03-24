@@ -20,18 +20,22 @@ class OpenCVCameraSensor(CameraSensor):
         self._sensor = VideoCapture(self._device_id)
         if not self._sensor.isOpened():
             raise Exception("Unable to open OpenCVCameraSensor for id {0}".format(self._device_id))
-        for _ in range(4):
+        self.flush()
+
+    def flush(self):
+        for _ in range(6):
             self._sensor.read()
 
     def stop(self):
         """ Stops the OpenCVCameraSensor Stream """
         self._sensor.release()
 
-    def frames(self):
+    def frames(self, flush=True):
         """ Returns the latest color image from the stream
         Raises:
             Exception if opencv sensor gives ret_val of 0
         """
+        self.flush()
         ret_val, frame = self._sensor.read()
         if not ret_val:
             raise Exception("Unable to retrieve frame from OpenCVCameraSensor for id {0}".format(self._device_id))
