@@ -1858,25 +1858,22 @@ class BinaryImage(Image):
 
     def prune_contours(self, area_thresh=1000.0, dist_thresh=20):
         """Removes all white connected components with area less than area_thresh.
-
         Parameters
         ----------
         area_thresh : float
             The minimum area for which a white connected component will not be
             zeroed out.
-
         dist_thresh : int
             If a connected component is within dist_thresh of the top of the
             image, it will not be pruned out, regardless of its area.
-
         Returns
         -------
         :obj:`BinaryImage`
             The new pruned binary image.
         """
         # get all contours (connected components) from the binary image
-        _, contours, _ = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        num_contours = len(contours)
+        contours = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        num_contours = len(contours[0])
         middle_pixel = np.array(self.shape)[:2] / 2
         middle_pixel = middle_pixel.reshape(1,2)
         center_contour = None
@@ -1884,16 +1881,16 @@ class BinaryImage(Image):
 
         # find which contours need to be pruned
         for i in range(num_contours):
-            area = cv2.contourArea(contours[i])
+            area = cv2.contourArea(contours[0][i])
             if area > area_thresh:
                 # check close to origin
                 fill = np.zeros([self.height, self.width, 3])
-                cv2.fillPoly(fill, pts=[contours[i]], color=(255,255,255))
+                cv2.fillPoly(fill, pts=[contours[0][i]], color=(255,255,255))
                 nonzero_px = np.where(fill > 0)
                 nonzero_px = np.c_[nonzero_px[0], nonzero_px[1]]
                 dists = ssd.cdist(middle_pixel, nonzero_px)
                 min_dist = np.min(dists)
-                pruned_contours.append((contours[i], min_dist))
+                pruned_contours.append((contours[0][i], min_dist))
 
         if len(pruned_contours) == 0:
             return None
@@ -1929,29 +1926,28 @@ class BinaryImage(Image):
     def find_contours(self, min_area=0.0, max_area=np.inf):
         """Returns a list of connected components with an area between
         min_area and max_area.
-
         Parameters
         ----------
         min_area : float
             The minimum area for a contour
         max_area : float
             The maximum area for a contour
-
         Returns
         -------
         :obj:`list` of :obj:`Contour`
             A list of resuting contours
         """
         # get all contours (connected components) from the binary image
-        _, contours, _ = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        num_contours = len(contours)
+        contours = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        num_contours = len(contours[0])
         kept_contours = []
 
         # find which contours need to be pruned
         for i in range(num_contours):
-            area = cv2.contourArea(contours[i])
+            area = cv2.contourArea(contours[0][i])
+            print area
             if area > min_area and area < max_area:
-                boundary_px = contours[i].squeeze()
+                boundary_px = contours[0][i].squeeze()
                 boundary_px_ij_swapped = np.zeros(boundary_px.shape)
                 boundary_px_ij_swapped[:,0] = boundary_px[:,1]
                 boundary_px_ij_swapped[:,1] = boundary_px[:,0]

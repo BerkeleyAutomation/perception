@@ -29,8 +29,10 @@ if __name__ == '__main__':
         sensor_type = sensor_config['type']
         sensor_config['frame'] = sensor_frame
         sensor = RgbdSensorFactory.sensor(sensor_type, sensor_config)
+        logging.info('Starting sensor')
         sensor.start()
         ir_intrinsics = sensor.ir_intrinsics
+        logging.info('Sensor initialized')
 
         # register
         reg_result = CameraChessboardRegistration.register(sensor, config['chessboard_registration'])

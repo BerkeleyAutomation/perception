@@ -227,6 +227,9 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
         # foreground masking
         binary_im = color_im.foreground_mask(foreground_mask_tolerance, bgmodel=bgmodel)
         binary_im = binary_im.prune_contours(area_thresh=min_contour_area, dist_thresh=contour_dist_thresh)
+        if binary_im is None:
+            return None, None, None
+
         color_im = color_im.mask_binary(binary_im)
 
         # kmeans segmentation
@@ -369,6 +372,8 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
                 # segment color to get refined detection
                 color_thumbnail = color_im.crop(query_box.height, query_box.width, query_box.ci, query_box.cj)
                 binary_thumbnail, segment_thumbnail, query_box = self._segment_color(color_thumbnail, query_box, bgmodel, cfg, vis_segmentation=vis_segmentation)
+                if binary_thumbnail is None:
+                    continue
             else:
                 # otherwise take original bounding box
                 query_box = Box(contour.bounding_box.min_pt - box_padding_px,

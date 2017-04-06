@@ -18,6 +18,10 @@ vis: True
 
 # SENSOR CALIBRATION LIST
 sensor:
-    frame_name: kinect2_overhead 
-    device_num: 0
-    type: kinect2
+   frame_name: primesense_overhead
+   auto_white_balance: 0
+   type: primesense
+#sensor:
+#    frame_name: kinect2_overhead 
+#    device_num: 0
+#    type: kinect2
