@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Point Cloud Registration &mdash; perception 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="perception 0.0.1 documentation" href="../index.html"/>
+        <link rel="next" title="Video Classes" href="video.html"/>
+        <link rel="prev" title="Kinect Sensor" href="kinect_sensor.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> perception
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="camera_intrinsics.html">Camera Intrinsics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cnn.html">Convolutional Neural Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detector.html">Detection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image.html">Image Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kinect_sensor.html">Kinect Sensor</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Point Cloud Registration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#iterativeregistrationsolver">IterativeRegistrationSolver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#registrationresult">RegistrationResult</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pointtoplaneicpsolver">PointToPlaneICPSolver</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="video.html">Video Classes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">perception</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li>Point Cloud Registration</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/registration.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="point-cloud-registration">
+<h1>Point Cloud Registration<a class="headerlink" href="#point-cloud-registration" title="Permalink to this headline">¶</a></h1>
+<p>Classes for point cloud registration.</p>
+<div class="section" id="iterativeregistrationsolver">
+<h2>IterativeRegistrationSolver<a class="headerlink" href="#iterativeregistrationsolver" title="Permalink to this headline">¶</a></h2>
+<p>Abstract class for iterative point cloud registration algorithms.</p>
+<dl class="class">
+<dt id="perception.IterativeRegistrationSolver">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">IterativeRegistrationSolver</code><a class="headerlink" href="#perception.IterativeRegistrationSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Abstract class for iterative registration solvers.</p>
+<dl class="method">
+<dt id="perception.IterativeRegistrationSolver.register">
+<code class="descname">register</code><span class="sig-paren">(</span><em>source_point_cloud</em>, <em>target_point_cloud</em>, <em>source_normal_cloud</em>, <em>target_normal_cloud</em>, <em>matcher</em>, <em>num_iterations=1</em>, <em>compute_total_cost=True</em>, <em>match_centroids=False</em>, <em>vis=False</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.IterativeRegistrationSolver.register" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iteratively register objects to one another.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source_point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.PointCloud</span></code>) &#8211; source object points</li>
+<li><strong>target_point_cloud</strong> (<em>:obj`core.PointCloud`</em>) &#8211; target object points</li>
+<li><strong>source_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; source object outward-pointing normals</li>
+<li><strong>target_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; target object outward-pointing normals</li>
+<li><strong>matcher</strong> (<code class="xref py py-obj docutils literal"><span class="pre">PointToPlaneFeatureMatcher</span></code>) &#8211; object to match the point sets</li>
+<li><strong>num_iterations</strong> (<em>int</em>) &#8211; the number of iterations to run</li>
+<li><strong>compute_total_cost</strong> (<em>bool</em>) &#8211; whether or not to compute the total cost upon termination.</li>
+<li><strong>match_centroids</strong> (<em>bool</em>) &#8211; whether or not to match the centroids of the point clouds</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">results containing source to target transformation and cost</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">obj`RegistrationResult`</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="registrationresult">
+<h2>RegistrationResult<a class="headerlink" href="#registrationresult" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.RegistrationResult">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">RegistrationResult</code><span class="sig-paren">(</span><em>T_source_target</em>, <em>cost</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.RegistrationResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Struct to hold results of point set registration.</p>
+<dl class="attribute">
+<dt id="RegistrationResult.T_source_target">
+<code class="descname">T_source_target</code><a class="headerlink" href="#RegistrationResult.T_source_target" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">core.RigidTranform</span></code> &#8211; transformation from source to target frame</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="RegistrationResult.cost">
+<code class="descname">cost</code><a class="headerlink" href="#RegistrationResult.cost" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; numeric value of the registration objective for the given transform</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="pointtoplaneicpsolver">
+<h2>PointToPlaneICPSolver<a class="headerlink" href="#pointtoplaneicpsolver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.PointToPlaneICPSolver">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">PointToPlaneICPSolver</code><span class="sig-paren">(</span><em>sample_size=100</em>, <em>cost_sample_size=100</em>, <em>gamma=100.0</em>, <em>mu=0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.PointToPlaneICPSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">perception.point_registration.IterativeRegistrationSolver</span></code></p>
+<p>Performs Iterated Closest Point with an objective weighted between point-to-point and point-to-plane.</p>
+<blockquote>
+<div></div></blockquote>
+<dl class="docutils">
+<dt>1    sample_size</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd><blockquote class="first">
+<div>number of randomly sampled points to use per iteration</div></blockquote>
+<dl class="last docutils">
+<dt>cost_sample_size</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd>number of randomly sampled points to use for cost evaluations</dd>
+<dt>gamma</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd>weight of point-to-point objective relative to point-to-plane objective</dd>
+<dt>mu</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd>regularizer for matrix inversion in the Gauss-Newton step</dd>
+</dl>
+</dd>
+</dl>
+<dl class="method">
+<dt id="perception.PointToPlaneICPSolver.register">
+<code class="descname">register</code><span class="sig-paren">(</span><em>source_point_cloud</em>, <em>target_point_cloud</em>, <em>source_normal_cloud</em>, <em>target_normal_cloud</em>, <em>matcher</em>, <em>num_iterations=1</em>, <em>compute_total_cost=True</em>, <em>match_centroids=False</em>, <em>vis=False</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.PointToPlaneICPSolver.register" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iteratively register objects to one another using a modified version of point to plane ICP.
+The cost func is PointToPlane_COST + gamma * PointToPoint_COST.
+Uses a <cite>stochastic Gauss-Newton step</cite> where on each iteration a smaller number of points is sampled.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source_point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.PointCloud</span></code>) &#8211; source object points</li>
+<li><strong>target_point_cloud</strong> (<em>:obj`core.PointCloud`</em>) &#8211; target object points</li>
+<li><strong>source_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; source object outward-pointing normals</li>
+<li><strong>target_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; target object outward-pointing normals</li>
+<li><strong>matcher</strong> (<code class="xref py py-obj docutils literal"><span class="pre">PointToPlaneFeatureMatcher</span></code>) &#8211; object to match the point sets</li>
+<li><strong>num_iterations</strong> (<em>int</em>) &#8211; the number of iterations to run</li>
+<li><strong>compute_total_cost</strong> (<em>bool</em>) &#8211; whether or not to compute the total cost upon termination.</li>
+<li><strong>match_centroids</strong> (<em>bool</em>) &#8211; whether or not to match the centroids of the point clouds</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">results containing source to target transformation and cost</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">obj`RegistrationResult`</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.PointToPlaneICPSolver.register_2d">
+<code class="descname">register_2d</code><span class="sig-paren">(</span><em>source_point_cloud</em>, <em>target_point_cloud</em>, <em>source_normal_cloud</em>, <em>target_normal_cloud</em>, <em>matcher</em>, <em>num_iterations=1</em>, <em>compute_total_cost=True</em>, <em>vis=False</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.PointToPlaneICPSolver.register_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iteratively register objects to one another using a modified version of point to plane ICP
+which only solves for tx and ty (translation in the plane) and theta (rotation about the z axis).
+The cost func is actually PointToPlane_COST + gamma * PointToPoint_COST
+Points should be specified in the basis of the planar worksurface.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source_point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.PointCloud</span></code>) &#8211; source object points</li>
+<li><strong>target_point_cloud</strong> (<em>:obj`core.PointCloud`</em>) &#8211; target object points</li>
+<li><strong>source_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; source object outward-pointing normals</li>
+<li><strong>target_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; target object outward-pointing normals</li>
+<li><strong>matcher</strong> (<code class="xref py py-obj docutils literal"><span class="pre">PointToPlaneFeatureMatcher</span></code>) &#8211; object to match the point sets</li>
+<li><strong>num_iterations</strong> (<em>int</em>) &#8211; the number of iterations to run</li>
+<li><strong>compute_total_cost</strong> (<em>bool</em>) &#8211; whether or not to compute the total cost upon termination.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">results containing source to target transformation and cost</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">obj`RegistrationResult`</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="video.html" class="btn btn-neutral float-right" title="Video Classes" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="kinect_sensor.html" class="btn btn-neutral" title="Kinect Sensor" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jeff Mahler.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

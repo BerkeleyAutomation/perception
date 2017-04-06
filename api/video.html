@@ -1,0 +1,282 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Video Classes &mdash; perception 0.0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="perception 0.0.1 documentation" href="../index.html"/>
+        <link rel="prev" title="Point Cloud Registration" href="registration.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> perception
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="camera_intrinsics.html">Camera Intrinsics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cnn.html">Convolutional Neural Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detector.html">Detection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image.html">Image Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kinect_sensor.html">Kinect Sensor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registration.html">Point Cloud Registration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Video Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#videorecorder">VideoRecorder</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">perception</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li>Video Classes</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/video.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="video-classes">
+<h1>Video Classes<a class="headerlink" href="#video-classes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="videorecorder">
+<h2>VideoRecorder<a class="headerlink" href="#videorecorder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.VideoRecorder">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">VideoRecorder</code><span class="sig-paren">(</span><em>device_id</em>, <em>res=(640</em>, <em>480)</em>, <em>codec='XVID'</em>, <em>fps=30</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.VideoRecorder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encapsulates video recording processes.</p>
+<dl class="attribute">
+<dt id="VideoRecorder.device_id">
+<code class="descname">device_id</code><a class="headerlink" href="#VideoRecorder.device_id" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; USB index of device</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="VideoRecorder.res">
+<code class="descname">res</code><a class="headerlink" href="#VideoRecorder.res" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>2-tuple</em> &#8211; resolution of recording and saving. defaults to (640, 480)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="VideoRecorder.codec">
+<code class="descname">codec</code><a class="headerlink" href="#VideoRecorder.codec" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; codec used for encoding video. default to XVID.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="VideoRecorder.fps">
+<code class="descname">fps</code><a class="headerlink" href="#VideoRecorder.fps" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; frames per second of video captures. defaults to 30</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.VideoRecorder.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.VideoRecorder.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the camera recording process.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.VideoRecorder.start_recording">
+<code class="descname">start_recording</code><span class="sig-paren">(</span><em>output_file</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.VideoRecorder.start_recording" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts recording to a given output video file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>output_file</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; filename to write video to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.VideoRecorder.stop_recording">
+<code class="descname">stop_recording</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.VideoRecorder.stop_recording" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops writing video to file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.VideoRecorder.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.VideoRecorder.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop the camera process.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="registration.html" class="btn btn-neutral" title="Point Cloud Registration" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jeff Mahler.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
