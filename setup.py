@@ -8,8 +8,10 @@ requirements = [
     'numpy',
     'scipy',
     'matplotlib',
+    'sklearn',
     'cycler',
     'Pillow',
+    'ipython',
     'core'
 ]
 
