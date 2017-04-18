@@ -33,7 +33,7 @@ except Exception:
     print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
 
 try:
-    from primesense_sensor import PrimesenseSensor, PrimesenseSensor_ROS, PrimesenseRegistrationMode
+    from primesense_sensor import PrimesenseSensor, VirtualPrimesenseSensor, PrimesenseSensor_ROS, PrimesenseRegistrationMode
 except Exception:
     print 'Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.'
     print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
@@ -52,7 +52,7 @@ __all__ = [
     'Feature', 'LocalFeature', 'GlobalFeature', 'SHOTFeature', 'MVCNNFeature', 'BagOfFeatures',
     'Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage', 'SegmentationImage', 'BinaryImage', 'PointCloudImage', 'NormalCloudImage',
     'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode', 'Kinect2DepthMode', 'Kinect2Sensor', 'VirtualKinect2Sensor', 'Kinect2SensorFactory', 'load_images',
-    'RgbdSensorFactory', 'PrimesenseSensor', 'PrimesenseRegistrationMode',
+    'RgbdSensorFactory', 'PrimesenseSensor', 'VirtualPrimesenseSensor', 'PrimesenseSensor_ROS', 'PrimesenseRegistrationMode',
     'RenderMode', 'ObjectRender', 'QueryImageBundle',
     'RegistrationResult', 'IterativeRegistrationSolver', 'PointToPlaneICPSolver',
     'OpenCVCameraSensor',
