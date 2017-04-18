@@ -1,0 +1,7 @@
+num_images: 10
+calib_dir: /home/autolab/Public/alan/calib
+
+sensor:
+  type: primesense
+  frame: primesense_overhead
+  auto_white_balance: 0
