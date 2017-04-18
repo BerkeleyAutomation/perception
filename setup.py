@@ -8,13 +8,15 @@ requirements = [
     'numpy',
     'scipy',
     'matplotlib',
+    'sklearn',
     'cycler',
     'Pillow',
+    'ipython',
     'core'
 ]
 
 setup(name='perception',
-      version='0.1.dev0',
+      version='0.1.0',
       description='Perception project code',
       author='Jeff Mahler',
       author_email='jmahler@berkeley.edu',

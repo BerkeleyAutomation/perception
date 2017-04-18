@@ -2,20 +2,17 @@ import cv2
 import numpy as np
 # from alan.lfd_slware.options import SLVOptions
 #from alan.lfd_amazon.options import AmazonOptions
-from bgSegmentation import segmentBG, bgBoundsByMode
-from basicImaging import addDim, deNoise
+from bg_segmentation import segmentBG, bgBoundsByMode
+from basic_imaging import add_dim, deNoise
 
 class BinaryCamera():
-
 
     def __init__(self, Amazon = False):
         self.vc = None
         self.Amazon = Amazon
 
-
         self.lowerBound = -1
         self.upperBound = -1
-
 
     """ idNum usually 0, 1, 2, 3"""
     def open(self, idNum = 0, threshTolerance = 40):

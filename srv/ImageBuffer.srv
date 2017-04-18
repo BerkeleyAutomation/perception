@@ -1,0 +1,33 @@
+# Timestamps are provided based on the value of timing_mode
+# If timing_mode is 0, timestamps are provided as float
+# 	seconds since epoch (UNIX time)
+# If timing_mode is 1, timestamps are provided as float
+# 	seconds before request received (i.e. an image from 1 second
+# 	ago would have timestamp 1.0
+#
+# This service is meant to be used with ros numpy_msg
+# After importing the service and importing numpy_msg from ros, execute
+# 
+#	ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
+#	ImageBuffer._response_class = ImageBufferResponse
+#
+# to make the service work with numpy arrays
+#
+# Since this only allows for 1D arrays, the data array's dimensions are
+# stored in data_dim1, data_dim2, data_dim3. To recover the original data
+# array, execute reshape on the numpy data array with arguments
+# data_dim1, data_dim2, data_dim3 in that order.
+#
+# Then, dtype contains the original data array's dtype and depth_per
+# contains the number of 2D blocks per image (3 for RGB, 1 for depth, etc.)
+
+uint32   num_requested
+uint8    timing_mode
+---
+float64[]   timestamps
+float32[]   data
+uint8       depth_per
+string      dtype
+uint32      data_dim1
+uint32      data_dim2
+uint32      data_dim3

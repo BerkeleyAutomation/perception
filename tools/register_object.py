@@ -8,7 +8,7 @@ import argparse
 import logging 
 
 from core import RigidTransform, YamlConfig
-from perception import CameraChessboardRegistration, Kinect2Sensor, Kinect2PacketPipelineMode
+from perception import CameraChessboardRegistration, RgbdSensorFactory
 
 VIS_SUPPORTED = True
 try:
@@ -29,8 +29,8 @@ if __name__ == '__main__':
     config = YamlConfig(config_filename)
     
     sensor_frame = config['sensor']['frame_name']
-    device_num = config['sensor']['device_num']
     sensor_type = config['sensor']['type']
+    sensor_config = config['sensor']
 
     object_path = os.path.join(config['objects_dir'], args.object_name)
     obj_cb_transform_file_path = os.path.join(object_path, 'T_cb_{0}.tf'.format(args.object_name))
@@ -43,19 +43,19 @@ if __name__ == '__main__':
     T_world_cam = RigidTransform.load(T_world_cam_path)
 
     # open sensor
-    if sensor_type == 'kinect2':
-        sensor = Kinect2Sensor(device_num=device_num, frame=sensor_frame, packet_pipeline_mode=Kinect2PacketPipelineMode.CPU)
-    else:
-        raise ValueError('Sensor type %s not supported!' %(sensor_type))
+    sensor_type = sensor_config['type']
+    sensor_config['frame'] = sensor_frame
+    sensor = RgbdSensorFactory.sensor(sensor_type, sensor_config)
+    logging.info('Starting sensor')
     sensor.start()
     ir_intrinsics = sensor.ir_intrinsics
+    logging.info('Sensor initialized')
 
     # register
     reg_result = CameraChessboardRegistration.register(sensor, config['chessboard_registration'])
     
     T_cb_cam = reg_result.T_camera_cb
     T_world_obj = T_world_cam * T_cb_cam.inverse() * T_cb_obj
-    sensor.stop()
 
     output_path = os.path.join(config['calib_dir'], T_world_obj.from_frame)
     if not os.path.exists(output_path):
@@ -67,11 +67,8 @@ if __name__ == '__main__':
 
     if config['vis'] and VIS_SUPPORTED:
 
-        sensor = Kinect2Sensor(device_num=device_num, frame=sensor_frame, packet_pipeline_mode=Kinect2PacketPipelineMode.CPU)
-        sensor.start()
-        ir_intr = sensor.ir_intrinsics
         _, depth_im, _ = sensor.frames()
-        pc_cam = ir_intr.deproject(depth_im)
+        pc_cam = ir_intrinsics.deproject(depth_im)
         pc_world = T_world_cam * pc_cam
 
         mesh_file = ObjFile(os.path.join(object_path, '{0}.obj'.format(args.object_name)))
@@ -85,3 +82,4 @@ if __name__ == '__main__':
         vis.pose(T_world_cam  * T_cb_cam.inverse(), alpha=0.04, tube_radius=0.002, center_scale=0.01)
         vis.points(pc_world, subsample=20)
         vis.show()
+    sensor.stop()

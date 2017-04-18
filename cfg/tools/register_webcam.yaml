@@ -1,0 +1,16 @@
+# REGISTRATION PARAMS
+chessboard_registration:
+  corners_x: 6 # number of corners in the x direction
+  corners_y: 9 # number of corners in the y direction
+  width: 0.023
+  height: 0.024
+  x_off: 0.454
+  y_off: 0.0107
+
+calib_dir: /home/autolab/Public/alan/calib # directory for the output
+
+# SENSOR CALIBRATION LIST
+sensors:
+   webcam_overhead:
+      use: True
+      device_num: 0
