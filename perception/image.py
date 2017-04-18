@@ -23,6 +23,7 @@ import sklearn.cluster as sc
 import sklearn.mixture as smx
 import scipy.ndimage.filters as sf
 import scipy.spatial.distance as ssd
+import skimage.morphology as morph
 import scipy.ndimage.morphology as snm
 
 from core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
@@ -1954,6 +1955,24 @@ class BinaryImage(Image):
 
         return kept_contours
 
+    def boundary_map(self):
+        """ Computes the boundary pixels in the image and sets them to nonzero values.
+
+        Returns
+        -------
+        :obj:`BinaryImage`
+            binary image with nonzeros on the boundary of the original image
+        """
+        # compute contours
+        contours = self.find_contours()
+        
+        # fill in nonzero pixels
+        new_data = np.zeros(self.data.shape)
+        for contour in contours:
+            new_data[contour.boundary_pixels[:,0].astype(np.uint8),
+                     contour.boundary_pixels[:,1].astype(np.uint8)] = np.iinfo(np.uint8).max
+        return BinaryImage(new_data.astype(np.uint8), frame=self.frame)
+
     def closest_nonzero_pixel(self, pixel, direction, w=13, t=0.5):
         """Starting at pixel, moves pixel by direction * t until there is a
         non-zero pixel within a radius w of pixel. Then, returns pixel.
@@ -2077,6 +2096,49 @@ class BinaryImage(Image):
         spurious_px = np.where((self.data > 0) & (binary_im.data == 0))
         overlap_data[spurious_px[0], spurious_px[1], :] = yellow
         return ColorImage(overlap_data.astype(np.uint8), frame=self.frame)
+
+    def num_adjacent(self, i, j):
+        """ Counts the number of adjacent nonzero pixels to a given pixel.
+
+        Parameters
+        ----------
+        i : int
+            row index of query pixel
+        j : int
+            col index of query pixel
+
+        Returns
+        -------
+        int
+            number of adjacent nonzero pixels
+        """
+        # check values
+        if i < 1 or i > self.height-2 or j < 1 and j > self.width-2:
+            raise ValueError('Pixels out of bounds')
+
+        # count the number of blacks
+        count = 0
+        diffs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+        for d in diffs:
+            if self.data[i+d[0]][j+d[1]] > self._threshold:
+                count += 1
+        return count
+
+    def to_sdf(self):
+        """ Converts the 2D image to a 2D signed distance field.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+            2D float array of the signed distance field
+        """
+        # compute medial axis transform
+	skel, sdf_in = morph.medial_axis(self.data, return_distance=True)
+        useless_skel, sdf_out = morph.medial_axis(np.iinfo(np.uint8).max - self.data, return_distance=True)
+
+        # convert to true sdf
+        sdf = sdf_out - sdf_in
+        return sdf
 
     def to_color(self):
         """Creates a ColorImage from the binary image.
