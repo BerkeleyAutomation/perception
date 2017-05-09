@@ -14,6 +14,7 @@ import PIL.Image as PImage
 import scipy.misc as sm
 import scipy.signal as ssg
 import scipy.ndimage.filters as sf
+import scipy.ndimage.interpolation as sni
 import scipy.ndimage.morphology as snm
 import scipy.spatial.distance as ssd
 import scipy.signal as ssg
@@ -227,12 +228,15 @@ class Image(object):
         """
         theta = np.rad2deg(theta)
         trans_map = np.float32([[1,0,translation[1]], [0,1,translation[0]]])
-        rot_map = cv2.getRotationMatrix2D(tuple(self.center), theta, 1)
+        rot_map = cv2.getRotationMatrix2D((self.center[1], self.center[0]), theta, 1)
         trans_map_aff = np.r_[trans_map, [[0,0,1]]]
         rot_map_aff = np.r_[rot_map, [[0,0,1]]]
         full_map = rot_map_aff.dot(trans_map_aff)
         full_map = full_map[:2,:]
-        im_data_tf = cv2.warpAffine(self.data, full_map, (self.height, self.width), flags=cv2.INTER_NEAREST)
+        im_data_tf = sni.affine_transform(self.data,
+                                          matrix=full_map[:,:2],
+                                          offset=full_map[:,2],
+                                          order=0)
         return type(self)(im_data_tf.astype(self.data.dtype), frame=self._frame)
 
     def ij_to_linear(self, i, j):
@@ -599,26 +603,6 @@ class Image(object):
         shifted_data[nonzero_px_tf[:,0], nonzero_px_tf[:,1], :] = self.data[nonzero_px[:,0], nonzero_px[:,1]].reshape(-1, self.channels)
 
         return type(self)(shifted_data.astype(self.data.dtype), frame=self._frame), diff_px
-
-    def transform(self, translation, theta):
-        """ Translate and rotate image.
-
-        Parameters
-        ----------
-        translation : :obj:`numpy.ndarray`
-            2-vector of the translation to perform, in pixels
-        theta : float
-            amount to rotate the image
-        """
-        theta = np.rad2deg(theta)
-        trans_map = np.float32([[1,0,translation[1]], [0,1,translation[0]]])
-        rot_map = cv2.getRotationMatrix2D(tuple(self.center), theta, 1)
-        trans_map_aff = np.r_[trans_map, [[0,0,1]]]
-        rot_map_aff = np.r_[rot_map, [[0,0,1]]]
-        full_map = rot_map_aff.dot(trans_map_aff)
-        full_map = full_map[:2,:]
-        im_data_tf = cv2.warpAffine(self.data, full_map, (self.height, self.width), flags=cv2.INTER_NEAREST)
-        return type(self)(im_data_tf.astype(self.data.dtype), frame=self._frame)
 
     def nonzero_pixels(self):
         """ Return an array of the nonzero pixels.
