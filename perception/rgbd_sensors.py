@@ -2,7 +2,7 @@
 RGBD Sensor factory
 Author: Jeff Mahler
 """
-from perception import Kinect2Sensor, VirtualKinect2Sensor, PrimesenseSensor, PrimesenseSensor_ROS
+from perception import Kinect2Sensor, VirtualKinect2Sensor, PrimesenseSensor, VirtualPrimesenseSensor, PrimesenseSensor_ROS
 
 class RgbdSensorFactory:
     """ Factory class for Rgbd camera sensors. """
@@ -29,6 +29,9 @@ class RgbdSensorFactory:
         elif sensor_type == 'primesense':
             s = PrimesenseSensor(auto_white_balance=cfg['auto_white_balance'],
                                  frame=cfg['frame'])
+        elif sensor_type == 'virtual_primesense':
+            s = VirtualPrimesenseSensor(cfg['image_dir'],
+                                        frame=cfg['frame'])
         elif sensor_type == 'primesense_ros':
             s = PrimesenseSensor_ROS(frame=cfg['frame'])
         else:
