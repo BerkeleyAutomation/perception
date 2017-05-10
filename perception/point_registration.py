@@ -178,6 +178,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
 
             num_corrs = valid_corrs.shape[0]
             if num_corrs == 0:
+                logging.warning('No correspondences found')
                 break
 
             # create A and b matrices for Gauss-Newton step on joint cost function

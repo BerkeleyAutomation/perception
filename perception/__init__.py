@@ -15,7 +15,7 @@ from image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, Segmen
 from object_render import RenderMode, ObjectRender, QueryImageBundle
 from chessboard_registration import ChessboardRegistrationResult, CameraChessboardRegistration
 from point_registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
-from detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector
+from detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector, PointCloudBoxDetector, RgbdDetectorFactory
 
 from camera_sensor import CameraSensor
 from video_recorder import VideoRecorder
@@ -46,7 +46,7 @@ from video_writer import write_video
 __all__ = [
     'CameraIntrinsics',
     'AlexNetWeights', 'AlexNet', 'conv',
-    'RgbdDetection', 'RgbdDetector', 'RgbdForegroundMaskDetector', 'RgbdForegroundMaskQueryImageDetector',
+    'RgbdDetection', 'RgbdDetector', 'RgbdForegroundMaskDetector', 'RgbdForegroundMaskQueryImageDetector', 'PointCloudBoxDetector', 'RgbdDetectorFactory',
     'FeatureExtractor', 'CNNBatchFeatureExtractor', 'CNNReusableBatchFeatureExtractor',
     'Correspondences', 'NormalCorrespondences', 'FeatureMatcher', 'RawDistanceFeatureMatcher', 'PointToPlaneFeatureMatcher',
     'Feature', 'LocalFeature', 'GlobalFeature', 'SHOTFeature', 'MVCNNFeature', 'BagOfFeatures',

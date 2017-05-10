@@ -233,11 +233,19 @@ class Image(object):
         rot_map_aff = np.r_[rot_map, [[0,0,1]]]
         full_map = rot_map_aff.dot(trans_map_aff)
         full_map = full_map[:2,:]
-        im_data_tf = sni.affine_transform(self.data,
-                                          matrix=full_map[:,:2],
-                                          offset=full_map[:,2],
-                                          order=0)
+        im_data_tf = cv2.warpAffine(self.data, full_map, (self.width, self.height), flags=cv2.INTER_NEAREST)
         return type(self)(im_data_tf.astype(self.data.dtype), frame=self._frame)
+
+    def gradients(self):
+        """Return the gradient as a pair of numpy arrays.
+
+        Returns
+        -------
+        :obj:`tuple` of :obj:`numpy.ndarray` of float
+            The gradients of the image along each dimension.
+        """
+        g = np.gradient(self.data.astype(np.float32))
+        return g
 
     def ij_to_linear(self, i, j):
         """Converts row / column coordinates to linear indices.
@@ -1276,17 +1284,6 @@ class DepthImage(Image):
         resized_data = sm.imresize(self.data, size, interp=interp, mode='F')
         return DepthImage(resized_data, self._frame)
 
-    def gradients(self):
-        """Return the gradient as a pair of numpy arrays.
-
-        Returns
-        -------
-        :obj:`tuple` of :obj:`numpy.ndarray` of float
-            The x-gradient and y-gradient of the image.
-        """
-        gx, gy = np.gradient(self.data)
-        return gx, gy
-
     def threshold(self, front_thresh=0.0, rear_thresh=100.0):
         """Creates a new DepthImage by setting all depths less than
         front_thresh and greater than rear_thresh to 0.
@@ -1841,7 +1838,8 @@ class BinaryImage(Image):
         data[ind[0], ind[1], ...] = 0.0
         return BinaryImage(data, self._frame)
 
-    def prune_contours(self, area_thresh=1000.0, dist_thresh=20):
+    def prune_contours(self, area_thresh=1000.0, dist_thresh=20,
+                       preserve_topology=True):
         """Removes all white connected components with area less than area_thresh.
         Parameters
         ----------
@@ -1904,8 +1902,9 @@ class BinaryImage(Image):
         pruned_data = pruned_data[:,:,0] # convert back to one channel
 
         # preserve topology of original image
-        orig_zeros = np.where(self.data == 0)
-        pruned_data[orig_zeros[0], orig_zeros[1]] = 0
+        if preserve_topology:
+            orig_zeros = np.where(self.data == 0)
+            pruned_data[orig_zeros[0], orig_zeros[1]] = 0
         return BinaryImage(pruned_data.astype(np.uint8), self._frame)
 
     def find_contours(self, min_area=0.0, max_area=np.inf):
