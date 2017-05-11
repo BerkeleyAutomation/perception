@@ -11,7 +11,7 @@ from constants import MM_TO_METERS, INTR_EXTENSION
 try:
     from primesense import openni2
 except:
-    logging.warning('Unable to import openni2 driver. Primesense sensor may not work properly')
+    logging.warning('Unable to import openni2 driver. Python-only Primesense driver may not work properly')
 
 from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, IrImage, Image
 
