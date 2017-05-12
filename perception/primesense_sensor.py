@@ -591,7 +591,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         :obj:`DepthImage`
             The median DepthImage collected from the frames.
         """
-        depths = _self.read_depth_images(num_img)
+        depths = self._read_depth_images(num_img)
 
         median_depth = Image.median_images(depths)
         median_depth.data[median_depth.data == 0.0] = fill_depth

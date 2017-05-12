@@ -18,7 +18,7 @@ chessboard_tf: /home/autolab/Public/alan/calib/chessboard/chessboard_to_world.tf
 sensors:
    primesense_overhead:
       auto_white_balance: 0
-      type: primesense
+      type: primesense_ros
    #kinect2_overhead:
    #   device_num: 0
    #   type: kinect2
