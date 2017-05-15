@@ -425,81 +425,6 @@ class PointCloudBoxDetector(RgbdDetector):
     Converts all detections within a specified area into query images for a cnn.
     Optionally resegements the images using KMeans to remove spurious background pixels.
     """
-    def _segment_color(self, color_im, bounding_box, bgmodel, cfg, vis_segmentation=False):
-        """ Re-segments a color image to isolate an object of interest using foreground masking and kmeans """
-        # read params
-        foreground_mask_tolerance = cfg['foreground_mask_tolerance']
-        color_seg_rgb_weight = cfg['color_seg_rgb_weight']
-        color_seg_num_clusters = cfg['color_seg_num_clusters']
-        color_seg_hsv_weight = cfg['color_seg_hsv_weight']
-        color_seg_dist_pctile = cfg['color_seg_dist_pctile']
-        color_seg_dist_thresh = cfg['color_seg_dist_thresh']
-        color_seg_min_bg_dist = cfg['color_seg_min_bg_dist']
-        min_contour_area= cfg['min_contour_area']
-        contour_dist_thresh = cfg['contour_dist_thresh']
-
-        # foreground masking
-        binary_im = color_im.foreground_mask(foreground_mask_tolerance, bgmodel=bgmodel)
-        binary_im = binary_im.prune_contours(area_thresh=min_contour_area, dist_thresh=contour_dist_thresh)
-        if binary_im is None:
-            return None, None, None
-
-        color_im = color_im.mask_binary(binary_im)
-
-        # kmeans segmentation
-        segment_im = color_im.segment_kmeans(color_seg_rgb_weight,
-                                             color_seg_num_clusters,
-                                             hue_weight=color_seg_hsv_weight)
-        
-        # keep the segment that is farthest from the background
-        bg_dists = []
-        hsv_bgmodel = 255 * np.array(colorsys.rgb_to_hsv(float(bgmodel[0]) / 255,
-                                                         float(bgmodel[1]) / 255,
-                                                         float(bgmodel[2]) / 255))
-        hsv_bgmodel = np.r_[color_seg_rgb_weight * np.array(bgmodel), color_seg_hsv_weight * hsv_bgmodel[:1]]
-
-        for k in range(segment_im.num_segments-1):
-            seg_mask = segment_im.segment_mask(k)
-            color_im_segment = color_im.mask_binary(seg_mask)
-            color_im_segment_data = color_im_segment.nonzero_data()
-            color_im_segment_data = np.c_[color_seg_rgb_weight * color_im_segment_data, color_seg_hsv_weight * color_im_segment.nonzero_hsv_data()[:,:1]]
-
-            # take the median distance from the background
-            bg_dist = np.median(np.linalg.norm(color_im_segment_data - hsv_bgmodel, axis=1))
-            if vis_segmentation:
-                logging.info('BG Dist for segment %d: %.4f' %(k, bg_dist))
-            bg_dists.append(bg_dist)
-
-        # sort by distance
-        dists_and_indices = zip(np.arange(len(bg_dists)), bg_dists)
-        dists_and_indices.sort(key = lambda x: x[1], reverse=True)
-        
-        # mask out the segment in the binary image
-        if color_seg_num_clusters > 1 and abs(dists_and_indices[0][1] - dists_and_indices[1][1]) > color_seg_dist_thresh and dists_and_indices[1][1] < color_seg_min_bg_dist:
-            obj_segment = dists_and_indices[0][0]
-            obj_seg_mask = segment_im.segment_mask(obj_segment)
-            binary_im = binary_im.mask_binary(obj_seg_mask)
-            binary_im, diff_px = binary_im.center_nonzero()
-            bounding_box = Box(bounding_box.min_pt.astype(np.float32) - diff_px,
-                               bounding_box.max_pt.astype(np.float32) - diff_px,
-                               bounding_box.frame)
-
-        if vis_segmentation:
-            plt.figure()
-            plt.subplot(1,3,1)
-            plt.imshow(color_im.data)
-            plt.axis('off')
-            plt.subplot(1,3,2)
-            plt.imshow(segment_im.data)
-            plt.colorbar()
-            plt.axis('off')
-            plt.subplot(1,3,3)
-            plt.imshow(binary_im.data, cmap=plt.cm.gray)
-            plt.axis('off')
-            plt.show()
-
-        return binary_im, segment_im, bounding_box
-
     def detect(self, color_im, depth_im, cfg, camera_intr,
                T_camera_world,
                vis_foreground=False, vis_segmentation=False):
@@ -583,13 +508,11 @@ class PointCloudBoxDetector(RgbdDetector):
             plt.axis('off')
             plt.show()
 
-        # threshold gradients of depth
-        depth_im = depth_im.threshold_gradients(depth_grad_thresh)
-
         # convert contours to detections
         detections = []
-        for contour in contours:
+        for i, contour in enumerate(contours):
             orig_box = contour.bounding_box
+            logging.debug('Orig box %d area: %.3f' %(i, orig_box.area))
             if orig_box.area > min_box_area and orig_box.area < max_box_area:
                 # convert orig bounding box to query bounding box
                 min_pt = orig_box.center - half_crop_dims
@@ -597,10 +520,8 @@ class PointCloudBoxDetector(RgbdDetector):
                 query_box = Box(min_pt, max_pt, frame=orig_box.frame)
 
                 # segment color to get refined detection
-                color_thumbnail = color_im.crop(query_box.height, query_box.width, query_box.ci, query_box.cj)
-                binary_thumbnail, segment_thumbnail, query_box = self._segment_color(color_thumbnail, query_box, bgmodel, cfg, vis_segmentation=vis_segmentation)
-                if binary_thumbnail is None:
-                    continue
+                contour_mask = binary_im_filtered.contour_mask(contour)
+                binary_thumbnail = contour_mask.crop(query_box.height, query_box.width, query_box.ci, query_box.cj)
             else:
                 # otherwise take original bounding box
                 query_box = Box(contour.bounding_box.min_pt - box_padding_px,
