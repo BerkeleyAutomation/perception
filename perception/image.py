@@ -3,6 +3,7 @@ Lean classes to encapculate images
 Author: Jeff
 """
 from abc import ABCMeta, abstractmethod
+import logging
 import os
 import IPython
 
@@ -210,16 +211,17 @@ class Image(object):
         """
         pass
 
-    def transform(self, translation, theta):
+    def transform(self, translation, theta, method='opencv'):
         """Create a new image by translating and rotating the current image.
 
         Parameters
         ----------
         translation : :obj:`numpy.ndarray` of float
             The XY translation vector.
-
         theta : float
             Rotation angle in radians, with positive meaning counter-clockwise.
+        method : :obj:`str`
+            Method to use for image transformations (opencv or scipy)
 
         Returns
         -------
@@ -233,7 +235,13 @@ class Image(object):
         rot_map_aff = np.r_[rot_map, [[0,0,1]]]
         full_map = rot_map_aff.dot(trans_map_aff)
         full_map = full_map[:2,:]
-        im_data_tf = cv2.warpAffine(self.data, full_map, (self.width, self.height), flags=cv2.INTER_NEAREST)
+        if method == 'opencv':
+            im_data_tf = cv2.warpAffine(self.data, full_map, (self.width, self.height), flags=cv2.INTER_NEAREST)
+        else:
+            im_data_tf = sni.affine_transform(self.data,
+                                              matrix=full_map[:,:2],
+                                              offset=full_map[:,2],
+                                              order=0)
         return type(self)(im_data_tf.astype(self.data.dtype), frame=self._frame)
 
     def gradients(self):
@@ -829,6 +837,30 @@ class ColorImage(Image):
         """:obj:`numpy.ndarray` of uint8 : The blue-channel data.
         """
         return self.data[:,:,2]
+
+    def swap_channels(self, channel_swap):
+        """ Swaps the two channels specified in the tuple.
+        
+        Parameters
+        ----------
+        channel_swap : :obj:`tuple` of int
+            the two channels to swap
+
+        Returns
+        -------
+        :obj:`ColorImage`
+            color image with cols swapped
+        """
+        if len(channel_swap) != 2:
+            raise ValueError('Illegal value for channel swap')
+        ci = channel_swap[0]
+        cj = channel_swap[1]
+        if ci < 0 or ci > 2 or cj < 0 or cj > 2:
+            raise ValueError('Channels must be between 0 and 1')
+        new_data = self.data.copy()
+        new_data[:,:,ci] = self.data[:,:,cj]
+        new_data[:,:,cj] = self.data[:,:,ci]
+        return ColorImage(new_data, frame=self._frame)
 
     def resize(self, size, interp='bilinear'):
         """Resize the image.
@@ -1934,9 +1966,21 @@ class BinaryImage(Image):
                 boundary_px_ij_swapped = np.zeros(boundary_px.shape)
                 boundary_px_ij_swapped[:,0] = boundary_px[:,1]
                 boundary_px_ij_swapped[:,1] = boundary_px[:,0]
+                logging.debug('Contour %d area: %.3f' %(len(kept_contours), area))
                 kept_contours.append(Contour(boundary_px_ij_swapped, area=area, frame=self._frame))
 
         return kept_contours
+
+    def contour_mask(self, contour):
+        """ Generates a binary image with only the given contour filled in. """
+        # fill in new data
+        new_data = np.zeros(self.data.shape)
+        num_boundary = contour.boundary_pixels.shape[0]
+        boundary_px_ij_swapped = np.zeros([num_boundary, 1, 2])
+        boundary_px_ij_swapped[:,0,0] = contour.boundary_pixels[:,1]
+        boundary_px_ij_swapped[:,0,1] = contour.boundary_pixels[:,0]
+        cv2.fillPoly(new_data, pts=[boundary_px_ij_swapped.astype(np.int32)], color=(255,255,255))
+        return BinaryImage(new_data.astype(np.uint8), frame=self._frame)
 
     def boundary_map(self):
         """ Computes the boundary pixels in the image and sets them to nonzero values.
