@@ -11,7 +11,7 @@ except Exception:
     print 'TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup'
 from feature_matcher import Correspondences, NormalCorrespondences, FeatureMatcher, RawDistanceFeatureMatcher, PointToPlaneFeatureMatcher
 from features import Feature, LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
-from image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, SegmentationImage, BinaryImage, PointCloudImage, NormalCloudImage
+from image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, RgbdImage, GdImage, SegmentationImage, BinaryImage, PointCloudImage, NormalCloudImage
 from object_render import RenderMode, ObjectRender, QueryImageBundle
 from chessboard_registration import ChessboardRegistrationResult, CameraChessboardRegistration
 from point_registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
@@ -50,7 +50,7 @@ __all__ = [
     'FeatureExtractor', 'CNNBatchFeatureExtractor', 'CNNReusableBatchFeatureExtractor',
     'Correspondences', 'NormalCorrespondences', 'FeatureMatcher', 'RawDistanceFeatureMatcher', 'PointToPlaneFeatureMatcher',
     'Feature', 'LocalFeature', 'GlobalFeature', 'SHOTFeature', 'MVCNNFeature', 'BagOfFeatures',
-    'Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage', 'SegmentationImage', 'BinaryImage', 'PointCloudImage', 'NormalCloudImage',
+    'Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage', 'RgbdImage', 'GdImage', 'SegmentationImage', 'BinaryImage', 'PointCloudImage', 'NormalCloudImage',
     'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode', 'Kinect2DepthMode', 'Kinect2Sensor', 'VirtualKinect2Sensor', 'Kinect2SensorFactory', 'load_images',
     'RgbdSensorFactory', 'PrimesenseSensor', 'VirtualPrimesenseSensor', 'PrimesenseSensor_ROS', 'PrimesenseRegistrationMode',
     'RenderMode', 'ObjectRender', 'QueryImageBundle',

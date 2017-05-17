@@ -14,6 +14,9 @@ class RenderMode(object):
     DEPTH_SCENE = 'depth_scene'
     SCALED_DEPTH = 'scaled_depth'
     COLOR = 'color'
+    COLOR_SCENE = 'color_scene'
+    RGBD = 'rgbd'
+    RGBD_SCENE = 'rgbd_scene'
 
 class ObjectRender(object):
     """Class to encapsulate images of an object rendered from a virtual camera.

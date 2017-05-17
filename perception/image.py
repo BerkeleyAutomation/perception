@@ -628,7 +628,7 @@ class Image(object):
         :obj:`numpy.ndarray`
              Nx2 array of the nonzero pixels
         """
-        nonzero_px = np.where(self.data > 0)
+        nonzero_px = np.where(np.sum(self.raw_data, axis=2) > 0)
         nonzero_px = np.c_[nonzero_px[0], nonzero_px[1]]
         return nonzero_px
 
@@ -640,7 +640,7 @@ class Image(object):
         :obj:`numpy.ndarray`
              Nx2 array of the zero pixels
         """
-        zero_px = np.where(self.data == 0)
+        zero_px = np.where(np.sum(self.raw_data, axis=2) == 0)
         zero_px = np.c_[zero_px[0], zero_px[1]]
         return zero_px
 
@@ -1452,6 +1452,26 @@ class DepthImage(Image):
         data[ind[0], ind[1]] = 0.0
         return DepthImage(data, self._frame)
 
+    def pixels_farther_than(self, depth_im):
+        """
+        Returns the pixels that are farther away
+        than those in the corresponding depth image.
+        
+        Parameters
+        ----------
+        depth_im : :obj:`DepthImage`
+            depth image to query replacement with
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+            the pixels
+        """
+        # take closest pixel
+        farther_px = np.where(self.data > depth_im.data)
+        farther_px = np.c_[farther_px[0], farther_px[1]]
+        return farther_px
+
     def combine_with(self, depth_im):
         """
         Replaces all zeros in the source depth image with the value of a different depth image
@@ -2204,6 +2224,274 @@ class BinaryImage(Image):
         if len(data.shape) > 2 and data.shape[2] > 1:
             data = data[:,:,0]
         return BinaryImage(data, frame)
+
+class RgbdImage(Image):
+    """ An image containing a red, green, blue, and depth channel. """
+    def __init__(self, data, frame='unspecified'):
+        """ Create an RGB-D image from an array of data.
+
+        Parameters
+        ----------
+        data : :obj:`numpy.ndarray`
+            An array of data with which to make the image. The first dimension
+            of the data should index rows, the second columns, and the third
+            individual pixel elements (four channels, all float).
+            The first three channels should be the red, greed, and blue channels
+            which must be in the range (0, 255).
+            The fourth channel should be the depth channel.
+
+        frame : :obj:`str`
+            A string representing the frame of reference in which this image
+            lies.
+
+        Raises
+        ------
+        ValueError
+            If the data is not a properly-formatted ndarray or frame is not a
+            string.
+        """
+        Image.__init__(self, data, frame)
+
+    def _check_valid_data(self, data):
+        """Checks that the given data is a float array with four channels.
+
+        Parameters
+        ----------
+        data : :obj:`numpy.ndarray`
+            The data to check.
+
+        Raises
+        ------
+        ValueError
+            If the data is invalid.
+        """
+        if data.dtype.type is not np.float32 and \
+           data.dtype.type is not np.float64:
+            raise ValueError('Illegal data type. RGB-D images only support float arrays')
+
+        if len(data.shape) != 3 and data.shape[2] != 4:
+            raise ValueError('Illegal data type. RGB-D images only support four channel')        
+
+        color_data = data[:,:,:3]
+        if np.any((color_data < 0) | (color_data > 255)):
+            raise ValueError('Color channels must be in the range (0, 255)')
+
+    @staticmethod
+    def from_color_and_depth(color_im, depth_im):
+        """ Creates an RGB-D image from a separate color and depth image. """
+        # check shape
+        if color_im.height != depth_im.height or color_im.width != depth_im.width:
+            raise ValueError('Color and depth images must have the same shape')
+
+        # check frame
+        if color_im.frame != depth_im.frame:
+            raise ValueError('Color and depth images must have the same frame')
+            
+        # form composite data
+        rgbd_data = np.zeros([color_im.height, color_im.width, 4])
+        rgbd_data[:,:,:3] = color_im.data.astype(np.float64)
+        rgbd_data[:,:,3] = depth_im.data
+        return RgbdImage(rgbd_data, frame=color_im.frame)
+
+    @property
+    def color(self):
+        """ Returns the color image. """
+        return ColorImage(self.raw_data[:,:,:3].astype(np.uint8), frame=self.frame)
+
+    @property
+    def depth(self):
+        """ Returns the depth image. """
+        return DepthImage(self.raw_data[:,:,3], frame=self.frame)
+
+    def _image_data(self, normalize=False):
+        """Returns the data in image format, with scaling and conversion to uint8 types.
+        NOTE: Only returns the color image!!!!
+
+        Parameters
+        ----------
+        normalize : bool
+            whether or not to normalize by the min and max depth of the image
+
+        Returns
+        -------
+        :obj:`numpy.ndarray` of uint8
+            A 3D matrix representing the image. The first dimension is rows, the
+            second is columns, and the third is a set of 3 RGB values, each of
+            which is simply the depth entry scaled to between 0 and 255.
+        """
+        return self.color_im._image_data(normalize=normalize)
+
+    def resize(self, size, interp):
+        """Resize the image.
+
+        Parameters
+        ----------
+        size : int, float, or tuple
+            * int   - Percentage of current size.
+            * float - Fraction of current size.
+            * tuple - Size of the output image.
+
+        interp : :obj:`str`, optional
+            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
+            'bicubic', or 'cubic')
+        """
+        # resize channels separately
+        color_im_resized = self.color.resize(size, interp)
+        depth_im_resized = self.depth.resize(size, interp)
+        
+        # return combination of resized data
+        return RgbdImage.from_color_and_depth(color_im_resized, depth_im_resized)
+
+    def to_grayscale_depth(self):
+        """ Converts to a grayscale and depth (G-D) image. """
+        gray = self.color.to_grayscale()
+        return GdImage.from_grayscale_and_depth(gray, self.depth)
+
+    def combine_with(self, rgbd_im):
+        """
+        Replaces all zeros in the source rgbd image with the values of a different rgbd image
+
+        Parameters
+        ----------
+        rgbd_im : :obj:`RgbdImage`
+            rgbd image to combine with
+
+        Returns
+        -------
+        :obj:`RgbdImage`
+            the combined rgbd image
+        """
+        new_data = self.data.copy()
+        depth_data = self.depth.data
+        other_depth_data = rgbd_im.depth.data
+        depth_zero_px = self.depth.zero_pixels()
+        depth_replace_px = np.where((other_depth_data != 0) & (other_depth_data < depth_data)) 
+        depth_replace_px = np.c_[depth_replace_px[0], depth_replace_px[1]]
+
+        # replace zero pixels
+        new_data[depth_zero_px[:,0], depth_zero_px[:,1], :] = rgbd_im.data[depth_zero_px[:,0], depth_zero_px[:,1], :]
+
+        # take closest pixel
+        new_data[depth_replace_px[:,0], depth_replace_px[:,1], :] = rgbd_im.data[depth_replace_px[:,0], depth_replace_px[:,1], :]
+
+        return RgbdImage(new_data, frame=self.frame)
+
+class GdImage(Image):
+    """ An image containing a grayscale and depth channel. """
+    def __init__(self, data, frame='unspecified'):
+        """Create a G-D image from an array of data.
+
+        Parameters
+        ----------
+        data : :obj:`numpy.ndarray`
+            An array of data with which to make the image. The first dimension
+            of the data should index rows, the second columns, and the third
+            individual pixel elements (two channels, both float).
+            The first channel should be the grayscale channel
+            which must be in the range (0, 255).
+            The second channel should be the depth channel.
+
+        frame : :obj:`str`
+            A string representing the frame of reference in which this image
+            lies.
+
+        Raises
+        ------
+        ValueError
+            If the data is not a properly-formatted ndarray or frame is not a
+            string.
+        """
+        Image.__init__(self, data, frame)
+
+    def _check_valid_data(self, data):
+        """Checks that the given data is a float array with four channels.
+
+        Parameters
+        ----------
+        data : :obj:`numpy.ndarray`
+            The data to check.
+
+        Raises
+        ------
+        ValueError
+            If the data is invalid.
+        """
+        if data.dtype.type is not np.float32 and \
+           data.dtype.type is not np.float64:
+            raise ValueError('Illegal data type. G-D images only support float arrays')
+
+        if len(data.shape) != 3 and data.shape[2] != 2:
+            raise ValueError('Illegal data type. G-D images only support two channel')        
+
+        gray_data = data[:,:,0]
+        if np.any((gray_data < 0) | (gray_data > 255)):
+            raise ValueError('Gray channel must be in the range (0, 255)')
+
+    @staticmethod
+    def from_grayscale_and_depth(gray_im, depth_im):
+        """ Creates an G-D image from a separate grayscale and depth image. """
+        # check shape
+        if gray_im.height != depth_im.height or gray_im.width != depth_im.width:
+            raise ValueError('Grayscale and depth images must have the same shape')
+
+        # check frame
+        if gray_im.frame != depth_im.frame:
+            raise ValueError('Grayscale and depth images must have the same frame')
+            
+        # form composite data
+        gd_data = np.zeros([gray_im.height, gray_im.width, 2])
+        gd_data[:,:,0] = gray_im.data.astype(np.float64)
+        gd_data[:,:,1] = depth_im.data
+        return GdImage(gd_data, frame=gray_im.frame)
+
+    @property
+    def gray(self):
+        """ Returns the grayscale image. """
+        return GrayscaleImage(self.raw_data[:,:,0].astype(np.uint8), frame=self.frame)
+
+    @property
+    def depth(self):
+        """ Returns the depth image. """
+        return DepthImage(self.raw_data[:,:,1], frame=self.frame)
+
+    def _image_data(self, normalize=False):
+        """Returns the data in image format, with scaling and conversion to uint8 types.
+        NOTE: Only returns the color image!!!!
+
+        Parameters
+        ----------
+        normalize : bool
+            whether or not to normalize by the min and max depth of the image
+
+        Returns
+        -------
+        :obj:`numpy.ndarray` of uint8
+            A 3D matrix representing the image. The first dimension is rows, the
+            second is columns, and the third is a set of 3 RGB values, each of
+            which is simply the depth entry scaled to between 0 and 255.
+        """
+        return self.gray_im._image_data(normalize=normalize)
+
+    def resize(self, size, interp):
+        """Resize the image.
+
+        Parameters
+        ----------
+        size : int, float, or tuple
+            * int   - Percentage of current size.
+            * float - Fraction of current size.
+            * tuple - Size of the output image.
+
+        interp : :obj:`str`, optional
+            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
+            'bicubic', or 'cubic')
+        """
+        # resize channels separately
+        gray_im_resized = self.gray.resize(size, interp)
+        depth_im_resized = self.depth.resize(size, interp)
+        
+        # return combination of resized data
+        return GdImage.from_grayscale_and_depth(gray_im_resized, depth_im_resized)
 
 class SegmentationImage(Image):
     """An image containing integer-valued segment labels.
