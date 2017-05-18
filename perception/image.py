@@ -1981,12 +1981,12 @@ class BinaryImage(Image):
         # find which contours need to be pruned
         for i in range(num_contours):
             area = cv2.contourArea(contours[0][i])
+            logging.info('Contour %d area: %.3f' %(len(kept_contours), area))
             if area > min_area and area < max_area:
                 boundary_px = contours[0][i].squeeze()
                 boundary_px_ij_swapped = np.zeros(boundary_px.shape)
                 boundary_px_ij_swapped[:,0] = boundary_px[:,1]
                 boundary_px_ij_swapped[:,1] = boundary_px[:,0]
-                logging.debug('Contour %d area: %.3f' %(len(kept_contours), area))
                 kept_contours.append(Contour(boundary_px_ij_swapped, area=area, frame=self._frame))
 
         return kept_contours
