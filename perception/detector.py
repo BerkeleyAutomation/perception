@@ -493,17 +493,23 @@ class PointCloudBoxDetector(RgbdDetector):
         mask = x*x + y*y <= w/2*w/2
         filter_struct = np.zeros([w,w]).astype(np.uint8)
         filter_struct[mask] = 1
-        binary_im_filtered = binary_im.apply(snm.grey_dilation, structure=filter_struct)
+        binary_im_filtered_data = snm.binary_dilation(binary_im.data, structure=filter_struct)
+        binary_im_filtered = BinaryImage(binary_im_filtered_data.astype(np.uint8),
+                                         frame=binary_im.frame,
+                                         threshold=0)
 
         # find all contours
         contours = binary_im_filtered.find_contours(min_area=min_contour_area, max_area=max_contour_area)
 
         if vis_foreground:
             plt.figure()
-            plt.subplot(1,2,1)
+            plt.subplot(1,3,1)
             plt.imshow(color_im.data)
             plt.axis('off')
-            plt.subplot(1,2,2)
+            plt.subplot(1,3,2)
+            plt.imshow(binary_im.data, cmap=plt.cm.gray)
+            plt.axis('off')
+            plt.subplot(1,3,3)
             plt.imshow(binary_im_filtered.data, cmap=plt.cm.gray)
             plt.axis('off')
             plt.show()

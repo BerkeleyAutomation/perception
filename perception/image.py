@@ -2321,7 +2321,7 @@ class RgbdImage(Image):
         """
         return self.color_im._image_data(normalize=normalize)
 
-    def resize(self, size, interp):
+    def resize(self, size, interp='bilinear'):
         """Resize the image.
 
         Parameters
@@ -2341,6 +2341,65 @@ class RgbdImage(Image):
         
         # return combination of resized data
         return RgbdImage.from_color_and_depth(color_im_resized, depth_im_resized)
+
+    def crop(self, height, width, center_i=None, center_j=None):
+        """Crop the image centered around center_i, center_j.
+
+        Parameters
+        ----------
+        height : int
+            The height of the desired image.
+
+        width : int
+            The width of the desired image.
+
+        center_i : int
+            The center height point at which to crop. If not specified, the center
+            of the image is used.
+
+        center_j : int
+            The center width point at which to crop. If not specified, the center
+            of the image is used.
+
+        Returns
+        -------
+        :obj:`Image`
+            A cropped Image of the same type.
+        """
+        # crop channels separately
+        color_im_cropped = self.color.crop(height, width,
+                                           center_i=center_i,
+                                           center_j=center_j)
+        depth_im_cropped = self.depth.crop(height, width,
+                                           center_i=center_i,
+                                           center_j=center_j)
+        
+        # return combination of cropped data
+        return RgbdImage.from_color_and_depth(color_im_cropped, depth_im_cropped)
+
+    def transform(self, translation, theta, method='opencv'):
+        """Create a new image by translating and rotating the current image.
+
+        Parameters
+        ----------
+        translation : :obj:`numpy.ndarray` of float
+            The XY translation vector.
+        theta : float
+            Rotation angle in radians, with positive meaning counter-clockwise.
+        method : :obj:`str`
+            Method to use for image transformations (opencv or scipy)
+
+        Returns
+        -------
+        :obj:`Image`
+            An image of the same type that has been rotated and translated.
+        """
+        # transform channels separately
+        color_im_tf = self.color.transform(translation, theta, method=method)
+        depth_im_tf = self.depth.transform(translation, theta, method=method)
+
+        # return combination of cropped data
+        return RgbdImage.from_color_and_depth(color_im_tf, depth_im_tf)
 
     def to_grayscale_depth(self):
         """ Converts to a grayscale and depth (G-D) image. """
