@@ -2435,6 +2435,34 @@ class RgbdImage(Image):
 
         return RgbdImage(new_data, frame=self.frame)
 
+    def crop(self, height, width, center_i=None, center_j=None):
+        """Crop the image centered around center_i, center_j.
+
+        Parameters
+        ----------
+        height : int
+            The height of the desired image.
+
+        width : int
+            The width of the desired image.
+
+        center_i : int
+            The center height point at which to crop. If not specified, the center
+            of the image is used.
+
+        center_j : int
+            The center width point at which to crop. If not specified, the center
+            of the image is used.
+
+        Returns
+        -------
+        :obj:`Image`
+            A cropped Image of the same type.
+        """
+        color_im_crop = self.color.crop(height, width, center_i, center_j)
+        depth_im_crop = self.depth.crop(height, width, center_i, center_j)
+        return RgbdImage.from_color_and_depth(color_im_crop, depth_im_crop)
+
 class GdImage(Image):
     """ An image containing a grayscale and depth channel. """
     def __init__(self, data, frame='unspecified'):
@@ -2531,7 +2559,7 @@ class GdImage(Image):
         """
         return self.gray_im._image_data(normalize=normalize)
 
-    def resize(self, size, interp):
+    def resize(self, size, interp='bilinear'):
         """Resize the image.
 
         Parameters
@@ -2551,6 +2579,34 @@ class GdImage(Image):
         
         # return combination of resized data
         return GdImage.from_grayscale_and_depth(gray_im_resized, depth_im_resized)
+
+    def crop(self, height, width, center_i=None, center_j=None):
+        """Crop the image centered around center_i, center_j.
+
+        Parameters
+        ----------
+        height : int
+            The height of the desired image.
+
+        width : int
+            The width of the desired image.
+
+        center_i : int
+            The center height point at which to crop. If not specified, the center
+            of the image is used.
+
+        center_j : int
+            The center width point at which to crop. If not specified, the center
+            of the image is used.
+
+        Returns
+        -------
+        :obj:`Image`
+            A cropped Image of the same type.
+        """
+        gray_im_crop = self.gray.crop(height, width, center_i, center_j)
+        depth_im_crop = self.depth.crop(height, width, center_i, center_j)
+        return GdImage.from_grayscale_and_depth(gray_im_crop, depth_im_crop)
 
 class SegmentationImage(Image):
     """An image containing integer-valued segment labels.
