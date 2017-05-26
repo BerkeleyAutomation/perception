@@ -1490,8 +1490,7 @@ class DepthImage(Image):
         # replace zero pixels
         new_data[new_data == 0] = depth_im.data[new_data == 0]
         # take closest pixel
-        new_data[new_data > depth_im.data] = depth_im.data[new_data > depth_im.data]
-
+        new_data[(new_data > depth_im.data) & (depth_im.data > 0)] = depth_im.data[(new_data > depth_im.data)  & (depth_im.data > 0)]
         return DepthImage(new_data, frame=self.frame)
 
     def to_binary(self, threshold=0.0):
