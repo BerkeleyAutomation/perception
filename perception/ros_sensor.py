@@ -12,6 +12,7 @@ import os, sys
 # TODO:
 # Giving a warning if stale data is being returned/delete stale data
 # Maybe add sleep between main loop runs (if it isn't hogging cpu cycles then eh)
+# Write a CameraSensor class based on this (this is the big one)
 class _ImageBuffer(multiprocessing.Process):
     def __init__(self, instream, absolute=False, bufsize=100):
         '''Initializes an image buffer process.
@@ -90,6 +91,10 @@ class _ImageBuffer(multiprocessing.Process):
                 One of {"absolute, "relative"}. absolute returns UNIX timestamps,
                 relative returns age at request received.
                 Everything is floating point, in seconds
+        Returns
+        -------
+        out :
+            List of image-timestamp pairs. Images are np arrays
         """
         # Register time of request
         req_time = rospy.get_time()
@@ -122,6 +127,10 @@ class _ImageBuffer(multiprocessing.Process):
                 One of {"absolute, "relative"}. absolute returns UNIX timestamps,
                 relative returns age at request received.
                 Everything is floating point, in seconds
+        Returns
+        -------
+        out :
+            List of image-timestamp pairs. Images are np arrays
         """
         self._req_q.put((num_requested, timing_mode))
         try:
