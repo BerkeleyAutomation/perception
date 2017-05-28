@@ -11,6 +11,7 @@ import os, sys
 
 # TODO:
 # Giving a warning if stale data is being returned/delete stale data
+# Maybe add sleep between main loop runs (if it isn't hogging cpu cycles then eh)
 class _ImageBuffer(multiprocessing.Process):
     def __init__(self, instream, absolute=False, bufsize=100):
         '''Initializes an image buffer process.
