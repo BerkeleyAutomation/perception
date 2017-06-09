@@ -12,7 +12,8 @@ requirements = [
     'cycler',
     'Pillow',
     'ipython',
-    'core'
+    'core',
+    'scikit-image'
 ]
 
 setup(name='perception',
