@@ -17,6 +17,9 @@ class RenderMode(object):
     COLOR_SCENE = 'color_scene'
     RGBD = 'rgbd'
     RGBD_SCENE = 'rgbd_scene'
+    GD = 'gd'
+    GD_SCENE = 'gd_scene'
+    GRAYSCALE = 'gray'
 
 class ObjectRender(object):
     """Class to encapsulate images of an object rendered from a virtual camera.
