@@ -2,6 +2,7 @@
 Script to register sensors to a chessboard for the YuMi setup
 Authors: Jeff Mahler and Brenton Chu
 """ 
+import argparse
 import IPython
 import logging
 import numpy as np
@@ -12,12 +13,16 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from autolab_core import RigidTransform, YamlConfig
 from perception import CameraChessboardRegistration, RgbdSensorFactory
-from yumipy import YuMiRobot
+# from yumipy import YuMiRobot
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
 
-    config_filename = 'cfg/tools/register_camera.yaml'
+    # parse args
+    parser = argparse.ArgumentParser(description='Register a camera to a robot')
+    parser.add_argument('--config_filename', type=str, default='cfg/tools/register_camera.yaml', help='filename of a YAML configuration for registration')
+    args = parser.parse_args()
+    config_filename = args.config_filename
     config = YamlConfig(config_filename)
     
     # get known tf from chessboard to world
@@ -41,6 +46,8 @@ if __name__ == '__main__':
         logging.info('Final Result for sensor %s' %(sensor_frame))
         logging.info('Rotation: ')
         logging.info(T_camera_world.rotation)
+        logging.info('Quaternion: ')
+        logging.info(T_camera_world.quaternion)
         logging.info('Translation: ')
         logging.info(T_camera_world.translation)
 
