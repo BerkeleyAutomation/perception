@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -44,6 +46,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -84,7 +87,10 @@
           
             
             
-                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
 </ul>
@@ -113,8 +119,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">perception</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">perception</a>
+        
       </nav>
 
 
@@ -123,23 +131,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-    <li>Convolutional Neural Networks</li>
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Convolutional Neural Networks</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="../_sources/api/cnn.txt" rel="nofollow"> View page source</a>
+            
+            <a href="../_sources/api/cnn.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -150,20 +175,123 @@
 <p>Classes for deploying ConvNets.</p>
 <div class="section" id="alexnet">
 <h2>AlexNet<a class="headerlink" href="#alexnet" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="perception.AlexNet">
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">AlexNet</code><span class="sig-paren">(</span><em>config</em>, <em>model_dir=None</em>, <em>use_default_weights=False</em>, <em>dynamic_load=True</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.AlexNet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Wrapper for tensorflow AlexNet. Note: training not yet supported.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.YamlConfig</span></code>) – specifies the parameters of the network</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Required configuration paramters are specified in Other Parameters</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Other Parameters:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"><ul class="first last simple">
+<li><strong>batch_size</strong> (<em>int</em>) – size of batches, less than largest possible prediction to save memory</li>
+<li><strong>im_height</strong> (<em>int</em>) – height of input images</li>
+<li><strong>im_width</strong> (<em>int</em>) – width of input images</li>
+<li><strong>channels</strong> (<em>int</em>) – number of channels of input image (should be 3)</li>
+<li><strong>output_layer</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) – name of output layer for classification</li>
+<li><strong>feature_layer</strong> (:obj`str`) – name of layer to use for feature extraction (e.g. conv5)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="perception.AlexNet.open_session">
+<code class="descname">open_session</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.AlexNet.open_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open tensorflow session. Exposed for memory management.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.AlexNet.close_session">
+<code class="descname">close_session</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.AlexNet.close_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close tensorflow session. Exposes for memory management.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.AlexNet.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>image_arr</em>, <em>featurize=False</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.AlexNet.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict a set of images in batches.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>image_arr</strong> (NxHxWxC <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code>) – input set of images in a num_images x image height x image width x image channels array (must match parameters of network)</li>
+<li><strong>featurize</strong> (<em>bool</em>) – whether or not to use the featurization layer or classification output layer</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">num_images x feature_dim containing the output values for each input image</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.AlexNet.featurize">
+<code class="descname">featurize</code><span class="sig-paren">(</span><em>image_arr</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.AlexNet.featurize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Featurize a set of images in batches.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image_arr</strong> (NxHxWxC <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code>) – input set of images in a num_images x image height x image width x image channels array (must match parameters of network)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">num_images x feature_dim containing the output values for each input image</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.AlexNet.build_alexnet_weights">
+<code class="descname">build_alexnet_weights</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#perception.AlexNet.build_alexnet_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a set of convnet weights for AlexNet</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="perception.AlexNet.build_alexnet">
+<code class="descname">build_alexnet</code><span class="sig-paren">(</span><em>weights</em>, <em>output_layer=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.AlexNet.build_alexnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects graph of alexnet from weights</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="detector.html" class="btn btn-neutral float-right" title="Detection" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="detector.html" class="btn btn-neutral float-right" title="Detection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="camera_intrinsics.html" class="btn btn-neutral" title="Camera Intrinsics" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="camera_intrinsics.html" class="btn btn-neutral" title="Camera Intrinsics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -197,7 +325,8 @@
             VERSION:'0.0.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>

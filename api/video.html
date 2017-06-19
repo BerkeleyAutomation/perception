@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -43,6 +45,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -83,7 +86,10 @@
           
             
             
-                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
 </ul>
@@ -112,8 +118,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">perception</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">perception</a>
+        
       </nav>
 
 
@@ -122,23 +130,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-    <li>Video Classes</li>
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Video Classes</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="../_sources/api/video.txt" rel="nofollow"> View page source</a>
+            
+            <a href="../_sources/api/video.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -150,30 +175,30 @@
 <h2>VideoRecorder<a class="headerlink" href="#videorecorder" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="perception.VideoRecorder">
-<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">VideoRecorder</code><span class="sig-paren">(</span><em>device_id</em>, <em>res=(640</em>, <em>480)</em>, <em>codec='XVID'</em>, <em>fps=30</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.VideoRecorder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">perception.</code><code class="descname">VideoRecorder</code><span class="sig-paren">(</span><em>device_id</em>, <em>res=(640</em>, <em>480)</em>, <em>codec=’XVID’</em>, <em>fps=30</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.VideoRecorder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encapsulates video recording processes.</p>
 <dl class="attribute">
 <dt id="VideoRecorder.device_id">
 <code class="descname">device_id</code><a class="headerlink" href="#VideoRecorder.device_id" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> &#8211; USB index of device</p>
+<dd><p><em>int</em> – USB index of device</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="VideoRecorder.res">
 <code class="descname">res</code><a class="headerlink" href="#VideoRecorder.res" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>2-tuple</em> &#8211; resolution of recording and saving. defaults to (640, 480)</p>
+<dd><p><em>2-tuple</em> – resolution of recording and saving. defaults to (640, 480)</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="VideoRecorder.codec">
 <code class="descname">codec</code><a class="headerlink" href="#VideoRecorder.codec" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; codec used for encoding video. default to XVID.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> – codec used for encoding video. default to XVID.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="VideoRecorder.fps">
 <code class="descname">fps</code><a class="headerlink" href="#VideoRecorder.fps" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> &#8211; frames per second of video captures. defaults to 30</p>
+<dd><p><em>int</em> – frames per second of video captures. defaults to 30</p>
 </dd></dl>
 
 <dl class="method">
@@ -190,7 +215,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>output_file</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; filename to write video to</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>output_file</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) – filename to write video to</td>
 </tr>
 </tbody>
 </table>
@@ -215,13 +240,16 @@
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="registration.html" class="btn btn-neutral" title="Point Cloud Registration" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="registration.html" class="btn btn-neutral" title="Point Cloud Registration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -255,7 +283,8 @@
             VERSION:'0.0.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>

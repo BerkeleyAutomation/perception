@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -44,6 +46,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -84,7 +87,10 @@
           
             
             
-                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
 </ul>
@@ -115,8 +121,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">perception</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">perception</a>
+        
       </nav>
 
 
@@ -125,23 +133,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-    <li>Point Cloud Registration</li>
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Point Cloud Registration</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="../_sources/api/registration.txt" rel="nofollow"> View page source</a>
+            
+            <a href="../_sources/api/registration.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -167,14 +192,14 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>source_point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.PointCloud</span></code>) &#8211; source object points</li>
-<li><strong>target_point_cloud</strong> (<em>:obj`core.PointCloud`</em>) &#8211; target object points</li>
-<li><strong>source_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; source object outward-pointing normals</li>
-<li><strong>target_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; target object outward-pointing normals</li>
-<li><strong>matcher</strong> (<code class="xref py py-obj docutils literal"><span class="pre">PointToPlaneFeatureMatcher</span></code>) &#8211; object to match the point sets</li>
-<li><strong>num_iterations</strong> (<em>int</em>) &#8211; the number of iterations to run</li>
-<li><strong>compute_total_cost</strong> (<em>bool</em>) &#8211; whether or not to compute the total cost upon termination.</li>
-<li><strong>match_centroids</strong> (<em>bool</em>) &#8211; whether or not to match the centroids of the point clouds</li>
+<li><strong>source_point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.PointCloud</span></code>) – source object points</li>
+<li><strong>target_point_cloud</strong> (<em>:obj`autolab_core.PointCloud`</em>) – target object points</li>
+<li><strong>source_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.NormalCloud</span></code>) – source object outward-pointing normals</li>
+<li><strong>target_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.NormalCloud</span></code>) – target object outward-pointing normals</li>
+<li><strong>matcher</strong> (<code class="xref py py-obj docutils literal"><span class="pre">PointToPlaneFeatureMatcher</span></code>) – object to match the point sets</li>
+<li><strong>num_iterations</strong> (<em>int</em>) – the number of iterations to run</li>
+<li><strong>compute_total_cost</strong> (<em>bool</em>) – whether or not to compute the total cost upon termination.</li>
+<li><strong>match_centroids</strong> (<em>bool</em>) – whether or not to match the centroids of the point clouds</li>
 </ul>
 </td>
 </tr>
@@ -201,13 +226,13 @@
 <dl class="attribute">
 <dt id="RegistrationResult.T_source_target">
 <code class="descname">T_source_target</code><a class="headerlink" href="#RegistrationResult.T_source_target" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">core.RigidTranform</span></code> &#8211; transformation from source to target frame</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">autolab_core.RigidTranform</span></code> – transformation from source to target frame</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RegistrationResult.cost">
 <code class="descname">cost</code><a class="headerlink" href="#RegistrationResult.cost" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; numeric value of the registration objective for the given transform</p>
+<dd><p><em>float</em> – numeric value of the registration objective for the given transform</p>
 </dd></dl>
 
 </dd></dl>
@@ -223,16 +248,16 @@
 <blockquote>
 <div></div></blockquote>
 <dl class="docutils">
-<dt>1    sample_size</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd><blockquote class="first">
+<dt>1    sample_size <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><blockquote class="first">
 <div>number of randomly sampled points to use per iteration</div></blockquote>
 <dl class="last docutils">
-<dt>cost_sample_size</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd>number of randomly sampled points to use for cost evaluations</dd>
-<dt>gamma</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd>weight of point-to-point objective relative to point-to-plane objective</dd>
-<dt>mu</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd>regularizer for matrix inversion in the Gauss-Newton step</dd>
+<dt>cost_sample_size <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>number of randomly sampled points to use for cost evaluations</dd>
+<dt>gamma <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>weight of point-to-point objective relative to point-to-plane objective</dd>
+<dt>mu <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>regularizer for matrix inversion in the Gauss-Newton step</dd>
 </dl>
 </dd>
 </dl>
@@ -247,14 +272,14 @@ Uses a <cite>stochastic Gauss-Newton step</cite> where on each iteration a small
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>source_point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.PointCloud</span></code>) &#8211; source object points</li>
-<li><strong>target_point_cloud</strong> (<em>:obj`core.PointCloud`</em>) &#8211; target object points</li>
-<li><strong>source_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; source object outward-pointing normals</li>
-<li><strong>target_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; target object outward-pointing normals</li>
-<li><strong>matcher</strong> (<code class="xref py py-obj docutils literal"><span class="pre">PointToPlaneFeatureMatcher</span></code>) &#8211; object to match the point sets</li>
-<li><strong>num_iterations</strong> (<em>int</em>) &#8211; the number of iterations to run</li>
-<li><strong>compute_total_cost</strong> (<em>bool</em>) &#8211; whether or not to compute the total cost upon termination.</li>
-<li><strong>match_centroids</strong> (<em>bool</em>) &#8211; whether or not to match the centroids of the point clouds</li>
+<li><strong>source_point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.PointCloud</span></code>) – source object points</li>
+<li><strong>target_point_cloud</strong> (<em>:obj`autolab_core.PointCloud`</em>) – target object points</li>
+<li><strong>source_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.NormalCloud</span></code>) – source object outward-pointing normals</li>
+<li><strong>target_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.NormalCloud</span></code>) – target object outward-pointing normals</li>
+<li><strong>matcher</strong> (<code class="xref py py-obj docutils literal"><span class="pre">PointToPlaneFeatureMatcher</span></code>) – object to match the point sets</li>
+<li><strong>num_iterations</strong> (<em>int</em>) – the number of iterations to run</li>
+<li><strong>compute_total_cost</strong> (<em>bool</em>) – whether or not to compute the total cost upon termination.</li>
+<li><strong>match_centroids</strong> (<em>bool</em>) – whether or not to match the centroids of the point clouds</li>
 </ul>
 </td>
 </tr>
@@ -280,13 +305,13 @@ Points should be specified in the basis of the planar worksurface.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>source_point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.PointCloud</span></code>) &#8211; source object points</li>
-<li><strong>target_point_cloud</strong> (<em>:obj`core.PointCloud`</em>) &#8211; target object points</li>
-<li><strong>source_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; source object outward-pointing normals</li>
-<li><strong>target_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.NormalCloud</span></code>) &#8211; target object outward-pointing normals</li>
-<li><strong>matcher</strong> (<code class="xref py py-obj docutils literal"><span class="pre">PointToPlaneFeatureMatcher</span></code>) &#8211; object to match the point sets</li>
-<li><strong>num_iterations</strong> (<em>int</em>) &#8211; the number of iterations to run</li>
-<li><strong>compute_total_cost</strong> (<em>bool</em>) &#8211; whether or not to compute the total cost upon termination.</li>
+<li><strong>source_point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.PointCloud</span></code>) – source object points</li>
+<li><strong>target_point_cloud</strong> (<em>:obj`autolab_core.PointCloud`</em>) – target object points</li>
+<li><strong>source_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.NormalCloud</span></code>) – source object outward-pointing normals</li>
+<li><strong>target_normal_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.NormalCloud</span></code>) – target object outward-pointing normals</li>
+<li><strong>matcher</strong> (<code class="xref py py-obj docutils literal"><span class="pre">PointToPlaneFeatureMatcher</span></code>) – object to match the point sets</li>
+<li><strong>num_iterations</strong> (<em>int</em>) – the number of iterations to run</li>
+<li><strong>compute_total_cost</strong> (<em>bool</em>) – whether or not to compute the total cost upon termination.</li>
 </ul>
 </td>
 </tr>
@@ -307,15 +332,18 @@ Points should be specified in the basis of the planar worksurface.</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="video.html" class="btn btn-neutral float-right" title="Video Classes" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="video.html" class="btn btn-neutral float-right" title="Video Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="kinect_sensor.html" class="btn btn-neutral" title="Kinect Sensor" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="kinect_sensor.html" class="btn btn-neutral" title="Kinect Sensor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -349,7 +377,8 @@ Points should be specified in the basis of the planar worksurface.</p>
             VERSION:'0.0.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>

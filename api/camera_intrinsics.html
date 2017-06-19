@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -44,6 +46,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -84,7 +87,10 @@
           
             
             
-                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
 </ul>
@@ -113,8 +119,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">perception</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">perception</a>
+        
       </nav>
 
 
@@ -123,23 +131,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-    <li>Camera Intrinsics</li>
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Camera Intrinsics</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="../_sources/api/camera_intrinsics.txt" rel="nofollow"> View page source</a>
+            
+            <a href="../_sources/api/camera_intrinsics.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -164,14 +189,14 @@ and deproject points.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>frame</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; The frame of reference for the point cloud.</li>
-<li><strong>fx</strong> (<em>float</em>) &#8211; The x-axis focal length of the camera in pixels.</li>
-<li><strong>fy</strong> (<em>float</em>) &#8211; The y-axis focal length of the camera in pixels.</li>
-<li><strong>cx</strong> (<em>float</em>) &#8211; The x-axis optical center of the camera in pixels.</li>
-<li><strong>cy</strong> (<em>float</em>) &#8211; The y-axis optical center of the camera in pixels.</li>
-<li><strong>skew</strong> (<em>float</em>) &#8211; The skew of the camera in pixels.</li>
-<li><strong>height</strong> (<em>float</em>) &#8211; The height of the camera image in pixels.</li>
-<li><strong>width</strong> (<em>float</em>) &#8211; The width of the camera image in pixels</li>
+<li><strong>frame</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) – The frame of reference for the point cloud.</li>
+<li><strong>fx</strong> (<em>float</em>) – The x-axis focal length of the camera in pixels.</li>
+<li><strong>fy</strong> (<em>float</em>) – The y-axis focal length of the camera in pixels.</li>
+<li><strong>cx</strong> (<em>float</em>) – The x-axis optical center of the camera in pixels.</li>
+<li><strong>cy</strong> (<em>float</em>) – The y-axis optical center of the camera in pixels.</li>
+<li><strong>skew</strong> (<em>float</em>) – The skew of the camera in pixels.</li>
+<li><strong>height</strong> (<em>float</em>) – The height of the camera image in pixels.</li>
+<li><strong>width</strong> (<em>float</em>) – The width of the camera image in pixels</li>
 </ul>
 </td>
 </tr>
@@ -182,61 +207,61 @@ and deproject points.</p>
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.frame">
 <code class="descname">frame</code><a class="headerlink" href="#perception.CameraIntrinsics.frame" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The frame of reference for the point cloud.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> – The frame of reference for the point cloud.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.fx">
 <code class="descname">fx</code><a class="headerlink" href="#perception.CameraIntrinsics.fx" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The x-axis focal length of the camera in pixels.</p>
+<dd><p><em>float</em> – The x-axis focal length of the camera in pixels.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.fy">
 <code class="descname">fy</code><a class="headerlink" href="#perception.CameraIntrinsics.fy" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The y-axis focal length of the camera in pixels.</p>
+<dd><p><em>float</em> – The y-axis focal length of the camera in pixels.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.cx">
 <code class="descname">cx</code><a class="headerlink" href="#perception.CameraIntrinsics.cx" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The x-axis optical center of the camera in pixels.</p>
+<dd><p><em>float</em> – The x-axis optical center of the camera in pixels.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.cy">
 <code class="descname">cy</code><a class="headerlink" href="#perception.CameraIntrinsics.cy" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The y-axis optical center of the camera in pixels.</p>
+<dd><p><em>float</em> – The y-axis optical center of the camera in pixels.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.skew">
 <code class="descname">skew</code><a class="headerlink" href="#perception.CameraIntrinsics.skew" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The skew of the camera in pixels.</p>
+<dd><p><em>float</em> – The skew of the camera in pixels.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.height">
 <code class="descname">height</code><a class="headerlink" href="#perception.CameraIntrinsics.height" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The height of the camera image in pixels.</p>
+<dd><p><em>float</em> – The height of the camera image in pixels.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.width">
 <code class="descname">width</code><a class="headerlink" href="#perception.CameraIntrinsics.width" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em> &#8211; The width of the camera image in pixels</p>
+<dd><p><em>float</em> – The width of the camera image in pixels</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.proj_matrix">
 <code class="descname">proj_matrix</code><a class="headerlink" href="#perception.CameraIntrinsics.proj_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; The 3x3 projection matrix for this camera.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> – The 3x3 projection matrix for this camera.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.CameraIntrinsics.K">
 <code class="descname">K</code><a class="headerlink" href="#perception.CameraIntrinsics.K" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> &#8211; The 3x3 projection matrix for this camera.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code> – The 3x3 projection matrix for this camera.</p>
 </dd></dl>
 
 <dl class="method">
@@ -248,10 +273,10 @@ and deproject points.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>height</strong> (<em>int</em>) &#8211; height of crop window</li>
-<li><strong>width</strong> (<em>int</em>) &#8211; width of crop window</li>
-<li><strong>crop_ci</strong> (<em>int</em>) &#8211; row of crop window center</li>
-<li><strong>crop_cj</strong> (<em>int</em>) &#8211; col of crop window center</li>
+<li><strong>height</strong> (<em>int</em>) – height of crop window</li>
+<li><strong>width</strong> (<em>int</em>) – width of crop window</li>
+<li><strong>crop_ci</strong> (<em>int</em>) – row of crop window center</li>
+<li><strong>crop_cj</strong> (<em>int</em>) – col of crop window center</li>
 </ul>
 </td>
 </tr>
@@ -273,7 +298,7 @@ and deproject points.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>scale</strong> (<em>float</em>) &#8211; the amount to rescale the intrinsics</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>scale</strong> (<em>float</em>) – the amount to rescale the intrinsics</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">camera intrinsics for resized image</td>
 </tr>
@@ -292,20 +317,20 @@ and deproject points.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.PointCloud</span></code> or <code class="xref py py-obj docutils literal"><span class="pre">core.Point</span></code>) &#8211; A PointCloud or Point to project onto the camera image plane.</li>
-<li><strong>round_px</strong> (<em>bool</em>) &#8211; If True, projections are rounded to the nearest pixel.</li>
+<li><strong>point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.PointCloud</span></code> or <code class="xref py py-obj docutils literal"><span class="pre">autolab_core.Point</span></code>) – A PointCloud or Point to project onto the camera image plane.</li>
+<li><strong>round_px</strong> (<em>bool</em>) – If True, projections are rounded to the nearest pixel.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A corresponding set of image coordinates representing the given
-PointCloud&#8217;s projections onto the camera image plane. If the input
+PointCloud’s projections onto the camera image plane. If the input
 was a single Point, returns a 2D Point in the camera plane.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-obj docutils literal"><span class="pre">core.ImageCoords</span></code> or <code class="xref py py-obj docutils literal"><span class="pre">Point</span></code></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-obj docutils literal"><span class="pre">autolab_core.ImageCoords</span></code> or <code class="xref py py-obj docutils literal"><span class="pre">autolab_core.Point</span></code></p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the input is not a PointCloud or Point in the same reference
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the input is not a PointCloud or Point in the same reference
 frame as the camera.</p>
 </td>
 </tr>
@@ -324,8 +349,8 @@ at that pixel location (i.e. infinite depth).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.PointCloud</span></code> or <code class="xref py py-obj docutils literal"><span class="pre">core.Point</span></code>) &#8211; A PointCloud or Point to project onto the camera image plane.</li>
-<li><strong>round_px</strong> (<em>bool</em>) &#8211; If True, projections are rounded to the nearest pixel.</li>
+<li><strong>point_cloud</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.PointCloud</span></code> or <code class="xref py py-obj docutils literal"><span class="pre">autolab_core.Point</span></code>) – A PointCloud or Point to project onto the camera image plane.</li>
+<li><strong>round_px</strong> (<em>bool</em>) – If True, projections are rounded to the nearest pixel.</li>
 </ul>
 </td>
 </tr>
@@ -336,7 +361,7 @@ camera.</p>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code></p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the input is not a PointCloud or Point in the same reference
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the input is not a PointCloud or Point in the same reference
 frame as the camera.</p>
 </td>
 </tr>
@@ -352,13 +377,13 @@ frame as the camera.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth_image</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) &#8211; The 2D depth image to projet into a point cloud.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth_image</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) – The 2D depth image to projet into a point cloud.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A 3D point cloud created from the depth image.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">PointCloud</span></code></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">autolab_core.PointCloud</span></code></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If depth_image is not a valid DepthImage in the same reference frame
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If depth_image is not a valid DepthImage in the same reference frame
 as the camera.</td>
 </tr>
 </tbody>
@@ -373,13 +398,13 @@ as the camera.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth_image</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) &#8211; The 2D depth image to projet into a point cloud.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth_image</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) – The 2D depth image to projet into a point cloud.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A point cloud image created from the depth image.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">PointCloudImage</span></code></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If depth_image is not a valid DepthImage in the same reference frame
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If depth_image is not a valid DepthImage in the same reference frame
 as the camera.</td>
 </tr>
 </tbody>
@@ -395,18 +420,18 @@ as the camera.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>depth</strong> (<em>float</em>) &#8211; The depth value at the given pixel location.</li>
-<li><strong>pixel</strong> (<code class="xref py py-obj docutils literal"><span class="pre">core.Point</span></code>) &#8211; A 2D point representing the pixel&#8217;s location in the camera image.</li>
+<li><strong>depth</strong> (<em>float</em>) – The depth value at the given pixel location.</li>
+<li><strong>pixel</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.Point</span></code>) – A 2D point representing the pixel’s location in the camera image.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The projected 3D point.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-obj docutils literal"><span class="pre">Point</span></code></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-obj docutils literal"><span class="pre">autolab_core.Point</span></code></p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If pixel is not a valid 2D Point in the same reference frame
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If pixel is not a valid 2D Point in the same reference frame
 as the camera.</p>
 </td>
 </tr>
@@ -422,9 +447,9 @@ as the camera.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; The .intr file to save the object to.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) – The .intr file to save the object to.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If filename does not have the .intr extension.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If filename does not have the .intr extension.</td>
 </tr>
 </tbody>
 </table>
@@ -438,13 +463,13 @@ as the camera.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; The .intr file to load the object from.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) – The .intr file to load the object from.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The CameraIntrinsics object loaded from the file.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If filename does not have the .intr extension.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If filename does not have the .intr extension.</td>
 </tr>
 </tbody>
 </table>
@@ -457,15 +482,18 @@ as the camera.</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="cnn.html" class="btn btn-neutral float-right" title="Convolutional Neural Networks" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="cnn.html" class="btn btn-neutral float-right" title="Convolutional Neural Networks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../install/install.html" class="btn btn-neutral" title="Installation Instructions" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../install/install.html" class="btn btn-neutral" title="Installation Instructions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -499,7 +527,8 @@ as the camera.</p>
             VERSION:'0.0.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>

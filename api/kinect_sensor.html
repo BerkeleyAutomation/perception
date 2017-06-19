@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -44,6 +46,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -84,7 +87,10 @@
           
             
             
-                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
 </ul>
@@ -115,8 +121,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">perception</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">perception</a>
+        
       </nav>
 
 
@@ -125,23 +133,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-    <li>Kinect Sensor</li>
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Kinect Sensor</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="../_sources/api/kinect_sensor.txt" rel="nofollow"> View page source</a>
+            
+            <a href="../_sources/api/kinect_sensor.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -166,16 +191,16 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>packet_pipeline_mode</strong> (<em>int</em>) &#8211; Either Kinect2PacketPipelineMode.OPENGL or
-Kinect2PacketPipelineMode.CPU &#8211; indicates packet processing type.</li>
-<li><strong>registration_mode</strong> (<em>int</em>) &#8211; Either Kinect2RegistrationMode.NONE or
-Kinect2RegistrationMode.COLOR_TO_DEPT &#8211; The mode for registering
+<li><strong>packet_pipeline_mode</strong> (<em>int</em>) – Either Kinect2PacketPipelineMode.OPENGL or
+Kinect2PacketPipelineMode.CPU – indicates packet processing type.</li>
+<li><strong>registration_mode</strong> (<em>int</em>) – Either Kinect2RegistrationMode.NONE or
+Kinect2RegistrationMode.COLOR_TO_DEPT – The mode for registering
 a color image to the IR camera frame of reference.</li>
-<li><strong>depth_mode</strong> (<em>int</em>) &#8211; Either Kinect2DepthMode.METERS or Kinect2DepthMode.MILLIMETERS &#8211;
+<li><strong>depth_mode</strong> (<em>int</em>) – Either Kinect2DepthMode.METERS or Kinect2DepthMode.MILLIMETERS –
 the units for depths returned from the Kinect frame arrays.</li>
-<li><strong>device_num</strong> (<em>int</em>) &#8211; The sensor&#8217;s device number on the USB bus.</li>
-<li><strong>frame</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; The name of the frame of reference in which the sensor resides.
-If None, this will be set to &#8216;kinect2_num&#8217;, where num is replaced
+<li><strong>device_num</strong> (<em>int</em>) – The sensor’s device number on the USB bus.</li>
+<li><strong>frame</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) – The name of the frame of reference in which the sensor resides.
+If None, this will be set to ‘kinect2_num’, where num is replaced
 with the device number.</li>
 </ul>
 </td>
@@ -193,37 +218,37 @@ with the device number.</li>
 <dl class="attribute">
 <dt id="perception.Kinect2Sensor.color_intrinsics">
 <code class="descname">color_intrinsics</code><a class="headerlink" href="#perception.Kinect2Sensor.color_intrinsics" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; The camera intrinsics for the Kinect&#8217;s color camera.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> – The camera intrinsics for the Kinect’s color camera.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.Kinect2Sensor.ir_intrinsics">
 <code class="descname">ir_intrinsics</code><a class="headerlink" href="#perception.Kinect2Sensor.ir_intrinsics" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; The camera intrinsics for the Kinect&#8217;s IR camera.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> – The camera intrinsics for the Kinect’s IR camera.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.Kinect2Sensor.is_running">
 <code class="descname">is_running</code><a class="headerlink" href="#perception.Kinect2Sensor.is_running" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>bool</em> &#8211; True if the stream is running, or false otherwise.</p>
+<dd><p><em>bool</em> – True if the stream is running, or false otherwise.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.Kinect2Sensor.frame">
 <code class="descname">frame</code><a class="headerlink" href="#perception.Kinect2Sensor.frame" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the sensor.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> – The reference frame of the sensor.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.Kinect2Sensor.color_frame">
 <code class="descname">color_frame</code><a class="headerlink" href="#perception.Kinect2Sensor.color_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the color sensor.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> – The reference frame of the color sensor.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.Kinect2Sensor.ir_frame">
 <code class="descname">ir_frame</code><a class="headerlink" href="#perception.Kinect2Sensor.ir_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the IR sensor.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> – The reference frame of the IR sensor.</p>
 </dd></dl>
 
 <dl class="method">
@@ -234,7 +259,7 @@ with the device number.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If the Kinect v2 is not detected.</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> – If the Kinect v2 is not detected.</td>
 </tr>
 </tbody>
 </table>
@@ -266,13 +291,13 @@ a DepthImage, and an IrImage.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>skip_registration</strong> (<em>bool</em>) &#8211; If True, the registration step is skipped.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>skip_registration</strong> (<em>bool</em>) – If True, the registration step is skipped.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The ColorImage, DepthImage, and IrImage of the current frame.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">tuple</span></code> of <code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">IrImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code> &#8211; If the Kinect stream is not running.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code> – If the Kinect stream is not running.</td>
 </tr>
 </tbody>
 </table>
@@ -286,7 +311,7 @@ a DepthImage, and an IrImage.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_img</strong> (<em>int</em>) &#8211; The number of consecutive frames to process.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_img</strong> (<em>int</em>) – The number of consecutive frames to process.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The median DepthImage collected from the frames.</td>
 </tr>
@@ -332,9 +357,9 @@ name that is passed as a parameter to this function.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>path_to_images</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; The path to a directory containing images that the virtualized
+<li><strong>path_to_images</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) – The path to a directory containing images that the virtualized
 sensor will return.</li>
-<li><strong>frame</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; The name of the frame of reference in which the sensor resides.
+<li><strong>frame</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) – The name of the frame of reference in which the sensor resides.
 If None, this will be discovered from the files in the directory.</li>
 </ul>
 </td>
@@ -346,44 +371,44 @@ If None, this will be discovered from the files in the directory.</li>
 <dl class="attribute">
 <dt id="perception.VirtualKinect2Sensor.path_to_images">
 <code class="descname">path_to_images</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.path_to_images" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The path to a directory containing images that the virtualized
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> – The path to a directory containing images that the virtualized
 sensor will return.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.VirtualKinect2Sensor.is_running">
 <code class="descname">is_running</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.is_running" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>bool</em> &#8211; True if the stream is running, or false otherwise.</p>
+<dd><p><em>bool</em> – True if the stream is running, or false otherwise.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.VirtualKinect2Sensor.frame">
 <code class="descname">frame</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.frame" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the sensor.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> – The reference frame of the sensor.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.VirtualKinect2Sensor.color_frame">
 <code class="descname">color_frame</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.color_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the color sensor.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> – The reference frame of the color sensor.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.VirtualKinect2Sensor.ir_frame">
 <code class="descname">ir_frame</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.ir_frame" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> &#8211; The reference frame of the IR sensor.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">str</span></code> – The reference frame of the IR sensor.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.VirtualKinect2Sensor.color_intrinsics">
 <code class="descname">color_intrinsics</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.color_intrinsics" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; The camera intrinsics for the Kinect&#8217;s color camera.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> – The camera intrinsics for the Kinect’s color camera.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="perception.VirtualKinect2Sensor.ir_intrinsics">
 <code class="descname">ir_intrinsics</code><a class="headerlink" href="#perception.VirtualKinect2Sensor.ir_intrinsics" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; The camera intrinsics for the Kinect&#8217;s IR camera.</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> – The camera intrinsics for the Kinect’s IR camera.</p>
 </dd></dl>
 
 <dl class="method">
@@ -420,13 +445,13 @@ a DepthImage, and an IrImage.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>skip_registration</strong> (<em>bool</em>) &#8211; If True, the registration step is skipped.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>skip_registration</strong> (<em>bool</em>) – If True, the registration step is skipped.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The ColorImage, DepthImage, and IrImage of the current frame.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal"><span class="pre">tuple</span></code> of <code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">IrImage</span></code>, <code class="xref py py-obj docutils literal"><span class="pre">numpy.ndarray</span></code></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code> &#8211; If the Kinect stream is not running or if all images in the
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code> – If the Kinect stream is not running or if all images in the
 directory have been used.</td>
 </tr>
 </tbody>
@@ -441,7 +466,7 @@ directory have been used.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_img</strong> (<em>int</em>) &#8211; The number of consecutive frames to process.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_img</strong> (<em>int</em>) – The number of consecutive frames to process.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The median DepthImage collected from the frames.</td>
 </tr>
@@ -469,8 +494,8 @@ directory have been used.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sensor_type</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) &#8211; the type of the sensor (real or virtual)</li>
-<li><strong>cfg</strong> (<code class="xref py py-obj docutils literal"><span class="pre">YamlConfig</span></code>) &#8211; dictionary of parameters for sensor initialization</li>
+<li><strong>sensor_type</strong> (<code class="xref py py-obj docutils literal"><span class="pre">str</span></code>) – the type of the sensor (real or virtual)</li>
+<li><strong>cfg</strong> (<code class="xref py py-obj docutils literal"><span class="pre">YamlConfig</span></code>) – dictionary of parameters for sensor initialization</li>
 </ul>
 </td>
 </tr>
@@ -485,15 +510,18 @@ directory have been used.</td>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="registration.html" class="btn btn-neutral float-right" title="Point Cloud Registration" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="registration.html" class="btn btn-neutral float-right" title="Point Cloud Registration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="image.html" class="btn btn-neutral" title="Image Classes" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="image.html" class="btn btn-neutral" title="Image Classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -527,7 +555,8 @@ directory have been used.</td>
             VERSION:'0.0.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>

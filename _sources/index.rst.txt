@@ -7,9 +7,9 @@ Berkeley AutoLab Perception Documentation
 =========================================
 Welcome to the documentation for the Berkeley AutoLab's `perception` module!
 This module is designed to be useful in a broad set of robotic perception tasks.
-The `perception` module depends directly on AutoLab's `core`_ module.
+The `perception` module depends directly on AutoLab's `autolab_core`_ module.
 
-.. _core: https://github.com/BerkeleyAutomation/core
+.. _autolab_core: https://github.com/BerkeleyAutomation/autolab_core
 
 .. toctree::
    :maxdepth: 2

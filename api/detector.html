@@ -13,6 +13,8 @@
 
   
   
+  
+  
 
   
 
@@ -44,6 +46,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -84,7 +87,10 @@
           
             
             
-                <p class="caption"><span class="caption-text">Installation Guide</span></p>
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation Instructions</a></li>
 </ul>
@@ -116,8 +122,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">perception</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">perception</a>
+        
       </nav>
 
 
@@ -126,23 +134,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
-    <li>Detection</li>
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Detection</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="../_sources/api/detector.txt" rel="nofollow"> View page source</a>
+            
+            <a href="../_sources/api/detector.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -161,17 +186,18 @@
 <p>Wraps methods for as many distinct objects in the image as possible.</p>
 <dl class="method">
 <dt id="perception.RgbdDetector.detect">
-<code class="descname">detect</code><span class="sig-paren">(</span><em>color_im</em>, <em>depth_im</em>, <em>cfg</em>, <em>camera_intr=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdDetector.detect" title="Permalink to this definition">¶</a></dt>
+<code class="descname">detect</code><span class="sig-paren">(</span><em>color_im</em>, <em>depth_im</em>, <em>cfg</em>, <em>camera_intr=None</em>, <em>T_camera_world=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdDetector.detect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Detects all relevant objects in an rgbd image pair.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>color_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>) &#8211; color image for detection</li>
-<li><strong>depth_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) &#8211; depth image for detection (corresponds to color image)</li>
-<li><strong>cfg</strong> (<code class="xref py py-obj docutils literal"><span class="pre">YamlConfig</span></code>) &#8211; parameters of detection function</li>
-<li><strong>camera_intr</strong> (<code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code>) &#8211; intrinsics of the camera</li>
+<li><strong>color_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>) – color image for detection</li>
+<li><strong>depth_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) – depth image for detection (corresponds to color image)</li>
+<li><strong>cfg</strong> (<code class="xref py py-obj docutils literal"><span class="pre">YamlConfig</span></code>) – parameters of detection function</li>
+<li><strong>camera_intr</strong> (<code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code>) – intrinsics of the camera</li>
+<li><strong>T_camera_world</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.RigidTransform</span></code>) – registration of the camera to world frame</li>
 </ul>
 </td>
 </tr>
@@ -198,61 +224,61 @@
 <dl class="attribute">
 <dt id="RgbdDetection.height">
 <code class="descname">height</code><a class="headerlink" href="#RgbdDetection.height" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> &#8211; height of detected object in pixels</p>
+<dd><p><em>int</em> – height of detected object in pixels</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RgbdDetection.width">
 <code class="descname">width</code><a class="headerlink" href="#RgbdDetection.width" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> &#8211; width of detected object in pixels</p>
+<dd><p><em>int</em> – width of detected object in pixels</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RgbdDetection.camera_intr">
 <code class="descname">camera_intr</code><a class="headerlink" href="#RgbdDetection.camera_intr" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; camera intrinsics that project the detected window into the camera center</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> – camera intrinsics that project the detected window into the camera center</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RgbdDetection.query_im">
 <code class="descname">query_im</code><a class="headerlink" href="#RgbdDetection.query_im" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code> &#8211; binary segmask for detected object as a 3-channel color image, for backwards comp</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code> – binary segmask for detected object as a 3-channel color image, for backwards comp</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RgbdDetection.color_im">
 <code class="descname">color_im</code><a class="headerlink" href="#RgbdDetection.color_im" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code> &#8211; color thumbnail of detected object, with object masked if binary mask available</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code> – color thumbnail of detected object, with object masked if binary mask available</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RgbdDetection.depth_im">
 <code class="descname">depth_im</code><a class="headerlink" href="#RgbdDetection.depth_im" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code> &#8211; depth thumbnail of detected object, with object masked if binary mask available</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code> – depth thumbnail of detected object, with object masked if binary mask available</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RgbdDetection.binary_im">
 <code class="descname">binary_im</code><a class="headerlink" href="#RgbdDetection.binary_im" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">BinaryImage</span></code> &#8211; binary segmask of detected object</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">BinaryImage</span></code> – binary segmask of detected object</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RgbdDetection.depth_im_table">
 <code class="descname">depth_im_table</code><a class="headerlink" href="#RgbdDetection.depth_im_table" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code> &#8211; unmasked depth image, for backwards comp</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code> – unmasked depth image, for backwards comp</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RgbdDetection.cropped_ir_intrinsics">
 <code class="descname">cropped_ir_intrinsics</code><a class="headerlink" href="#RgbdDetection.cropped_ir_intrinsics" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> &#8211; alias for camera_intr, for backwards comp</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code> – alias for camera_intr, for backwards comp</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="RgbdDetection.point_normal_cloud">
 <code class="descname">point_normal_cloud</code><a class="headerlink" href="#RgbdDetection.point_normal_cloud" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-obj docutils literal"><span class="pre">PointNormalCloud</span></code> &#8211; point cloud with normals for the detected object</p>
+<dd><p><code class="xref py py-obj docutils literal"><span class="pre">PointNormalCloud</span></code> – point cloud with normals for the detected object</p>
 </dd></dl>
 
 <dl class="method">
@@ -274,17 +300,18 @@
 the images using background subtraction.</p>
 <dl class="method">
 <dt id="perception.RgbdForegroundMaskDetector.detect">
-<code class="descname">detect</code><span class="sig-paren">(</span><em>color_im</em>, <em>depth_im</em>, <em>cfg</em>, <em>camera_intr=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdForegroundMaskDetector.detect" title="Permalink to this definition">¶</a></dt>
+<code class="descname">detect</code><span class="sig-paren">(</span><em>color_im</em>, <em>depth_im</em>, <em>cfg</em>, <em>camera_intr=None</em>, <em>T_camera_world=None</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdForegroundMaskDetector.detect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Detects all relevant objects in an rgbd image pair using foreground masking.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>color_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>) &#8211; color image for detection</li>
-<li><strong>depth_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) &#8211; depth image for detection (corresponds to color image)</li>
-<li><strong>cfg</strong> (<code class="xref py py-obj docutils literal"><span class="pre">YamlConfig</span></code>) &#8211; parameters of detection function</li>
-<li><strong>camera_intr</strong> (<code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code>) &#8211; intrinsics of the camera</li>
+<li><strong>color_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>) – color image for detection</li>
+<li><strong>depth_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) – depth image for detection (corresponds to color image)</li>
+<li><strong>cfg</strong> (<code class="xref py py-obj docutils literal"><span class="pre">YamlConfig</span></code>) – parameters of detection function</li>
+<li><strong>camera_intr</strong> (<code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code>) – intrinsics of the camera</li>
+<li><strong>T_camera_world</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.RigidTransform</span></code>) – registration of the camera to world frame</li>
 </ul>
 </td>
 </tr>
@@ -313,17 +340,18 @@ Converts all detections within a specified area into query images for a cnn.
 Optionally resegements the images using KMeans to remove spurious background pixels.</p>
 <dl class="method">
 <dt id="perception.RgbdForegroundMaskQueryImageDetector.detect">
-<code class="descname">detect</code><span class="sig-paren">(</span><em>color_im</em>, <em>depth_im</em>, <em>cfg</em>, <em>camera_intr=None</em>, <em>vis_foreground=False</em>, <em>vis_segmentation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdForegroundMaskQueryImageDetector.detect" title="Permalink to this definition">¶</a></dt>
+<code class="descname">detect</code><span class="sig-paren">(</span><em>color_im</em>, <em>depth_im</em>, <em>cfg</em>, <em>camera_intr=None</em>, <em>T_camera_world=None</em>, <em>vis_foreground=False</em>, <em>vis_segmentation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#perception.RgbdForegroundMaskQueryImageDetector.detect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Detects all relevant objects in an rgbd image pair using foreground masking.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>color_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>) &#8211; color image for detection</li>
-<li><strong>depth_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) &#8211; depth image for detection (corresponds to color image)</li>
-<li><strong>cfg</strong> (<code class="xref py py-obj docutils literal"><span class="pre">YamlConfig</span></code>) &#8211; parameters of detection function</li>
-<li><strong>camera_intr</strong> (<code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code>) &#8211; intrinsics of the camera</li>
+<li><strong>color_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">ColorImage</span></code>) – color image for detection</li>
+<li><strong>depth_im</strong> (<code class="xref py py-obj docutils literal"><span class="pre">DepthImage</span></code>) – depth image for detection (corresponds to color image)</li>
+<li><strong>cfg</strong> (<code class="xref py py-obj docutils literal"><span class="pre">YamlConfig</span></code>) – parameters of detection function</li>
+<li><strong>camera_intr</strong> (<code class="xref py py-obj docutils literal"><span class="pre">CameraIntrinsics</span></code>) – intrinsics of the camera</li>
+<li><strong>T_camera_world</strong> (<code class="xref py py-obj docutils literal"><span class="pre">autolab_core.RigidTransform</span></code>) – registration of the camera to world frame</li>
 </ul>
 </td>
 </tr>
@@ -344,15 +372,18 @@ Optionally resegements the images using KMeans to remove spurious background pix
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="features.html" class="btn btn-neutral float-right" title="Features" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="features.html" class="btn btn-neutral float-right" title="Features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="cnn.html" class="btn btn-neutral" title="Convolutional Neural Networks" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="cnn.html" class="btn btn-neutral" title="Convolutional Neural Networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -386,7 +417,8 @@ Optionally resegements the images using KMeans to remove spurious background pix
             VERSION:'0.0.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>
