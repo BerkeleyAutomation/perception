@@ -1242,6 +1242,7 @@ class DepthImage(Image):
         """
         Image.__init__(self, data, frame)
         self._data = self._data.astype(np.float32)
+        self._data[np.isnan(self._data)] = 0.0
 
     def _check_valid_data(self, data):
         """Checks that the given data is a float array with one channel.

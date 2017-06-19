@@ -27,7 +27,11 @@ class RgbdSensorFactory:
             s = VirtualKinect2Sensor(cfg['image_dir'],
                                      frame=cfg['frame'])
         elif sensor_type == 'primesense':
+            flip_images = True
+            if 'flip_images' in cfg.keys():
+                flip_images = cfg['flip_images']
             s = PrimesenseSensor(auto_white_balance=cfg['auto_white_balance'],
+                                 flip_images=flip_images,
                                  frame=cfg['frame'])
         elif sensor_type == 'virtual_primesense':
             s = VirtualPrimesenseSensor(cfg['image_dir'],

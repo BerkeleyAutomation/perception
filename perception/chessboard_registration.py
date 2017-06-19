@@ -72,6 +72,7 @@ class CameraChessboardRegistration:
         sx = config['corners_x']
         sy = config['corners_y']
         color_image_rescale_factor = config['color_image_rescale_factor']
+        flip_normal = config['flip_normal']
         vis = config['vis']
 
         # read params from sensor
@@ -146,6 +147,8 @@ class CameraChessboardRegistration:
         w = np.linalg.inv(A).dot(b)
         n = np.array([w[0], w[1], -1])
         n = n / np.linalg.norm(n)
+        if flip_normal:
+            n = -n
         mean_point_plane = points_3d_plane.mean()
         
         # find x-axis of the chessboard coordinates on the fitted plane
