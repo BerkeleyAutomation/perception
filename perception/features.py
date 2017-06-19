@@ -59,7 +59,7 @@ class GlobalFeature(Feature):
         object key in database that descriptor corresponds to
     descriptor : :obj:`numpy.ndarray`
         vector to describe the object
-    pose : :obj:`core.RigidTransform`
+    pose : :obj:`autolab_core.RigidTransform`
         pose of object for the descriptor, if relevant
     """
     __metaclass__ = ABCMeta

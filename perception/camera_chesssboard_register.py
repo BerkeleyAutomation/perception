@@ -6,7 +6,7 @@ import math
 
 from kinect2_sensor import Kinect2Sensor, Kinect2PacketPipelineMode
 from image import DepthImage
-from core import PointCloud, RigidTransform, rotation_from_axes, Point
+from autolab_core import PointCloud, RigidTransform, rotation_from_axes, Point
 
 class CameraChessboardRegister:
 

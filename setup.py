@@ -12,7 +12,6 @@ requirements = [
     'cycler',
     'Pillow',
     'ipython',
-    'core',
     'scikit-image'
 ]
 

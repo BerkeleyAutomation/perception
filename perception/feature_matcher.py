@@ -9,7 +9,7 @@ from scipy import spatial
 import scipy.spatial.distance as ssd
 
 from features import BagOfFeatures
-from core import PointCloud
+from autolab_core import PointCloud
 
 class Correspondences:
     """ Wrapper for point-set correspondences.

@@ -10,7 +10,7 @@ import numpy as np
 
 from constants import *
 
-from core import RigidTransform, PointCloud, NormalCloud
+from autolab_core import RigidTransform, PointCloud, NormalCloud
 from perception import PointToPlaneICPSolver, PointToPlaneFeatureMatcher
 
 class TestRegistration(TestCase):

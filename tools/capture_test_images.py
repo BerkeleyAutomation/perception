@@ -13,7 +13,7 @@ import argparse
 
 import matplotlib.pyplot as plt
 
-from core import RigidTransform, Box, YamlConfig
+from autolab_core import RigidTransform, Box, YamlConfig
 from perception import RgbdSensorFactory, Image
 
 if __name__ == '__main__':

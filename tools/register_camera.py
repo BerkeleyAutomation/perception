@@ -10,7 +10,7 @@ import time
 
 from mpl_toolkits.mplot3d import Axes3D
 
-from core import RigidTransform, YamlConfig
+from autolab_core import RigidTransform, YamlConfig
 from perception import CameraChessboardRegistration, RgbdSensorFactory
 from yumipy import YuMiRobot
 

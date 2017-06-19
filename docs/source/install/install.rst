@@ -3,7 +3,7 @@ Installation Instructions
 
 Dependencies
 ~~~~~~~~~~~~
-The `perception` module depends on the Berkeley AutoLab's `core`_ module,
+The `perception` module depends on the Berkeley AutoLab's `autolab_core`_ module,
 which can be installed using the instructions `here`_.
 The module primarily wraps `OpenCV`_ version >= 2.11 which can be installed using pip.
 
@@ -13,8 +13,8 @@ Install these according to their website's instructions if their functionality i
 
 Installing our repo using `pip` will attempt to install these automatically.
 
-.. _here: https://BerkeleyAutomation.github.io/core
-.. _core: https://github.com/BerkeleyAutomation/core
+.. _here: https://BerkeleyAutomation.github.io/autolab_core
+.. _autolab_core: https://github.com/BerkeleyAutomation/autolab_core
 .. _OpenCV: https://pypi.python.org/pypi/opencv-python
 .. _Tensorflow: http://tflearn.org/installation/
 .. _pylibfreenect2: http://r9y9.github.io/pylibfreenect2/installation.html

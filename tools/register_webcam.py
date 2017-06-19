@@ -10,7 +10,7 @@ import numpy as np
 from numpy import linalg as LA
 import scipy.spatial.distance as ssd
 import scipy.optimize as opt
-from core import RigidTransform, YamlConfig
+from autolab_core import RigidTransform, YamlConfig
 from perception import bincam_2D as b2
 
 

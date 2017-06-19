@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage.morphology as snm
 
-from core import Box
+from autolab_core import Box
 from image import BinaryImage, ColorImage, DepthImage
 from object_render import RenderMode
 
@@ -129,7 +129,7 @@ class RgbdDetector(object):
             parameters of detection function
         camera_intr : :obj:`CameraIntrinsics`
             intrinsics of the camera
-        T_camera_world : :obj:`core.RigidTransform`
+        T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
 
         Returns
@@ -158,7 +158,7 @@ class RgbdForegroundMaskDetector(RgbdDetector):
             parameters of detection function
         camera_intr : :obj:`CameraIntrinsics`
             intrinsics of the camera
-        T_camera_world : :obj:`core.RigidTransform`
+        T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
 
         Returns
@@ -308,7 +308,7 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
             parameters of detection function
         camera_intr : :obj:`CameraIntrinsics`
             intrinsics of the camera
-        T_camera_world : :obj:`core.RigidTransform`
+        T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
 
         Returns
@@ -441,7 +441,7 @@ class PointCloudBoxDetector(RgbdDetector):
             parameters of detection function
         camera_intr : :obj:`CameraIntrinsics`
             intrinsics of the camera
-        T_camera_world : :obj:`core.RigidTransform`
+        T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
 
         Returns

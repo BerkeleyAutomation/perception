@@ -8,7 +8,7 @@ import json
 import os
 
 from image import DepthImage, PointCloudImage
-from core import Point, PointCloud, ImageCoords
+from autolab_core import Point, PointCloud, ImageCoords
 
 from constants import INTR_EXTENSION
 
@@ -197,7 +197,7 @@ class CameraIntrinsics(object):
 
         Parameters
         ----------
-        point_cloud : :obj:`core.PointCloud` or :obj:`core.Point`
+        point_cloud : :obj:`autolab_core.PointCloud` or :obj:`autolab_core.Point`
             A PointCloud or Point to project onto the camera image plane.
 
         round_px : bool
@@ -205,7 +205,7 @@ class CameraIntrinsics(object):
 
         Returns
         -------
-        :obj:`core.ImageCoords` or :obj:`Point`
+        :obj:`autolab_core.ImageCoords` or :obj:`autolab_core.Point`
             A corresponding set of image coordinates representing the given
             PointCloud's projections onto the camera image plane. If the input
             was a single Point, returns a 2D Point in the camera plane.
@@ -240,7 +240,7 @@ class CameraIntrinsics(object):
 
         Parameters
         ----------
-        point_cloud : :obj:`core.PointCloud` or :obj:`core.Point`
+        point_cloud : :obj:`autolab_core.PointCloud` or :obj:`autolab_core.Point`
             A PointCloud or Point to project onto the camera image plane.
 
         round_px : bool
@@ -292,7 +292,7 @@ class CameraIntrinsics(object):
 
         Returns
         -------
-        :obj:`PointCloud`
+        :obj:`autolab_core.PointCloud`
             A 3D point cloud created from the depth image.
 
         Raises
@@ -351,12 +351,12 @@ class CameraIntrinsics(object):
         depth : float
             The depth value at the given pixel location.
 
-        pixel : :obj:`core.Point`
+        pixel : :obj:`autolab_core.Point`
             A 2D point representing the pixel's location in the camera image.
 
         Returns
         -------
-        :obj:`Point`
+        :obj:`autolab_core.Point`
             The projected 3D point.
 
         Raises

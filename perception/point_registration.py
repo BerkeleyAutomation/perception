@@ -7,7 +7,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from core import RigidTransform, PointCloud, NormalCloud, skew
+from autolab_core import RigidTransform, PointCloud, NormalCloud, skew
 
 from feature_matcher import PointToPlaneFeatureMatcher
 
@@ -16,7 +16,7 @@ class RegistrationResult(object):
 
     Attributes
     ----------
-    T_source_target : :obj:`core.RigidTranform`
+    T_source_target : :obj:`autolab_core.RigidTranform`
         transformation from source to target frame
     cost : float
         numeric value of the registration objective for the given transform
@@ -38,13 +38,13 @@ class IterativeRegistrationSolver:
 
         Parameters
         ----------
-        source_point_cloud : :obj:`core.PointCloud`
+        source_point_cloud : :obj:`autolab_core.PointCloud`
             source object points
-        target_point_cloud : :obj`core.PointCloud`
+        target_point_cloud : :obj`autolab_core.PointCloud`
             target object points
-        source_normal_cloud : :obj:`core.NormalCloud`
+        source_normal_cloud : :obj:`autolab_core.NormalCloud`
             source object outward-pointing normals
-        target_normal_cloud : :obj:`core.NormalCloud`
+        target_normal_cloud : :obj:`autolab_core.NormalCloud`
             target object outward-pointing normals
         matcher : :obj:`PointToPlaneFeatureMatcher`
             object to match the point sets
@@ -94,13 +94,13 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
 
         Parameters
         ----------
-        source_point_cloud : :obj:`core.PointCloud`
+        source_point_cloud : :obj:`autolab_core.PointCloud`
             source object points
-        target_point_cloud : :obj`core.PointCloud`
+        target_point_cloud : :obj`autolab_core.PointCloud`
             target object points
-        source_normal_cloud : :obj:`core.NormalCloud`
+        source_normal_cloud : :obj:`autolab_core.NormalCloud`
             source object outward-pointing normals
-        target_normal_cloud : :obj:`core.NormalCloud`
+        target_normal_cloud : :obj:`autolab_core.NormalCloud`
             target object outward-pointing normals
         matcher : :obj:`PointToPlaneFeatureMatcher`
             object to match the point sets
@@ -251,13 +251,13 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
 
         Parameters
         ----------
-        source_point_cloud : :obj:`core.PointCloud`
+        source_point_cloud : :obj:`autolab_core.PointCloud`
             source object points
-        target_point_cloud : :obj`core.PointCloud`
+        target_point_cloud : :obj`autolab_core.PointCloud`
             target object points
-        source_normal_cloud : :obj:`core.NormalCloud`
+        source_normal_cloud : :obj:`autolab_core.NormalCloud`
             source object outward-pointing normals
-        target_normal_cloud : :obj:`core.NormalCloud`
+        target_normal_cloud : :obj:`autolab_core.NormalCloud`
             target object outward-pointing normals
         matcher : :obj:`PointToPlaneFeatureMatcher`
             object to match the point sets

@@ -35,7 +35,7 @@ class AlexNet(object):
 
     Parameters
     ----------
-    config : :obj:`core.YamlConfig`
+    config : :obj:`autolab_core.YamlConfig`
         specifies the parameters of the network
 
     Notes

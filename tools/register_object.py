@@ -7,7 +7,7 @@ import os
 import argparse
 import logging 
 
-from core import RigidTransform, YamlConfig
+from autolab_core import RigidTransform, YamlConfig
 from perception import CameraChessboardRegistration, RgbdSensorFactory
 
 VIS_SUPPORTED = True

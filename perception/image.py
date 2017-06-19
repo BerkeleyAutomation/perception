@@ -28,7 +28,7 @@ import scipy.spatial.distance as ssd
 import skimage.morphology as morph
 import scipy.ndimage.morphology as snm
 
-from core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
+from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
 
 import constants as constants
 
@@ -1062,7 +1062,7 @@ class ColorImage(Image):
 
         Parameters
         ----------
-        :obj:`core.Box`
+        :obj:`autolab_core.Box`
             A 2D box to draw in the image.
 
         Returns
@@ -1548,7 +1548,7 @@ class DepthImage(Image):
 
         Returns
         -------
-        :obj:`core.PointNormalCloud`
+        :obj:`autolab_core.PointNormalCloud`
             A PointNormalCloud created from the depth image.
         """
         point_cloud_im = camera_intr.deproject_to_image(self)
@@ -2803,7 +2803,7 @@ class PointCloudImage(Image):
 
         Returns
         -------
-        :obj:`core.PointCloud`
+        :obj:`autolab_core.PointCloud`
             The corresponding PointCloud.
         """
         return PointCloud(data=self._data.reshape(self.height*self.width, 3).T,
@@ -2919,7 +2919,7 @@ class NormalCloudImage(Image):
 
         Returns
         -------
-        :obj:`core.NormalCloud`
+        :obj:`autolab_core.NormalCloud`
             The corresponding NormalCloud.
         """
         return NormalCloud(data=self._data.reshape(self.height*self.width, 3).T,
