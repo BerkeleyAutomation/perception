@@ -460,6 +460,7 @@ class PointCloudBoxDetector(RgbdDetector):
         crop_height = cfg['image_height']
         crop_width = cfg['image_width']
         depth_grad_thresh = cfg['depth_grad_thresh']
+        point_cloud_mask_only = cfg['point_cloud_mask_only']
 
         w = cfg['filter_dim']
 
@@ -513,6 +514,27 @@ class PointCloudBoxDetector(RgbdDetector):
             plt.imshow(binary_im_filtered.data, cmap=plt.cm.gray)
             plt.axis('off')
             plt.show()
+
+        # switch to just return the mean of nonzero_px
+        if point_cloud_mask_only == 1:
+            center_px = np.mean(binary_im_filtered.nonzero_pixels(), axis=0)
+            ci = center_px[0]
+            cj = center_px[1]
+            binary_thumbnail = binary_im_filtered.crop(crop_height, crop_width, ci, cj)
+            color_thumbnail = color_im.crop(crop_height, crop_width, ci, cj)
+            depth_thumbnail = depth_im.crop(crop_height, crop_width, ci, cj)
+            thumbnail_intr = camera_intr
+            if camera_intr is not None:
+                thumbnail_intr = camera_intr.crop(crop_height, crop_width, ci, cj)
+                
+                
+            query_box = Box(center_px - half_crop_dims, center_px + half_crop_dims)
+            return [RgbdDetection(color_thumbnail,
+                                  depth_thumbnail,
+                                  query_box,
+                                  binary_thumbnail=binary_thumbnail,
+                                  contour=None,
+                                  camera_intr=thumbnail_intr)]
 
         # convert contours to detections
         detections = []
@@ -576,5 +598,3 @@ class RgbdDetectorFactory:
         elif detector_type == 'rgbd_foreground_mask':
             return RgbdForegroundMaskDetector()
         raise ValueError('Detector type %s not understood' %(detector_type))
-        
-        

@@ -5,6 +5,7 @@ chessboard_registration:
   num_transform_avg: 10 # number corner detections to average together
   num_images: 5 # number of depth images to take median of for noise reduction
   color_image_rescale_factor: 4.0 # rate to upsame the color image for detections
+  flip_normal: 0
   
   # VISUALIZATION PARAMS
   vis: False # visualize registration
