@@ -12,6 +12,12 @@ from autolab_core import Point, PointCloud, ImageCoords
 
 from constants import INTR_EXTENSION
 
+try:
+    from sensor_msgs.msg import CameraInfo, RegionOfInterest
+    from std_msgs.msg import Header
+except Exception:
+    print ('WARNING: AUTOLab Perception module not installed as Catkin Package. ROS msg conversions will not be available for Perception wrappers.')
+
 class CameraIntrinsics(object):
     """A set of intrinsic parameters for a camera. This class is used to project
     and deproject points.
@@ -130,6 +136,35 @@ class CameraIntrinsics(object):
         """:obj:`numpy.ndarray` : The 3x3 projection matrix for this camera.
         """
         return self._K
+
+    @property
+    def rosmsg(self):
+        """:obj:`sensor_msgs.CamerInfo` : Returns ROS CamerInfo msg 
+        """
+        msg_header = Header()
+        msg_header.frame_id = self._frame
+
+        msg_roi = RegionOfInterest()
+        msg_roi.x_offset = 0
+        msg_roi.y_offset = 0
+        msg_roi.height = 0
+        msg_roi.width = 0
+        msg_roi.do_rectify = 0
+
+        msg = CameraInfo()
+        msg.header = msg_header
+        msg.height = self._height
+        msg.width = self._width
+        msg.distortion_model = 'plumb_bob'
+        msg.D = [0.0, 0.0, 0.0, 0.0, 0.0]
+        msg.K = [self._fx, 0.0, self._cx, 0.0, self._fy, self._cy, 0.0, 0.0, 1.0]
+        msg.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+        msg.P = [self._fx, 0.0, self._cx, 0.0, 0.0, self._fx, self._cy, 0.0, 0.0, 0.0, 1.0, 0.0]
+        msg.binning_x = 0
+        msg.binning_y = 0
+        msg.roi = msg_roi
+
+        return msg
 
     def crop(self, height, width, crop_ci, crop_cj):
         """ Convert to new camera intrinsics for crop of image from original camera.

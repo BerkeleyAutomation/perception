@@ -32,6 +32,12 @@ from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
 
 import constants as constants
 
+try:
+    from sensor_msgs.msg import Image
+    from cv_bridge import CvBridge, CvBridgeError
+except Exception:
+    print 'WARNING: AUTOLab Perception Module not installed as Catkin Package. ROS msg conversions will not be available for Perception wrappers'
+
 class Image(object):
     """Abstract wrapper class for images.
     """
@@ -170,6 +176,17 @@ class Image(object):
             A new Image of the same type, with data not indexed by inds set
             to zero.
         """
+
+    @property
+    def rosmsg(self):
+        """:obj:`sensor_msgs.Image` : ROS Image 
+        """
+        cv_bridge = CvBridge()
+        try:
+            return cv_bridge.cv2_to_imgmsg(self._data, encoding=self._encoding)
+        except CvBridgeError as cv_bridge_exception:
+            print cv_bridge_exception
+
 
     @abstractmethod
     def _check_valid_data(self, data):
@@ -788,6 +805,7 @@ class ColorImage(Image):
             string.
         """
         Image.__init__(self, data, frame)
+        self._encoding = 'rgb8'
 
     def _check_valid_data(self, data):
         """Checks that the given data is a uint8 array with one or three
@@ -1243,6 +1261,7 @@ class DepthImage(Image):
         Image.__init__(self, data, frame)
         self._data = self._data.astype(np.float32)
         self._data[np.isnan(self._data)] = 0.0
+        self._encoding = 'passthrough'
 
     def _check_valid_data(self, data):
         """Checks that the given data is a float array with one channel.
@@ -1907,7 +1926,7 @@ class BinaryImage(Image):
             The new pruned binary image.
         """
         # get all contours (connected components) from the binary image
-        contours = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        image, contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         num_contours = len(contours[0])
         middle_pixel = np.array(self.shape)[:2] / 2
         middle_pixel = middle_pixel.reshape(1,2)
@@ -1974,7 +1993,7 @@ class BinaryImage(Image):
             A list of resuting contours
         """
         # get all contours (connected components) from the binary image
-        contours = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        image, contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         num_contours = len(contours[0])
         kept_contours = []
 
