@@ -551,10 +551,10 @@ class Image(object):
             center_j = float(self.width) / 2
 
         # crop using PIL
-        desired_start_row = np.floor(center_i - float(height) / 2)
-        desired_end_row = np.floor(center_i + float(height) / 2)
-        desired_start_col = np.floor(center_j - float(width) / 2)
-        desired_end_col = np.floor(center_j + float(width) / 2)
+        desired_start_row = int(np.floor(center_i - float(height) / 2))
+        desired_end_row = int(np.floor(center_i + float(height) / 2))
+        desired_start_col = int(np.floor(center_j - float(width) / 2))
+        desired_end_col = int(np.floor(center_j + float(width) / 2)))
 
         pil_im = PImage.fromarray(self.data)
         cropped_pil_im = pil_im.crop((desired_start_col,
