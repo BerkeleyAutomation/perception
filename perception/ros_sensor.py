@@ -213,4 +213,8 @@ class RosSensor(CameraSensor):
         depth_image = (None if depth_image is None else
                        DepthImage(np.array(depth_image[0][0], dtype=np.float32), frame=self._frame))
         return color_image, depth_image, ir_image
+    
+    def __del__(self):
+        """Stop sensor when RosSensor is deleted"""
+        self.stop()
         
