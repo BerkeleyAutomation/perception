@@ -41,8 +41,6 @@ class _ImageBuffer(multiprocessing.Process):
         else:
             self.stream_to_buffer = rospy.get_namespace() + instream
             
-        self.daemon = True
-            
 
     def run(self):
         # Initialize the node. Anonymous to allow dupes.
@@ -66,21 +64,18 @@ class _ImageBuffer(multiprocessing.Process):
         
         # Main loop
         while True:
-            try:
-                try: 
-                    req = self._req_q.get(block = True)
-                    if req == "TERM":
-                        return
-                    # If this works we put a return with status 0
-                    self._res_q.put((0, self._handle_req(buffer_list, *req)))
-                # On RuntimeError, we pass it back to parent process to throw
-                except RuntimeError as e:
-                    self._res_q.put((1, e))
-                # Parent pid gets set to 1 when parent dies, so we kill if that's the case
-                if os.getppid() == 1:
-                    sys.exit(0)
-            except KeyboardInterrupt:
-                continue
+            try: 
+                req = self._req_q.get(block = True)
+                if req == "TERM":
+                    return
+                # If this works we put a return with status 0
+                self._res_q.put((0, self._handle_req(buffer_list, *req)))
+            # On RuntimeError, we pass it back to parent process to throw
+            except RuntimeError as e:
+                self._res_q.put((1, e))
+            # Parent pid gets set to 1 when parent dies, so we kill if that's the case
+            if os.getppid() == 1:
+                sys.exit(0)
             
     def _handle_req(self, buffer_list, num_requested, timing_mode):
         """Handles a request for images. Private method, used in child buffer process
@@ -150,6 +145,11 @@ class _ImageBuffer(multiprocessing.Process):
         """Kill the process. Since it ignores sigterm we do it this way.
         """
         self._req_q.put("TERM")
+        
+    def join(self):
+        """Kill the process. Used for exiting processes when program exits 
+        """
+        self.terminate()
         
 class _DummyImageBuffer(object):
     """Initializes a dummy image buffer that returns None
