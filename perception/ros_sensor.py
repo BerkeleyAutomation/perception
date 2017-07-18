@@ -68,6 +68,8 @@ class _ImageBuffer(multiprocessing.Process):
             try:
                 try: 
                     req = self._req_q.get(block = False)
+                    if req == "TERM":
+                        return
                     # If this works we put a return with status 0
                     self._res_q.put((0, self._handle_req(buffer_list, *req)))
                 except Queue.Empty:
@@ -144,6 +146,11 @@ class _ImageBuffer(multiprocessing.Process):
             return result[1]
         else:
             raise result[1]
+    
+    def terminate(self):
+        """Kill the process. Since it ignores sigterm we do it this way.
+        """
+        self._req_q.put("TERM")
         
 class _DummyImageBuffer(object):
     """Initializes a dummy image buffer that returns None
@@ -174,9 +181,9 @@ class RosSensor(CameraSensor):
         if rgb_stream is not None:
             self.rgb_stream = _ImageBuffer(rgb_stream, absolute=absolute, encoding="rgb8")
         if ir_stream is not None:
-            self.ir_stream = _ImageBuffer(ir_stream, absolute=absolute, encoding="mono16")
+            self.ir_stream = _ImageBuffer(ir_stream, absolute=absolute)
         if depth_stream is not None:
-            self.depth_stream = _ImageBuffer(depth_stream, absolute=absolute, encoding="mono16")
+            self.depth_stream = _ImageBuffer(depth_stream, absolute=absolute)
             
     def start(self):
         """Starts the subscriber processes
@@ -195,13 +202,15 @@ class RosSensor(CameraSensor):
     def frames(self):
         """Returns the latest set of frames.
         """
-        color_image = self.rgb_stream.request_images(1)[0][0]
-        color_image = None if color_image is None else ColorImage(color_image, frame=self._frame)
+        color_image = self.rgb_stream.request_images(1)
+        color_image = None if color_image is None else ColorImage(color_image[0][0], frame=self._frame)
         
-        ir_image = self.rgb_stream.request_images(1)[0][0]
-        ir_image = None if ir_image is None else IrImage(ir_image, frame=self._frame)
+        ir_image = self.ir_stream.request_images(1)
+        ir_image = (None if ir_image is None else
+                    IrImage(np.array(ir_image[0][0], dtype=np.uint8), frame=self._frame))
         
-        depth_image = self.rgb_stream.request_images(1)[0][0]
-        depth_image = None if depth_image is None else DepthImage(depth_image, frame=self._frame)
+        depth_image = self.depth_stream.request_images(1)
+        depth_image = (None if depth_image is None else
+                       DepthImage(np.array(depth_image[0][0], dtype=np.float32), frame=self._frame))
         return color_image, depth_image, ir_image
         
