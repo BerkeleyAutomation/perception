@@ -12,7 +12,6 @@ from perception import CameraSensor, ColorImage, DepthImage, IrImage
 
 # TODO:
 # Giving a warning if stale data is being returned/delete stale data
-# Maybe add sleep between main loop runs (if it isn't hogging cpu cycles then eh)
 class _ImageBuffer(multiprocessing.Process):
     def __init__(self, instream, encoding="passthrough", absolute=False, bufsize=100):
         '''Initializes an image buffer process.
@@ -42,6 +41,8 @@ class _ImageBuffer(multiprocessing.Process):
         else:
             self.stream_to_buffer = rospy.get_namespace() + instream
             
+        self.daemon = True
+            
 
     def run(self):
         # Initialize the node. Anonymous to allow dupes.
@@ -67,13 +68,11 @@ class _ImageBuffer(multiprocessing.Process):
         while True:
             try:
                 try: 
-                    req = self._req_q.get(block = False)
+                    req = self._req_q.get(block = True)
                     if req == "TERM":
                         return
                     # If this works we put a return with status 0
                     self._res_q.put((0, self._handle_req(buffer_list, *req)))
-                except Queue.Empty:
-                    pass
                 # On RuntimeError, we pass it back to parent process to throw
                 except RuntimeError as e:
                     self._res_q.put((1, e))
