@@ -2,6 +2,9 @@
 Class for interfacing with the Kinect v2 RGBD sensor
 Author: Jeff Mahler
 """
+
+"""WARNING: The ros bits of this class are depreciated. Make something based on ros_sensor instead
+"""
 import copy
 import logging
 import numpy as np
