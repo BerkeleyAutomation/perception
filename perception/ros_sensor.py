@@ -14,7 +14,7 @@ from perception import CameraSensor, ColorImage, DepthImage, IrImage
 # Giving a warning if stale data is being returned/delete stale data
 # Maybe add sleep between main loop runs (if it isn't hogging cpu cycles then eh)
 class _ImageBuffer(multiprocessing.Process):
-    def __init__(self, instream, absolute=False, bufsize=100):
+    def __init__(self, instream, encoding="passthrough", absolute=False, bufsize=100):
         '''Initializes an image buffer process.
         This uses a subprocess used to buffer a ROS image stream.
 
@@ -26,6 +26,8 @@ class _ImageBuffer(multiprocessing.Process):
                     if True, current frame is not prepended to instream (default False)
             bufsize : int, optional
                     Maximum size of image buffer (number of images stored, default 100)
+            encoding : String, optional
+                    Encoding to output in
         '''
         multiprocessing.Process.__init__(self)
         
@@ -34,6 +36,7 @@ class _ImageBuffer(multiprocessing.Process):
         self._res_q = multiprocessing.Queue()
         
         self.bufsize = bufsize
+        self.encoding=encoding
         if absolute:
             self.stream_to_buffer = instream
         else:
@@ -52,7 +55,7 @@ class _ImageBuffer(multiprocessing.Process):
             """Callback function for subscribing to an Image topic and creating a buffer
             """ 
             # Get cv image (which is a numpy array) from data
-            cv_image = bridge.imgmsg_to_cv2(data)
+            cv_image = bridge.imgmsg_to_cv2(data, desired_encoding=self.encoding)
             # Insert and roll buffer
             buffer.insert(0, (cv_image, rospy.get_time()))
             if(len(buffer) > self.bufsize):
@@ -159,7 +162,7 @@ class _DummyImageBuffer(object):
 class RosSensor(CameraSensor):
     """ Class for a general ROS-based camera 
     """
-    def __init__(self, frame, rgb_stream, ir_stream, depth_stream, absolute=False):
+    def __init__(self, frame, rgb_stream, depth_stream, ir_stream, absolute=False):
         """Instantiate a ROS stream-based sensor
         """
         self._frame = frame
@@ -169,11 +172,11 @@ class RosSensor(CameraSensor):
         self.depth_stream = _DummyImageBuffer()
         
         if rgb_stream is not None:
-            self.rgb_stream = _ImageBuffer(rgb_stream, absolute=absolute)
+            self.rgb_stream = _ImageBuffer(rgb_stream, absolute=absolute, encoding="rgb8")
         if ir_stream is not None:
-            self.ir_stream = _ImageBuffer(ir_stream, absolute=absolute)
+            self.ir_stream = _ImageBuffer(ir_stream, absolute=absolute, encoding="mono16")
         if depth_stream is not None:
-            self.depth_stream = _ImageBuffer(depth_stream, absolute=absolute)
+            self.depth_stream = _ImageBuffer(depth_stream, absolute=absolute, encoding="mono16")
             
     def start(self):
         """Starts the subscriber processes
