@@ -8,11 +8,11 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 import multiprocessing, Queue
 import os, sys
+from perception import CameraSensor, ColorImage, DepthImage, IrImage
 
 # TODO:
 # Giving a warning if stale data is being returned/delete stale data
 # Maybe add sleep between main loop runs (if it isn't hogging cpu cycles then eh)
-# Write a CameraSensor class based on this (this is the big one)
 class _ImageBuffer(multiprocessing.Process):
     def __init__(self, instream, absolute=False, bufsize=100):
         '''Initializes an image buffer process.
@@ -141,4 +141,64 @@ class _ImageBuffer(multiprocessing.Process):
             return result[1]
         else:
             raise result[1]
+        
+class _DummyImageBuffer(object):
+    """Initializes a dummy image buffer that returns None
+    """
+    def __init__(self):
+        pass
+    def request_images(self, num_requested, timing_mode="absolute"):
+        return None
+    def start(self):
+        pass
+    def terminate(self):
+        pass
+
+# TODO
+# Camera intrinsics
+class RosSensor(CameraSensor):
+    """ Class for a general ROS-based camera 
+    """
+    def __init__(self, frame, rgb_stream, ir_stream, depth_stream, absolute=False):
+        """Instantiate a ROS stream-based sensor
+        """
+        self._frame = frame
+        
+        self.rgb_stream   = _DummyImageBuffer()
+        self.ir_stream    = _DummyImageBuffer()
+        self.depth_stream = _DummyImageBuffer()
+        
+        if rgb_stream is not None:
+            self.rgb_stream = _ImageBuffer(rgb_stream, absolute=absolute)
+        if ir_stream is not None:
+            self.ir_stream = _ImageBuffer(ir_stream, absolute=absolute)
+        if depth_stream is not None:
+            self.depth_stream = _ImageBuffer(depth_stream, absolute=absolute)
+            
+    def start(self):
+        """Starts the subscriber processes
+        """
+        self.rgb_stream.start()
+        self.ir_stream.start()
+        self.depth_stream.start()
+
+    def stop(self):
+        """Stops the sensor stream.
+        """
+        self.rgb_stream.terminate()
+        self.ir_stream.terminate()
+        self.depth_stream.terminate()
+
+    def frames(self):
+        """Returns the latest set of frames.
+        """
+        color_image = self.rgb_stream.request_images(1)[0][0]
+        color_image = None if color_image is None else ColorImage(color_image, frame=self._frame)
+        
+        ir_image = self.rgb_stream.request_images(1)[0][0]
+        ir_image = None if ir_image is None else IrImage(ir_image, frame=self._frame)
+        
+        depth_image = self.rgb_stream.request_images(1)[0][0]
+        depth_image = None if depth_image is None else DepthImage(depth_image, frame=self._frame)
+        return color_image, depth_image, ir_image
         
