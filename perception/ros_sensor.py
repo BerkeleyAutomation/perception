@@ -49,7 +49,7 @@ class _ImageBuffer(multiprocessing.Process):
         
         # Initialize the CvBridge and image buffer list, as well as misc counting things
         bridge = CvBridge()
-        buffer = []
+        buffer_list = []
         # Create callback function for subscribing
         def callback(data):
             """Callback function for subscribing to an Image topic and creating a buffer
@@ -57,9 +57,9 @@ class _ImageBuffer(multiprocessing.Process):
             # Get cv image (which is a numpy array) from data
             cv_image = bridge.imgmsg_to_cv2(data, desired_encoding=self.encoding)
             # Insert and roll buffer
-            buffer.insert(0, (cv_image, rospy.get_time()))
-            if(len(buffer) > self.bufsize):
-                buffer.pop()
+            buffer_list.insert(0, (cv_image, rospy.get_time()))
+            if(len(buffer_list) > self.bufsize):
+                buffer_list.pop()
         # Initialize subscriber with our callback
         rospy.Subscriber(self.stream_to_buffer, Image, callback)
         
@@ -69,7 +69,7 @@ class _ImageBuffer(multiprocessing.Process):
                 try: 
                     req = self._req_q.get(block = False)
                     # If this works we put a return with status 0
-                    self._res_q.put((0, self._handle_req(buffer, *req)))
+                    self._res_q.put((0, self._handle_req(buffer_list, *req)))
                 except Queue.Empty:
                     pass
                 # On RuntimeError, we pass it back to parent process to throw
@@ -81,12 +81,12 @@ class _ImageBuffer(multiprocessing.Process):
             except KeyboardInterrupt:
                 continue
             
-    def _handle_req(self, buffer, num_requested, timing_mode):
+    def _handle_req(self, buffer_list, num_requested, timing_mode):
         """Handles a request for images. Private method, used in child buffer process
         
         Parameters
         ----------
-            buffer : list
+            buffer_list : list
                 list to pull buffered data from
             num_requested : int
                 Number of image-timestamp pairs to return
@@ -103,11 +103,11 @@ class _ImageBuffer(multiprocessing.Process):
         req_time = rospy.get_time()
         
         # Check if request fits in buffer
-        if num_requested > len(buffer):
+        if num_requested > len(buffer_list):
             raise RuntimeError("Number of images requested exceeds current buffer size")
         
         # Cut out the images and timestamps we're returning, save image shape
-        ret_images, ret_times = zip(*buffer[:num_requested])
+        ret_images, ret_times = zip(*buffer_list[:num_requested])
         
         # Get timestamps in desired mode
         if timing_mode == "absolute":
