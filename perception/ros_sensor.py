@@ -101,12 +101,12 @@ class _ImageBuffer(multiprocessing.Process):
         CameraIntrinsics object with intrinsics for current camera
         """
         if self.intrinsics_stream is None:
-            raise RuntimeError("No intrinsics stream supplied, cannot get Camera intrinsics")
-        info = rospy.wait_for_message(self.intrinsics_stream, CameraInfo)
+            return None 
+        info = rospy.wait_for_message(self.intrinsics_stream, CameraInfo, timeout=10)
         if self.image_type == "raw":
-            mat = info.K
+            mat = np.asarray(info.K).reshape((3,3))
         elif self.image_type == "rectified":
-            mat = info.P
+            mat = np.asarray(info.P).reshape((3,4))
         return CameraIntrinsics(info.header.frame_id,
                                 mat[0,0],
                                 fy=mat[1,1],
