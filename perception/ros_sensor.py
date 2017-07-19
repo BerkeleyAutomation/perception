@@ -3,30 +3,37 @@ Generic ros-based sensor class
 """
 import logging
 import rospy
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 import multiprocessing, Queue
 import os, sys
-from perception import CameraSensor, ColorImage, DepthImage, IrImage
+from perception import CameraSensor, ColorImage, DepthImage, IrImage, CameraIntrinsics
+from __builtin__ import property
 
 # TODO:
 # Giving a warning if stale data is being returned/delete stale data
 class _ImageBuffer(multiprocessing.Process):
-    def __init__(self, instream, encoding="passthrough", absolute=False, bufsize=100):
+    def __init__(self, instream=None, intrinsics_stream=None, image_type="rectified",
+                 encoding="passthrough", absolute=False, bufsize=100):
         '''Initializes an image buffer process.
         This uses a subprocess used to buffer a ROS image stream.
 
         Parameters
         ----------
-            instream : string
-                    ROS image stream to buffer
-            absolute : bool, optional
-                    if True, current frame is not prepended to instream (default False)
-            bufsize : int, optional
-                    Maximum size of image buffer (number of images stored, default 100)
-            encoding : String, optional
-                    Encoding to output in
+        instream : :obj:`str`
+            ROS image stream to buffer
+        intrinsics_stream : :obj:`str`
+            ROS Intrinsics stream.
+        image_type : :obj:`str`
+            One of {"raw", "rectified"}. Determines which field of CameraInfo intrinsics are taken from.
+            If your instream is image_raw use "raw", else it's probably "rectified"
+        absolute : bool
+            if True, current frame is not prepended to instream and intrinsics_stream (default False)
+        bufsize : int, optional
+            Maximum size of image buffer (number of images stored, default 100)
+        encoding : String, optional
+            Encoding to output in
         '''
         multiprocessing.Process.__init__(self)
         
@@ -35,39 +42,46 @@ class _ImageBuffer(multiprocessing.Process):
         self._res_q = multiprocessing.Queue()
         
         self.bufsize = bufsize
-        self.encoding=encoding
+        self.encoding = encoding
+        self.image_type = image_type
         if absolute:
             self.stream_to_buffer = instream
+            self.intrinsics_stream = intrinsics_stream
         else:
-            self.stream_to_buffer = rospy.get_namespace() + instream
+            self.stream_to_buffer = None if instream is None else rospy.get_namespace() + instream
+            self.intrinsics_stream = None if intrinsics_stream is None else rospy.get_namespace() + intrinsics_stream
             
 
     def run(self):
         # Initialize the node. Anonymous to allow dupes.
         rospy.init_node('stream_image_buffer', anonymous = True)
         
-        # Initialize the CvBridge and image buffer list, as well as misc counting things
-        bridge = CvBridge()
-        buffer_list = []
-        # Create callback function for subscribing
-        def callback(data):
-            """Callback function for subscribing to an Image topic and creating a buffer
-            """ 
-            # Get cv image (which is a numpy array) from data
-            cv_image = bridge.imgmsg_to_cv2(data, desired_encoding=self.encoding)
-            # Insert and roll buffer
-            buffer_list.insert(0, (cv_image, rospy.get_time()))
-            if(len(buffer_list) > self.bufsize):
-                buffer_list.pop()
-        # Initialize subscriber with our callback
-        rospy.Subscriber(self.stream_to_buffer, Image, callback)
         
+        buffer_list = []
+        if self.stream_to_buffer is not None:
+            # Initialize the CvBridge and image buffer list, as well as misc counting things
+            bridge = CvBridge()
+            # Create callback function for subscribing
+            def callback(data):
+                """Callback function for subscribing to an Image topic and creating a buffer
+                """ 
+                # Get cv image (which is a numpy array) from data
+                cv_image = bridge.imgmsg_to_cv2(data, desired_encoding=self.encoding)
+                # Insert and roll buffer
+                buffer_list.insert(0, (cv_image, rospy.get_time()))
+                if(len(buffer_list) > self.bufsize):
+                    buffer_list.pop()
+            # Initialize subscriber with our callback
+            rospy.Subscriber(self.stream_to_buffer, Image, callback)
+            
         # Main loop
         while True:
             try: 
                 req = self._req_q.get(block = True)
                 if req == "TERM":
                     return
+                if req == "INTRINSICS":
+                    self._res_q.put((0, self._get_camera_intr()))
                 # If this works we put a return with status 0
                 self._res_q.put((0, self._handle_req(buffer_list, *req)))
             # On RuntimeError, we pass it back to parent process to throw
@@ -76,7 +90,29 @@ class _ImageBuffer(multiprocessing.Process):
             # Parent pid gets set to 1 when parent dies, so we kill if that's the case
             if os.getppid() == 1:
                 sys.exit(0)
-            
+    
+    def _get_camera_intr(self):
+        """Gets camera intrinsics.
+        
+        Returns
+        -------
+        CameraIntrinsics object with intrinsics for current camera
+        """
+        if self.intrinsics_stream is None:
+            raise RuntimeError("No intrinsics stream supplied, cannot get Camera intrinsics")
+        info = rospy.wait_for_message(self.intrinsics_stream, CameraInfo)
+        if self.image_type == "raw":
+            mat = info.K
+        elif self.image_type == "rectified":
+            mat = info.P
+        return CameraIntrinsics(info.header.frame_id,
+                                mat[0,0],
+                                fy=mat[1,1],
+                                cx=mat[0,2],
+                                cy=mat[1,2],
+                                height=info.height, width=info.width)
+        
+    
     def _handle_req(self, buffer_list, num_requested, timing_mode):
         """Handles a request for images. Private method, used in child buffer process
         
@@ -140,6 +176,23 @@ class _ImageBuffer(multiprocessing.Process):
             return result[1]
         else:
             raise result[1]
+        
+    def request_intrinsics(self):
+        """Gets camera intrinsics. Used in parent process
+        
+        Returns
+        -------
+        CameraIntrinsics
+        """
+        self._req_q.put("INTRINSICS")
+        try:
+            result = self._res_q.get(timeout=10)
+        except Queue.Empty:
+            raise RuntimeError("Request has timed out")
+        if result[0] == 0:
+            return result[1]
+        else:
+            raise result[1]
     
     def terminate(self):
         """Kill the process. Since it ignores sigterm we do it this way.
@@ -158,17 +211,20 @@ class _DummyImageBuffer(object):
         pass
     def request_images(self, num_requested, timing_mode="absolute"):
         return None
+    def request_intrinsics(self):
+        return None
     def start(self):
         pass
     def terminate(self):
         pass
 
 # TODO
-# Camera intrinsics
+# fix the IR intrinsics stuff (might require overhauling other cameras)
 class RosSensor(CameraSensor):
     """ Class for a general ROS-based camera 
     """
-    def __init__(self, frame, rgb_stream, depth_stream, ir_stream, absolute=False):
+    def __init__(self, frame, rgb_stream, depth_stream, ir_stream, 
+                 rgb_intr_stream=None, depth_intr_stream=None, ir_intr_stream=None, absolute=False):
         """Instantiate a ROS stream-based sensor
         """
         self._frame = frame
@@ -178,11 +234,30 @@ class RosSensor(CameraSensor):
         self.depth_stream = _DummyImageBuffer()
         
         if rgb_stream is not None:
-            self.rgb_stream = _ImageBuffer(rgb_stream, absolute=absolute, encoding="rgb8")
+            self.rgb_stream = _ImageBuffer(rgb_stream, intrinsics_stream=rgb_intr_stream,
+                                                                                    absolute=absolute, encoding="rgb8")
         if ir_stream is not None:
-            self.ir_stream = _ImageBuffer(ir_stream, absolute=absolute)
+            self.ir_stream = _ImageBuffer(ir_stream, intrinsics_stream=ir_intr_stream, absolute=absolute)
         if depth_stream is not None:
-            self.depth_stream = _ImageBuffer(depth_stream, absolute=absolute)
+            self.depth_stream = _ImageBuffer(depth_stream, intrinsics_stream=depth_intr_stream, absolute=absolute)
+            
+    @property
+    def camera_intrinsics(self):
+        rgb_intr = self.rgb_stream.request_intrinsics()
+        ir_intr = self.ir_stream.request_intrinsics()
+        depth_intr = self.depth_stream.request_intrinsics()
+        for intr in [rgb_intr, ir_intr, depth_intr]:
+            if intr is not None:
+                intr._frame = self._frame
+        return rgb_intr, depth_intr, ir_intr
+    
+    @property
+    def color_intrinsics(self):
+        return self.color_intrinsics[0]
+    
+    @property
+    def ir_intrinsics(self):
+        return self.camera_intrinsics[2]
             
     def start(self):
         """Starts the subscriber processes
