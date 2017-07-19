@@ -80,10 +80,12 @@ class _ImageBuffer(multiprocessing.Process):
                 req = self._req_q.get(block = True)
                 if req == "TERM":
                     return
-                if req == "INTRINSICS":
+                elif req == "INTRINSICS":
                     self._res_q.put((0, self._get_camera_intr()))
-                # If this works we put a return with status 0
-                self._res_q.put((0, self._handle_req(buffer_list, *req)))
+                elif self.stream_to_buffer is None:
+                    self._res_q.put((0, None))
+                else:
+                    self._res_q.put((0, self._handle_req(buffer_list, *req)))
             # On RuntimeError, we pass it back to parent process to throw
             except RuntimeError as e:
                 self._res_q.put((1, e))
@@ -203,43 +205,21 @@ class _ImageBuffer(multiprocessing.Process):
         """Kill the process. Used for exiting processes when program exits 
         """
         self.terminate()
-        
-class _DummyImageBuffer(object):
-    """Initializes a dummy image buffer that returns None
-    """
-    def __init__(self):
-        pass
-    def request_images(self, num_requested, timing_mode="absolute"):
-        return None
-    def request_intrinsics(self):
-        return None
-    def start(self):
-        pass
-    def terminate(self):
-        pass
 
 # TODO
 # fix the IR intrinsics stuff (might require overhauling other cameras)
 class RosSensor(CameraSensor):
     """ Class for a general ROS-based camera 
     """
-    def __init__(self, frame, rgb_stream, depth_stream, ir_stream, 
+    def __init__(self, frame, rgb_stream=None, depth_stream=None, ir_stream=None, 
                  rgb_intr_stream=None, depth_intr_stream=None, ir_intr_stream=None, absolute=False):
         """Instantiate a ROS stream-based sensor
         """
         self._frame = frame
         
-        self.rgb_stream   = _DummyImageBuffer()
-        self.ir_stream    = _DummyImageBuffer()
-        self.depth_stream = _DummyImageBuffer()
-        
-        if rgb_stream is not None:
-            self.rgb_stream = _ImageBuffer(rgb_stream, intrinsics_stream=rgb_intr_stream,
-                                                                                    absolute=absolute, encoding="rgb8")
-        if ir_stream is not None:
-            self.ir_stream = _ImageBuffer(ir_stream, intrinsics_stream=ir_intr_stream, absolute=absolute)
-        if depth_stream is not None:
-            self.depth_stream = _ImageBuffer(depth_stream, intrinsics_stream=depth_intr_stream, absolute=absolute)
+        self.rgb_stream = _ImageBuffer(rgb_stream, intrinsics_stream=rgb_intr_stream, absolute=absolute, encoding="rgb8")
+        self.ir_stream = _ImageBuffer(ir_stream, intrinsics_stream=ir_intr_stream, absolute=absolute)
+        self.depth_stream = _ImageBuffer(depth_stream, intrinsics_stream=depth_intr_stream, absolute=absolute)
             
     @property
     def camera_intrinsics(self):
