@@ -1926,8 +1926,8 @@ class BinaryImage(Image):
             The new pruned binary image.
         """
         # get all contours (connected components) from the binary image
-        image, contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        num_contours = len(contours[0])
+        contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        num_contours = len(contours)
         middle_pixel = np.array(self.shape)[:2] / 2
         middle_pixel = middle_pixel.reshape(1,2)
         center_contour = None
@@ -1935,16 +1935,16 @@ class BinaryImage(Image):
 
         # find which contours need to be pruned
         for i in range(num_contours):
-            area = cv2.contourArea(contours[0][i])
+            area = cv2.contourArea(contours[i])
             if area > area_thresh:
                 # check close to origin
                 fill = np.zeros([self.height, self.width, 3])
-                cv2.fillPoly(fill, pts=[contours[0][i]], color=(255,255,255))
+                cv2.fillPoly(fill, pts=[contours[i]], color=(255,255,255))
                 nonzero_px = np.where(fill > 0)
                 nonzero_px = np.c_[nonzero_px[0], nonzero_px[1]]
                 dists = ssd.cdist(middle_pixel, nonzero_px)
                 min_dist = np.min(dists)
-                pruned_contours.append((contours[0][i], min_dist))
+                pruned_contours.append((contours[i], min_dist))
 
         if len(pruned_contours) == 0:
             return None
