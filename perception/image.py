@@ -1993,16 +1993,16 @@ class BinaryImage(Image):
             A list of resuting contours
         """
         # get all contours (connected components) from the binary image
-        image, contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        num_contours = len(contours[0])
+        contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        num_contours = len(contours)
         kept_contours = []
 
         # find which contours need to be pruned
         for i in range(num_contours):
-            area = cv2.contourArea(contours[0][i])
+            area = cv2.contourArea(contours[i])
             logging.debug('Contour %d area: %.3f' %(len(kept_contours), area))
             if area > min_area and area < max_area:
-                boundary_px = contours[0][i].squeeze()
+                boundary_px = contours[i].squeeze()
                 boundary_px_ij_swapped = np.zeros(boundary_px.shape)
                 boundary_px_ij_swapped[:,0] = boundary_px[:,1]
                 boundary_px_ij_swapped[:,1] = boundary_px[:,0]
