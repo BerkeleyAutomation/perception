@@ -461,8 +461,13 @@ class Image(object):
                 j = indices[1]
             if len(indices) > 2:
                 k = indices[2]
+        elif type(indices) == list:
+            indices = np.array(indices)
+            return self._data[indices[:,0], indices[:,1],:]
         else:
             i = indices
+
+        # print('i: {}, j: {}, k: {}'.format(i, j, k))
 
         # check indices
         if (type(i) == int and i < 0) or \
@@ -480,6 +485,7 @@ class Image(object):
             return self._data[i]
         # return the channel vals for the i, j pixel
         if k is None:
+            # print('return: {}'.format(self._data[i,j,:]))
             return self._data[i,j,:]
         return self._data[i,j,k]
 
@@ -1464,8 +1470,8 @@ class DepthImage(Image):
 
         Returns
         -------
-        :obj:`Image`
-            A new Image of the same type, masked by the given binary image.
+        :obj:`DepthImage`
+            A new DepthImage of the same type, masked by the given binary image.
         """
         data = np.copy(self._data)
         ind = np.where(binary_im.data == 0)
@@ -1476,7 +1482,7 @@ class DepthImage(Image):
         """
         Returns the pixels that are farther away
         than those in the corresponding depth image.
-        
+
         Parameters
         ----------
         depth_im : :obj:`DepthImage`
@@ -1835,7 +1841,9 @@ class BinaryImage(Image):
             string.
         """
         self._threshold = threshold
+        # print(data)
         data = 255 * (data > threshold).astype(data.dtype) # binarize
+        # print(data)
         Image.__init__(self, data, frame)
 
     def _check_valid_data(self, data):
