@@ -460,16 +460,11 @@ class Image(object):
             if len(indices) > 1:
                 j = indices[1]
             if len(indices) > 2:
-                k = indices[2]
-        elif type(indices) == list:
-            indices = np.array(indices)
-            return self._data[indices[:,0], indices[:,1],:]
+                k = indices[2]  
         else:
             i = indices
 
-        # print('i: {}, j: {}, k: {}'.format(i, j, k))
-
-        # check indices
+        # check indices and slicing
         if (type(i) == int and i < 0) or \
            (j is not None and type(j) == int and j < 0) or \
            (k is not None and type(k) is int and k < 0) or \
@@ -477,6 +472,13 @@ class Image(object):
            (j is not None and type(j) == int and j >= self.width) or \
            (k is not None and type(k) == int and k >= self.channels):
             raise ValueError('Out of bounds indexing')
+        if (type(i) == slice and i.start < 0) or \
+           (j is not None and type(j) == slice and j.start < 0) or \
+           (k is not None and type(k) == slice and k.start < 0) or \
+           (type(i) == slice and i.stop > self.height) or \
+           (j is not None and type(j) == slice and j.stop > self.width) or \
+           (k is not None and type(k) == slice and k.stop > self.channels):
+           raise ValueError('Out of bounds slicing')
         if k is not None and type(k) == int and k > 1 and self.channels < 3:
             raise ValueError('Illegal indexing. Image is not 3 dimensional')
 
@@ -485,7 +487,6 @@ class Image(object):
             return self._data[i]
         # return the channel vals for the i, j pixel
         if k is None:
-            # print('return: {}'.format(self._data[i,j,:]))
             return self._data[i,j,:]
         return self._data[i,j,k]
 
@@ -1841,9 +1842,7 @@ class BinaryImage(Image):
             string.
         """
         self._threshold = threshold
-        # print(data)
         data = 255 * (data > threshold).astype(data.dtype) # binarize
-        # print(data)
         Image.__init__(self, data, frame)
 
     def _check_valid_data(self, data):

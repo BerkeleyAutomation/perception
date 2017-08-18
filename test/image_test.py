@@ -2,13 +2,12 @@
 Tests the image class.
 Author: Jeff Mahler
 """
-from unittest import TestCase
-
+import unittest
 import logging
 import numpy as np
 
+from unittest import TestCase
 from constants import *
-
 from perception import Image, ColorImage, DepthImage, BinaryImage, SegmentationImage, GrayscaleImage, IrImage, PointCloudImage, NormalCloudImage
 
 class TestImage(TestCase):
@@ -277,6 +276,28 @@ class TestImage(TestCase):
         c_read = im[i]
         self.assertTrue(np.sum(np.abs(c_true - c_read)) < 1e-5, msg='Image i indexing failed')
 
+        # test valid slicing on color images
+        i_start = 0
+        j_start = 0
+        k_start = 0
+        i_stop = int(height * np.random.rand())
+        j_stop = int(width * np.random.rand())
+        k_stop = int(3 * np.random.rand())
+        i_step = 1
+        j_step = 1
+        k_step = 1
+        print
+        logging.info('Slicing with i_start=%d, i_stop=%d, i_step=%d, \
+                                   j_start=%d, j_stop=%d, j_step=%d, \
+                                   k_start=%d, k_stop=%d, k_step=%d' \
+                                   %(i_start, i_stop, i_step, \
+                                     j_start, j_stop, j_step, \
+                                     k_start, k_stop, k_step))
+
+        c_true = color_data[i_start:i_stop:i_step, j_start:j_stop:j_step, k_start:k_stop:k_step]
+        c_read = im[i_start:i_stop:i_step, j_start:j_stop:j_step, k_start:k_stop:k_step]
+        self.assertTrue(np.sum(np.abs(c_true - c_read)) < 1e-5, msg='Image ijk slicing failed')
+
         # test out of bounds indexing on color image
         caught_out_of_bounds = False
         try:
@@ -319,6 +340,50 @@ class TestImage(TestCase):
         except ValueError as e:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
+
+        # test out of bounds slicing on color image. (Python slicing does not cause out of bound)
+        caught_out_of_bounds = False
+        try:
+            c_read = im[-1:i_stop:i_step, j_start:j_stop:j_step, k_start:k_stop:k_step]
+        except ValueError as e:
+            caught_out_of_bounds = True
+        self.assertTrue(caught_out_of_bounds)
+
+        caught_out_of_bounds = False
+        try:
+            c_read = im[i_start:i_stop:i_step, -1:j_stop:j_step, k_start:k_stop:k_step]
+        except ValueError as e:
+            caught_out_of_bounds = True
+        self.assertTrue(caught_out_of_bounds)
+
+        caught_out_of_bounds = False
+        try:
+            c_read = im[i_start:i_stop:i_step, j_start:j_stop:j_step, -1:k_stop:k_step]
+        except ValueError as e:
+            caught_out_of_bounds = True
+        self.assertTrue(caught_out_of_bounds)
+
+        caught_out_of_bounds = False
+        try:
+            c_read = im[i_start:height+1:i_step, j_start:j_stop:j_step, k_start:k_stop:k_step]
+        except ValueError as e:
+            caught_out_of_bounds = True
+        self.assertTrue(caught_out_of_bounds)
+
+        caught_out_of_bounds = False
+        try:
+            c_read = im[i_start:i_stop:i_step, j_start:width+1:j_step, k_start:k_stop:k_step]
+        except ValueError as e:
+            caught_out_of_bounds = True
+        self.assertTrue(caught_out_of_bounds)
+
+        caught_out_of_bounds = False
+        try:
+            c_read = im[i_start:i_stop:i_step, j_start:j_stop:j_step, k_start:4:k_step]
+        except ValueError as e:
+            caught_out_of_bounds = True
+        self.assertTrue(caught_out_of_bounds)
+
 
     def test_io(self, height=50, width=100):
         color_data = (255 * np.random.rand(height, width, 3)).astype(np.uint8)
