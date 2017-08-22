@@ -661,6 +661,18 @@ class Image(object):
         zero_px = np.c_[zero_px[0], zero_px[1]]
         return zero_px
 
+    def nan_pixels(self):
+        """ Return an array of the NaN pixels.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+             Nx2 array of the NaN pixels
+        """
+        nan_px = np.where(np.isnan(np.sum(self.raw_data, axis=2)))
+        nan_px = np.c_[nan_px[0], nan_px[1]]
+        return nan_px
+
     def finite_pixels(self):
         """ Return an array of the finite pixels.
 
@@ -1451,6 +1463,25 @@ class DepthImage(Image):
         new_data[self.data == 0] = filled_data[self.data == 0]
         return DepthImage(new_data, frame=self.frame)
 
+    def invalid_pixel_mask(self):
+        """ Returns a binary mask for the NaN- and zero-valued pixels.
+        Serves as a mask for invalid pixels.
+
+        Returns
+        -------
+        :obj:`BinaryImage`
+            Binary image where a pixel value greater than zero indicates an invalid pixel.
+        """
+        # init mask buffer
+        mask = np.zeros([self.height, self.width, 1]).astype(np.uint8)
+        
+        # update invalid pixels
+        zero_pixels = self.zero_pixels()
+        nan_pixels = self.nan_pixels()
+        mask[zero_pixels[:,0], zero_pixels[:,1]] = 255
+        mask[nan_pixels[:,0], nan_pixels[:,1]] = 255
+        return BinaryImage(mask, frame=self.frame)
+
     def mask_binary(self, binary_im):
         """Create a new image by zeroing out data at locations
         where binary_im == 0.0.
@@ -1906,8 +1937,38 @@ class BinaryImage(Image):
         """
         data = np.copy(self._data)
         ind = np.where(binary_im.data == 0)
-        data[ind[0], ind[1], ...] = 0.0
+        data[ind[0], ind[1], ...] = 0
         return BinaryImage(data, self._frame)
+
+    def pixelwise_or(self, binary_im):
+        """ Takes OR operation with other binary image.
+
+        Parameters
+        ----------
+        binary_im : :obj:`BinaryImage`
+            binary image for and operation
+
+        Returns
+        -------
+        :obj:`BinaryImage`
+            OR of this binary image and other image
+        """
+        data = np.copy(self._data)
+        ind = np.where(binary_im.data > 0)
+        data[ind[0], ind[1], ...] = 255
+        return BinaryImage(data, self._frame)        
+
+    def inverse(self):
+        """ Inverts image (all nonzeros become zeros and vice verse)
+        Returns
+        -------
+        :obj:`BinaryImage`
+            inverse of this binary image
+        """
+        data = np.zeros(self.shape).astype(np.uint8)
+        ind = np.where(self.data == 0)
+        data[ind[0], ind[1], ...] = 255
+        return BinaryImage(data, self._frame)        
 
     def prune_contours(self, area_thresh=1000.0, dist_thresh=20,
                        preserve_topology=True):
