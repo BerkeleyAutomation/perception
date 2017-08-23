@@ -5,9 +5,9 @@ Author: Jacky Liang
 from multiprocessing import Process, Queue
 import cv2
 import numpy as np
+import os
 import skvideo.io as si
-
-from perception import OpenCVCameraSensor
+import sys
 
 class _Camera(Process):
     """ Private class to manage a separate webcam data collection process.
@@ -54,7 +54,7 @@ class _Camera(Process):
                     self.recording = True
                     
             if self.recording:
-                image = self.camera.frames()
+                image, _, _ = self.camera.frames()
                 if self.data_buf is None:
                     self.data_buf = np.zeros([1, image.height, image.width, image.channels])
                 self.data_buf[0,...] = image.raw_data
@@ -74,14 +74,14 @@ class VideoRecorder:
     fps : int
         frames per second of video captures. defaults to 30
     """
-    def __init__(self, device_id, res=(640, 480), codec='XVID', fps=30):
+    def __init__(self, camera, device_id=0, res=(640, 480), codec='XVID', fps=30):
         self._res = res
         self._codec = codec
         self._fps = fps
         
         self._cmd_q = Queue()
         
-        self._actual_camera = OpenCVCameraSensor(device_id)
+        self._actual_camera = camera
 
         self._recording = False
         self._started = False
