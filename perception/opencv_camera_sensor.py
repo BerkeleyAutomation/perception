@@ -2,15 +2,19 @@
 Abstraction for interacting with video devices that interface with OpenCV
 Author: Jacky Liang
 '''
+import cv2
+import numpy as np
 
 from camera_sensor import CameraSensor
 from image import ColorImage
 from cv2 import VideoCapture
 from time import time
+
 class OpenCVCameraSensor(CameraSensor):
 
-    def __init__(self, device_id):
+    def __init__(self, device_id, upside_down=False):
         self._device_id = device_id
+        self._upside_down = upside_down
 
     def start(self):
         """ Starts the OpenCVCameraSensor Stream
@@ -39,4 +43,8 @@ class OpenCVCameraSensor(CameraSensor):
         ret_val, frame = self._sensor.read()
         if not ret_val:
             raise Exception("Unable to retrieve frame from OpenCVCameraSensor for id {0}".format(self._device_id))
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        if self._upside_down:
+            frame = np.flipud(frame).astype(np.uint8)
+            frame = np.fliplr(frame).astype(np.uint8)
         return ColorImage(frame)

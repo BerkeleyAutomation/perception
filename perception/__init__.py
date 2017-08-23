@@ -18,7 +18,6 @@ from point_registration import RegistrationResult, IterativeRegistrationSolver, 
 from detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector, PointCloudBoxDetector, RgbdDetectorFactory
 
 from camera_sensor import CameraSensor
-from video_recorder import VideoRecorder
 
 try:
     from cnn import AlexNetWeights, AlexNet, conv
