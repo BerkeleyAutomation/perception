@@ -26,8 +26,8 @@ sensors:
    #   type: kinect2
 
 # ROBOT VERIFICATION PARAMS
-use_robot: 0
+use_robot: 1
 cb_thickness: 0.00312
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
-gripper_offset_z: 0.02
+gripper_offset_z: 0.0

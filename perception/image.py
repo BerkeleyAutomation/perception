@@ -2087,6 +2087,8 @@ class BinaryImage(Image):
         boundary_px_ij_swapped[:,0,0] = contour.boundary_pixels[:,1]
         boundary_px_ij_swapped[:,0,1] = contour.boundary_pixels[:,0]
         cv2.fillPoly(new_data, pts=[boundary_px_ij_swapped.astype(np.int32)], color=(255,255,255))
+        orig_zeros = np.where(self.data == 0)
+        new_data[orig_zeros[0], orig_zeros[1]] = 0
         return BinaryImage(new_data.astype(np.uint8), frame=self._frame)
 
     def boundary_map(self):

@@ -11,9 +11,12 @@ import time
 
 from mpl_toolkits.mplot3d import Axes3D
 
-from autolab_core import RigidTransform, YamlConfig
+from autolab_core import Point, RigidTransform, YamlConfig
 from perception import CameraChessboardRegistration, RgbdSensorFactory
-# from yumipy import YuMiRobot
+
+from visualization import Visualizer3D as vis
+from yumipy import YuMiRobot
+from yumipy import YuMiConstants as YMC
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
@@ -66,7 +69,6 @@ if __name__ == '__main__':
 
         # move the robot to the chessboard center for verification
         if config['use_robot']:  
-
             # find the rightmost and further cb point in world frame
             cb_points_world = T_camera_world * reg_result.cb_points_cam
             cb_point_data_world = cb_points_world.data
@@ -90,19 +92,17 @@ if __name__ == '__main__':
             logging.info('Moving robot to point x=%f, y=%f, z=%f' %(t_gripper_world[0], t_gripper_world[1], t_gripper_world[2]))
 
             # move robot to pose
-            y = YuMiRobot()
+            y = YuMiRobot(tcp=YMC.TCP_SUCTION_STIFF)
             y.reset_home()
-            y.left.close_gripper()
             time.sleep(1)
 
-            T_lift = RigidTransform(translation=(0,0,0.1), from_frame='cb', to_frame='cb')
+            T_lift = RigidTransform(translation=(0,0,0.05), from_frame='cb', to_frame='cb')
             T_gripper_world_lift = T_lift * T_gripper_world
-            y.left.goto_pose(T_gripper_world_lift)
-            y.left.goto_pose(T_gripper_world)
+            y.right.goto_pose(T_gripper_world_lift)
+            y.right.goto_pose(T_gripper_world)
 
             # wait for human measurement
             yesno = raw_input('Take measurement. Hit [ENTER] when done')
-            y.left.goto_pose(T_gripper_world_lift)
+            y.right.goto_pose(T_gripper_world_lift)
             y.reset_home()
-            y.open_grippers()  
             y.stop()

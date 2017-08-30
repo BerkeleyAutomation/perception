@@ -86,6 +86,14 @@ class VideoRecorder:
         self._recording = False
         self._started = False
 
+    @property
+    def is_recording(self):
+        return self._recording
+
+    @property
+    def is_started(self):
+        return self._started
+
     def start(self):
         """ Starts the camera recording process. """
         self._started = True

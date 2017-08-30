@@ -561,6 +561,7 @@ class PointCloudBoxDetector(RgbdDetector):
                 # segment color to get refined detection
                 contour_mask = binary_im_filtered.contour_mask(contour)
                 binary_thumbnail = contour_mask.crop(query_box.height, query_box.width, query_box.ci, query_box.cj)
+
             else:
                 # otherwise take original bounding box
                 query_box = Box(contour.bounding_box.min_pt - box_padding_px,

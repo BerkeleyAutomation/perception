@@ -272,6 +272,8 @@ class PrimesenseSensor(CameraSensor):
         return Image.min_images(depths)
 
 class VirtualPrimesenseSensor(CameraSensor):
+    SUPPORTED_FILE_EXTS = ['.png', '.npy']
+
     """ Class for a virtual Primesense sensor that uses pre-captured images
     stored to disk instead of actually connecting to a sensor.
     For debugging purposes.
@@ -320,16 +322,19 @@ class VirtualPrimesenseSensor(CameraSensor):
                 self._num_images += 1
 
         # set the frame dynamically
-        if self._frame is None:
-            for filename in filenames:
-                file_root, file_ext = os.path.splitext(filename)
-                color_ind = file_root.rfind('color')
+        self._color_ext = '.png'
+        for filename in filenames:
+            file_root, file_ext = os.path.splitext(filename)
+            color_ind = file_root.rfind('color')
 
-                if file_ext == INTR_EXTENSION and color_ind != -1:
-                    self._frame = file_root[:color_ind-1]
-                    self._color_frame = file_root
-                    self._ir_frame = file_root
-                    break
+            if file_ext in VirtualPrimesenseSensor.SUPPORTED_FILE_EXTS \
+               and color_ind != -1:
+                self._color_ext = file_ext
+
+            if self._frame is None and file_ext == INTR_EXTENSION and color_ind != -1:
+                self._frame = file_root[:color_ind-1]
+                self._color_frame = file_root
+                self._ir_frame = file_root
 
         # load color intrinsics
         color_intr_filename = os.path.join(self._path_to_images, '%s_color.intr' %(self._frame))
@@ -431,7 +436,7 @@ class VirtualPrimesenseSensor(CameraSensor):
             raise RuntimeError('Primesense device is out of images')
 
         # read images
-        color_filename = os.path.join(self._path_to_images, 'color_%d.png' %(self._im_index))
+        color_filename = os.path.join(self._path_to_images, 'color_%d%s' %(self._im_index, self._color_ext))
         color_im = ColorImage.open(color_filename, frame=self._frame)
         depth_filename = os.path.join(self._path_to_images, 'depth_%d.npy' %(self._im_index))
         depth_im = DepthImage.open(depth_filename, frame=self._frame)
