@@ -405,7 +405,7 @@ class VirtualPrimesenseSensor(CameraSensor):
             stopped or was not otherwise available.
         """
         if not self._running:
-            return false
+            return False
         self._running = False
         return True
 
