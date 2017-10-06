@@ -20,10 +20,9 @@ if __name__ == '__main__':
         label_to_category = eval(f.read())
 
     im = cv2.imread(image_filename)
-    im = cv2.resize(im, (224, 224)).astype(np.float32)
-    vgg = ResNet50(weights_filename=DEFAULT_RESNET50_WEIGHTS)
-    out = vgg.predict(im)
-    label = vgg.top_prediction(im)
+    resnet = ResNet50(weights_filename=DEFAULT_RESNET50_WEIGHTS)
+    out = resnet.predict(im)
+    label = resnet.top_prediction(im)
     category = label_to_category[label]
 
     im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
@@ -32,3 +31,4 @@ if __name__ == '__main__':
     plt.title('Pred: %s' %(category))
     plt.show()
 
+    IPython.embed()

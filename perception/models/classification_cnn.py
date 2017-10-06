@@ -78,6 +78,14 @@ class ClassificationCNN(object):
         return self._output_tensor
 
     @property
+    def im_height(self):
+        return self.input_tensor.shape[1].value
+
+    @property
+    def im_width(self):
+        return self.input_tensor.shape[2].value
+
+    @property
     def model(self):
         return self._model
 
@@ -108,8 +116,12 @@ class ClassificationCNN(object):
 
     def predict(self, im):
         """ Predict the classwise probabilities for a single image. """
-        # subtract mean
         pred_im = np.copy(im)
+        
+        # resize image
+        pred_im = cv2.resize(pred_im, (self.im_height, self.im_width)).astype(np.float32)
+
+        # subtract mean
         pred_im[:,:,0] -= self.im_mean[0]
         pred_im[:,:,1] -= self.im_mean[1]
         pred_im[:,:,2] -= self.im_mean[2]

@@ -1,0 +1,27 @@
+dataset: /home/autolab/Public/data/dex-net/data/regrasping/stp_09_20_17/tensors
+x_names:
+  - rgbd_ims
+y_name: cur_stp_id
+
+data_augmentation:
+  featurewise_center: 1
+  featurewise_std_normalization: 1
+ 
+  rotation_range: 180
+  zoom_range: 0
+
+  image_dropout_rate: 0.0
+  image_gaussian_sigma: 0.005
+  image_gaussian_corrcoef: 8
+  rot_180: 0
+
+  data_dropout_rate: 0.0
+  data_gaussian_sigma: 0.000001
+
+  horizontal_flip: 0
+  vertical_flip: 0
+
+preprocessing:
+  augment: 0
+  rounds: 1
+  num_tensors: 5
