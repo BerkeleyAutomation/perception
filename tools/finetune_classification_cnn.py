@@ -327,7 +327,7 @@ class TensorDataGenerator(ImageDataGenerator):
                 logging.info('Loading tensor %d (%d of %d)' %(tensor_ind, i+1, num_tensors))
 
                 # load tensor
-                x_tensor = dataset.load_tensor(x_name, tensor_ind)
+                x_tensor = dataset.tensor(x_name, tensor_ind)
 
                 # convert data type
                 x_tensor = Tensor(x_tensor.shape, dtype=K.floatx(), data=x_tensor.arr)
@@ -459,7 +459,7 @@ class TensorDatasetIterator(Iterator):
 
             x_dicts = [{}] * num_to_sample
             for x_name in self.x_names:
-                x_tensor = self.dataset.load_tensor(x_name, tensor_ind)
+                x_tensor = self.dataset.tensor(x_name, tensor_ind)
                 for j, index in enumerate(indices):
                     x_dicts[j][x_name] = x_tensor.data[index,...]
                     
@@ -468,7 +468,7 @@ class TensorDatasetIterator(Iterator):
                 for x_name, x in x_dict.iteritems():
                     batch_x[x_name].add(x)
 
-            y_tensor = self.dataset.load_tensor(self.y_name, tensor_ind)                   
+            y_tensor = self.dataset.tensor(self.y_name, tensor_ind)                   
             batch_y.add_batch(y_tensor.data[indices,...])
 
         if self.save_to_dir:
@@ -560,7 +560,7 @@ def test_mean_std(config):
     cur_i = 0
     end_i = dataset.datapoints_per_file
     for ind in range(dataset.num_tensors):
-        tensor = dataset.load_tensor(x_names[0], ind)
+        tensor = dataset.tensor(x_names[0], ind)
         if x is None:
             if tensor.width is not None:
                 x = np.zeros([dataset.num_datapoints, tensor.height,
