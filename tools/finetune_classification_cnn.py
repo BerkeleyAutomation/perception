@@ -430,50 +430,66 @@ class TensorDatasetIterator(Iterator):
         self.save_prefix = save_prefix
         self.save_format = save_format
 
-        tensors_per_batch = 1 + batch_size / dataset.datapoints_per_file
-        super(TensorDatasetIterator, self).__init__(dataset.num_tensors, tensors_per_batch, shuffle, seed)
+        self.iter_batch_size = batch_size
+        self.tensors_per_batch = 1 + batch_size / dataset.datapoints_per_file
+        super(TensorDatasetIterator, self).__init__(dataset.num_tensors, self.tensors_per_batch, shuffle, seed)
 
-    def _preprocesses_input(x_dict):
+    def _preprocess_input(self, x):
         """ Preprocesses input data. """
-        x_dict = self.data_generator.random_transform(x_dict)
-        x_dict = self.data_generator.standardize(x_dict)
-        return x_dict
+        x = self.data_generator.random_transform(x)
+        x = self.data_generator.standardize(x)
+        return x
 
     def _get_batches_of_transformed_samples(self, index_array):
         """ Yields a batch of transformed samples. """
+        # allocate new datapoint
         batch_x = {}
         for x_name in self.x_names:
-            x_shape = [self.batch_size] + self.dataset.tensors[x_name].shape
+            x_shape = [self.iter_batch_size] + list(self.dataset.tensors[x_name].shape[1:])
             x_dtype = self.dataset.tensors[x_name].dtype
-            batch_x[x_name] = Tensor(x_shape, x_dtype)
-        y_shape = [self.batch_size]
+            batch_x[x_name] = np.zeros(x_shape, dtype=x_dtype)
+        y_shape = [self.iter_batch_size]
         y_dtype = self.dataset.tensors[self.y_name].dtype
-        batch_y = Tensor(y_shape, y_dtype)
+        batch_y = np.zeros(y_shape, dtype=y_dtype)
 
-        for tensor_ind in index_array:
-            num_queued = batch_y.size
-            num_remaining = self.batch_size - num_queued
-            
-            num_to_sample = min(self.batch_size, num_remaining)
-            indices = np.random.choice(x_tensor.num_datapoints, size=num_to_sample)
+        # iteratively load sampled tensors
+        num_queued = 0
+        for tensor_ind in index_array[0]:
+            # compute num remaining
+            num_remaining = self.iter_batch_size - num_queued
 
-            x_dicts = [{}] * num_to_sample
-            for x_name in self.x_names:
-                x_tensor = self.dataset.tensor(x_name, tensor_ind)
-                for j, index in enumerate(indices):
-                    x_dicts[j][x_name] = x_tensor.data[index,...]
+            # select datapoint indices within the tensor
+            datapoint_indices = self.dataset.datapoint_indices_for_tensor(tensor_ind)
+            first_datapoint_index = np.min(datapoint_indices)
+            num_datapoints = datapoint_indices.shape[0]
+            num_to_sample = min(num_datapoints, num_remaining)
+            indices = np.random.choice(datapoint_indices,
+                                       size=num_to_sample)
+
+            # preprocess x
+            x_ind = num_queued
+            for i, datapoint_ind in enumerate(indices):
+                x = self.dataset.datapoint(datapoint_ind,
+                                           field_names=self.x_names)
+                x = self._preprocess_input(x)
+                for x_name in self.x_names:
+                    batch_x[x_name][x_ind,...] = x[x_name]
+                    x_ind += 1
                     
-            for x_dict in x_dicts:
-                self._preprocess_input(x_dict)
-                for x_name, x in x_dict.iteritems():
-                    batch_x[x_name].add(x)
+            # load y
+            y_ind = num_queued
+            norm_indices = indices - first_datapoint_index
+            y_tensor = self.dataset.tensor(self.y_name, tensor_ind)
+            batch_y[y_ind:y_ind+num_to_sample] = y_tensor.data[norm_indices,...]
+            y_ind += num_to_sample
 
-            y_tensor = self.dataset.tensor(self.y_name, tensor_ind)                   
-            batch_y.add_batch(y_tensor.data[indices,...])
+            # update num queued
+            num_queued += num_to_sample
 
+        # optionally, save images
         if self.save_to_dir:
             for x_name, x_tensor in batch_x.iteritems():
-                if x_tensor.contains_im_data:
+                if Image.can_convert(x_tensor[0]):
                     for i, x in enumerate(x_tensor):
                         im = Image.from_array(x)
                         filename = '{prefix}_{index}_{hash}.{format}'.format(prefix=self.save_prefix,
@@ -538,9 +554,11 @@ def test_mean_std(config):
     dataset = config['dataset']
     x_names = config['x_names']
     y_name = config['y_name']
+    batch_size = config['batch_size']
 
     data_aug_config = config['data_augmentation']
     preproc_config = config['preprocessing']
+    iterator_config = config['data_iteration']
 
     # open dataset
     dataset = TensorDataset.open(dataset)
@@ -551,6 +569,18 @@ def test_mean_std(config):
     generator.fit(dataset, x_names, **preproc_config)
     fit_stop = time.time()
     logging.info('Generator fit took %.3f sec' %(fit_stop - fit_start))
+
+    # iterator
+    iterator = generator.flow_from_dataset(dataset, x_names, y_name,
+                                           batch_size=batch_size,
+                                           **iterator_config)
+    logging.info('Generating from iterator')
+    iter_start = time.time()
+    batch_x, batch_y = iterator.next()
+    iter_stop = time.time()
+    logging.info('Iterator took %.3f sec' %(iter_stop - iter_start))
+
+    return
 
     # compute mean and std
     logging.info('Computing mean and std with brute force')
