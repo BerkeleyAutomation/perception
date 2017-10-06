@@ -306,7 +306,7 @@ class TensorDataGenerator(ImageDataGenerator):
         if num_tensors is None:
             num_tensors = dataset.num_tensors
         tensor_indices = np.arange(dataset.num_tensors)
-        if num_tensors < dataset.num_datapoints:
+        if num_tensors < dataset.num_tensors:
             np.random.shuffle(tensor_indices)
         tensor_indices = tensor_indices[:num_tensors]
 
