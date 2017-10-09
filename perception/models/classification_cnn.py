@@ -90,6 +90,14 @@ class ClassificationCNN(object):
         return self._model
 
     @property
+    def input(self):
+        return self.model.input
+
+    @property
+    def output(self):
+        return self.model.output
+
+    @property
     def num_classes(self):
         return self._num_classes
 

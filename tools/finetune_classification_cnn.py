@@ -13,10 +13,16 @@ import scipy.misc as sm
 import scipy.stats as ss
 
 from keras import backend as K
+from keras.layers import Dense, Input, GlobalAveragePooling2D
+from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator, Iterator, transform_matrix_offset_center, apply_transform
+from keras.applications.imagenet_utils import _obtain_input_shape
+from keras.optimizers import SGD
+from keras.utils import to_categorical
 
 from autolab_core import YamlConfig
 from perception import Image, RgbdImage
+from perception.models.constants import *
 from perception.models import ResNet50
 from visualization import Visualizer2D as vis
 
@@ -58,6 +64,9 @@ class TensorDataGenerator(ImageDataGenerator):
         self.ssq = None
         self.cov = None
         self.principal_components = None
+
+        self.min_output = None
+        self.max_output = None
 
     def standardize(self, x_dict):
         """Apply the normalization configuration to a batch of inputs.
@@ -253,6 +262,7 @@ class TensorDataGenerator(ImageDataGenerator):
         return TensorDatasetIterator(
             dataset, x_names, y_name, self,
             batch_size=batch_size,
+            num_classes=self.max_output+1,
             shuffle=shuffle,
             seed=seed,
             data_format=self.data_format,
@@ -260,7 +270,7 @@ class TensorDataGenerator(ImageDataGenerator):
             save_prefix=save_prefix,
             save_format=save_format)
 
-    def fit(self, dataset, x_names,
+    def fit(self, dataset, x_names, y_name,
             augment=False,
             rounds=1,
             num_tensors=None,
@@ -305,12 +315,13 @@ class TensorDataGenerator(ImageDataGenerator):
         # sample from the tensor indices
         if num_tensors is None:
             num_tensors = dataset.num_tensors
+        num_tensors = min(num_tensors, dataset.num_tensors)
         tensor_indices = np.arange(dataset.num_tensors)
         if num_tensors < dataset.num_tensors:
             np.random.shuffle(tensor_indices)
         tensor_indices = tensor_indices[:num_tensors]
 
-        # compute stats for each field
+        # compute stats for each input field
         for x_name in x_names:
             logging.info('Fitting %s' %(x_name))
 
@@ -324,7 +335,7 @@ class TensorDataGenerator(ImageDataGenerator):
 
             # pass #1: compute mean and std using Walford's algorithm
             for i, tensor_ind in enumerate(tensor_indices):
-                logging.info('Loading tensor %d (%d of %d)' %(tensor_ind, i+1, num_tensors))
+                logging.info('Loading input tensor %d for field %s (%d of %d)' %(tensor_ind, x_name, i+1, num_tensors))
 
                 # load tensor
                 x_tensor = dataset.tensor(x_name, tensor_ind)
@@ -337,7 +348,6 @@ class TensorDataGenerator(ImageDataGenerator):
                     ax = np.zeros(tuple([rounds * x_tensor.size] + list(x_tensor.shape)[1:]), dtype=K.floatx())            
                     for r in range(rounds):
                         for i, x in enumerate(x_tensor):
-                            logging.info('Transforming datapoint %d' %(i + r * x_tensor.size))
                             x_dict = {x_name: x}
                             x_dict = self.random_transform(x_dict)
                             ax[i + r * x_tensor.size] = x_dict[x_name]
@@ -387,6 +397,19 @@ class TensorDataGenerator(ImageDataGenerator):
             if self.zca_whitening:
                 raise NotImplementedError('ZCA not available for tensor datasets')
 
+        # compute stats for each output field
+        self.min_output = np.inf
+        self.max_output = -np.inf
+        for i, tensor_ind in enumerate(tensor_indices):
+            logging.info('Loading output tensor %d for field %s (%d of %d)' %(tensor_ind, y_name, i+1, num_tensors))
+
+            # load tensor
+            y_tensor = dataset.tensor(y_name, tensor_ind)
+        
+            # aggregate stats
+            self.min_output = min(self.min_output, np.min(y_tensor.arr))
+            self.max_output = max(self.max_output, np.max(y_tensor.arr))
+
 class TensorDatasetIterator(Iterator):
     """Iterator yielding data from a tensor dataset.
 
@@ -409,7 +432,7 @@ class TensorDatasetIterator(Iterator):
             (if `save_to_dir` is set).
     """
     def __init__(self, dataset, x_names, y_name, data_generator,
-                 batch_size=32, shuffle=False, seed=None,
+                 batch_size=32, num_classes=1, shuffle=False, seed=None,
                  data_format=None,
                  save_to_dir=None, save_prefix='', save_format='png'):
         for x_name in x_names:
@@ -422,6 +445,7 @@ class TensorDatasetIterator(Iterator):
         self.x_names = x_names
         self.y_name = y_name
         self.batch_size = batch_size
+        self.num_classes = num_classes
         if data_format is None:
             data_format = K.image_data_format()
         self.data_generator = data_generator
@@ -448,7 +472,7 @@ class TensorDatasetIterator(Iterator):
             x_shape = [self.iter_batch_size] + list(self.dataset.tensors[x_name].shape[1:])
             x_dtype = self.dataset.tensors[x_name].dtype
             batch_x[x_name] = np.zeros(x_shape, dtype=x_dtype)
-        y_shape = [self.iter_batch_size]
+        y_shape = [self.iter_batch_size, self.num_classes]
         y_dtype = self.dataset.tensors[self.y_name].dtype
         batch_y = np.zeros(y_shape, dtype=y_dtype)
 
@@ -480,7 +504,8 @@ class TensorDatasetIterator(Iterator):
             y_ind = num_queued
             norm_indices = indices - first_datapoint_index
             y_tensor = self.dataset.tensor(self.y_name, tensor_ind)
-            batch_y[y_ind:y_ind+num_to_sample] = y_tensor.data[norm_indices,...]
+            batch_y[y_ind:y_ind+num_to_sample, :] = to_categorical(y_tensor.data[norm_indices,...],
+                                                                   num_classes=self.num_classes)
             y_ind += num_to_sample
 
             # update num queued
@@ -497,6 +522,15 @@ class TensorDatasetIterator(Iterator):
                                                                              hash=np.random.randint(1e4),
                                                                              format=self.save_format)
                         im.save(filename)
+
+        for x_name, x in batch_x.iteritems():
+            new_x = np.zeros([x.shape[0], 224, 224, 3])
+            for i, im in enumerate(x):
+                im = im[:,:,:3]
+                im = sm.imresize(im, size=(224,224), interp='bilinear')
+                new_x[i, ...] = im
+            batch_x[x_name] = new_x
+
         return batch_x, batch_y
 
     def next(self):
@@ -536,7 +570,7 @@ def finetune_network(config):
 
     # create train and test generators
     train_generator = TensorDataGenerator(**data_aug_config)
-    train_generator.fit(train_dataset, x_names, **preproc_config)
+    train_generator.fit(train_dataset, x_names, y_name, **preproc_config)
    
     test_generator = TensorDataGenerator(featurewise_center=featurewise_center,
                                           featurewise_std_normalization=featurewise_std_normalization,
@@ -547,6 +581,23 @@ def finetune_network(config):
                         augment=augment_mean_std_fit,
                         rounds=num_augmentations)
 
+def plot_training(history):
+    acc = history.history['acc']
+    val_acc = history.history['val_acc']
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+    epochs = range(len(acc))
+
+    import matplotlib.pyplot as plt
+    plt.plot(epochs, acc, 'r.')
+    plt.plot(epochs, val_acc, 'r')
+    plt.title('Training and validation accuracy')
+
+    plt.figure()
+    plt.plot(epochs, loss, 'r.')
+    plt.plot(epochs, val_loss, 'r-')
+    plt.title('Training and validation loss')
+    plt.show()
 
 def test_mean_std(config):
     """ Main function. """
@@ -554,21 +605,26 @@ def test_mean_std(config):
     dataset = config['dataset']
     x_names = config['x_names']
     y_name = config['y_name']
-    batch_size = config['batch_size']
+    batch_size = config['training']['batch_size']
+    model_filename = config['model_filename']
 
     data_aug_config = config['data_augmentation']
     preproc_config = config['preprocessing']
     iterator_config = config['data_iteration']
-
+    model_config = config['model']
+    optimization_config = config['optimization']
+    train_config = config['training']
+    
     # open dataset
     dataset = TensorDataset.open(dataset)
 
     # generator
     generator = TensorDataGenerator(**data_aug_config)
     fit_start = time.time()
-    generator.fit(dataset, x_names, **preproc_config)
+    generator.fit(dataset, x_names, y_name, **preproc_config)
     fit_stop = time.time()
     logging.info('Generator fit took %.3f sec' %(fit_stop - fit_start))
+    num_classes = generator.max_output + 1
 
     # iterator
     iterator = generator.flow_from_dataset(dataset, x_names, y_name,
@@ -576,51 +632,52 @@ def test_mean_std(config):
                                            **iterator_config)
     logging.info('Generating from iterator')
     iter_start = time.time()
-    batch_x, batch_y = iterator.next()
+    #batch_x, batch_y = iterator.next()
     iter_stop = time.time()
     logging.info('Iterator took %.3f sec' %(iter_stop - iter_start))
+    
+    # setup model
+    input_shape = _obtain_input_shape(None,
+                                      default_size=IMAGENET_DEFAULT_SIZE,
+                                      min_size=IMAGENET_MIN_SIZE,
+                                      data_format=K.image_data_format(),
+                                      require_flatten=True,
+                                      weights=model_config['weights_filename'])
+    input_tensor = Input(shape=input_shape, name=x_names[0])
+    cnn = ResNet50(input_tensor=input_tensor,
+                   **model_config)
+
+    output = GlobalAveragePooling2D()(cnn.output)
+    output = Dense(num_classes, activation='softmax', name=y_name)(output)
+    model = Model(inputs=cnn.input, outputs=output,
+                  name='dex-res-net')
+
+    # setup training
+    for layer in model.layers[:-1]:
+        layer.trainable = False
+    model.layers[-1].trainable = True
+    optimizer = SGD(lr=optimization_config['lr'],
+                    momentum=optimization_config['momentum'])
+    model.compile(optimizer=optimizer,
+                  loss=optimization_config['loss'],
+                  metrics=optimization_config['metrics'])
+
+    # train
+    steps_per_epoch = dataset.num_datapoints / batch_size
+    history = model.fit_generator(iterator,
+                                  steps_per_epoch=steps_per_epoch,
+                                  epochs=train_config['epochs'],
+                                  class_weight=train_config['class_weight'])
+
+    # save
+    model.save(model_filename)
+
+    # plot
+    plot_training(history)
+    
+    IPython.embed()
 
     return
-
-    # compute mean and std
-    logging.info('Computing mean and std with brute force')
-    fit_start = time.time()
-    im = False
-    x = None
-    cur_i = 0
-    end_i = dataset.datapoints_per_file
-    for ind in range(dataset.num_tensors):
-        tensor = dataset.tensor(x_names[0], ind)
-        if x is None:
-            if tensor.width is not None:
-                x = np.zeros([dataset.num_datapoints, tensor.height,
-                              tensor.width, tensor.channels])
-                im = True
-            else:
-                x = np.zeros([dataset.num_datapoints, tensor.height])
-        x[cur_i:end_i,...] = tensor.data
-        cur_i = end_i
-        end_i = cur_i + dataset.datapoints_per_file
-
-    if im:
-        mean_brute = np.mean(x, axis=(0,1,2), dtype=np.float64)
-        std_brute = np.std(x, axis=(0,1,2), dtype=np.float64)
-    else:
-        mean_brute = np.mean(x, axis=0, dtype=np.float64)
-        std_brute = np.std(x, axis=0, dtype=np.float64)
-
-    fit_stop = time.time()
-    logging.info('Brute force fit took %.3f sec' %(fit_stop - fit_start))
-
-    print 'GENERATOR'
-    print 'Mean:', generator.mean[x_names[0]]
-    print 'Std:', generator.std[x_names[0]]
-    print 'BRUTE'
-    print 'Mean:', mean_brute
-    print 'Std:', std_brute
-
-    logging.info('Test succeeded!')
-
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
 
@@ -629,3 +686,4 @@ if __name__ == '__main__':
 
     # finetune
     test_mean_std(config)
+

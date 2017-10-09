@@ -2,7 +2,7 @@ dataset: /home/autolab/Public/data/dex-net/data/regrasping/stp_09_20_17/tensors
 x_names:
   - rgbd_ims
 y_name: cur_stp_id
-batch_size: 64
+model_filename: model.h5
 
 data_augmentation:
   featurewise_center: 1
@@ -25,10 +25,26 @@ data_augmentation:
 preprocessing:
   augment: 0
   rounds: 1
-  num_tensors: 5
+  num_tensors: 100
 
 data_iteration:
   shuffle: 1
   save_to_dir: 0
   save_prefix: iter
   save_format: png
+
+model:
+  include_fc: 0
+  weights_filename: /home/autolab/Public/data/dex-net/data/models/classification/resnet50/weights_notop.h5
+
+optimization:
+  lr: 0.001
+  momentum: 0.9
+  loss: categorical_crossentropy
+  metrics:
+    - accuracy
+
+training:
+  epochs: 5
+  class_weight: auto
+  batch_size: 64
