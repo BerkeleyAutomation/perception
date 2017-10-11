@@ -2,10 +2,12 @@
 Finetunes a CNN for classification on a custom dataset using keras
 Author: Jeff Mahler
 """
+import cPickle as pkl
 import logging
 import IPython
 import numpy as np
 import os
+import random
 import sys
 import time
 
@@ -13,20 +15,49 @@ import scipy.misc as sm
 import scipy.stats as ss
 
 from keras import backend as K
-from keras.layers import Dense, Input, GlobalAveragePooling2D
+from keras.callbacks import Callback, ModelCheckpoint
+from keras.layers import Dense, Input, GlobalAveragePooling2D, Reshape
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator, Iterator, transform_matrix_offset_center, apply_transform
 from keras.applications.imagenet_utils import _obtain_input_shape
 from keras.optimizers import SGD
 from keras.utils import to_categorical
 
+import autolab_core.utils as utils
 from autolab_core import YamlConfig
 from perception import Image, RgbdImage
 from perception.models.constants import *
-from perception.models import ResNet50
+from perception.models import ClassificationCNN, FinetunedClassificationCNN
 from visualization import Visualizer2D as vis
 
 from dexnet.learning import TensorDataset, Tensor
+
+class TrainHistory(Callback):
+    def __init__(self, log_dir, *args, **kwargs):
+        self.train_acc_filename = os.path.join(log_dir, 'train_acc.npy')
+        self.train_losses_filename = os.path.join(log_dir, 'train_losses.npy')
+        self.val_acc_filename = os.path.join(log_dir, 'val_acc.npy')
+        self.val_losses_filename = os.path.join(log_dir, 'val_losses.npy')
+        Callback.__init__(self, *args, **kwargs)
+
+    def on_train_begin(self, logs={}):
+        self.train_acc = []
+        self.train_losses = []
+        self.val_acc = []
+        self.val_losses = []
+
+    def on_batch_end(self, batch, logs={}):
+        self.train_acc.append(logs.get('acc'))
+        self.train_losses.append(logs.get('loss'))
+
+    def on_epoch_end(self, epoch, logs={}):
+        self.val_acc.append(logs.get('val_acc'))
+        self.val_losses.append(logs.get('val_loss'))
+
+        np.save(self.train_acc_filename, self.train_acc)
+        np.save(self.train_losses_filename, self.train_losses)
+        np.save(self.val_acc_filename, self.val_acc)
+        np.save(self.val_losses_filename, self.val_losses)
 
 class TensorDataGenerator(ImageDataGenerator):
     """ A data generator for tensors ."""
@@ -257,10 +288,11 @@ class TensorDataGenerator(ImageDataGenerator):
 
         return x_dict
 
-    def flow_from_dataset(self, dataset, x_names, y_name, batch_size=32, shuffle=True, seed=None,
+    def flow_from_dataset(self, dataset, x_names, y_name, indices=None, batch_size=32, shuffle=True, seed=None,
                           save_to_dir=None, save_prefix='', save_format='png'):
         return TensorDatasetIterator(
             dataset, x_names, y_name, self,
+            indices=indices,
             batch_size=batch_size,
             num_classes=self.max_output+1,
             shuffle=shuffle,
@@ -271,6 +303,7 @@ class TensorDataGenerator(ImageDataGenerator):
             save_format=save_format)
 
     def fit(self, dataset, x_names, y_name,
+            indices=None,
             augment=False,
             rounds=1,
             num_tensors=None,
@@ -285,6 +318,10 @@ class TensorDataGenerator(ImageDataGenerator):
             The dataset to fit on
         x_names : :obj:`list` of str
             Names of the fields to fit
+        y_name :  str
+            Name of the classification or regression target
+        indices : :obj:`numpy.ndarray`
+            Indices of datapoints to use in fitting
         augment : bool
             Whether to fit on randomly augmented samples
         rounds : int
@@ -311,6 +348,10 @@ class TensorDataGenerator(ImageDataGenerator):
         self.ssq = {}
         self.cov = {}
         self.principal_components = {}
+
+        # set indices
+        if indices is None:
+            indices = np.arange(dataset.num_datapoints)
 
         # sample from the tensor indices
         if num_tensors is None:
@@ -339,9 +380,16 @@ class TensorDataGenerator(ImageDataGenerator):
 
                 # load tensor
                 x_tensor = dataset.tensor(x_name, tensor_ind)
+                datapoint_indices = dataset.datapoint_indices_for_tensor(tensor_ind)
+                first_ind = np.min(datapoint_indices)
+                last_ind = np.max(datapoint_indices)
+                datapoint_indices = indices[(indices >= first_ind) & (indices <= last_ind)]
+                datapoint_indices = datapoint_indices - first_ind
 
-                # convert data type
-                x_tensor = Tensor(x_tensor.shape, dtype=K.floatx(), data=x_tensor.arr)
+                # convert data type and subsample
+                x_tensor = Tensor(x_tensor.shape, dtype=K.floatx(),
+                                  data=x_tensor.arr[datapoint_indices,...])
+
 
                 # augment tensor data
                 if augment:
@@ -432,7 +480,7 @@ class TensorDatasetIterator(Iterator):
             (if `save_to_dir` is set).
     """
     def __init__(self, dataset, x_names, y_name, data_generator,
-                 batch_size=32, num_classes=1, shuffle=False, seed=None,
+                 indices=None, batch_size=32, num_classes=1, shuffle=False, seed=None,
                  data_format=None,
                  save_to_dir=None, save_prefix='', save_format='png'):
         for x_name in x_names:
@@ -444,6 +492,7 @@ class TensorDatasetIterator(Iterator):
         self.dataset = dataset
         self.x_names = x_names
         self.y_name = y_name
+        self.indices = indices
         self.batch_size = batch_size
         self.num_classes = num_classes
         if data_format is None:
@@ -454,6 +503,10 @@ class TensorDatasetIterator(Iterator):
         self.save_prefix = save_prefix
         self.save_format = save_format
 
+        if self.indices is None:
+            self.indices = np.arange(self.dataset.num_datapoints)
+
+        self.all_names = self.x_names + [self.y_name]
         self.iter_batch_size = batch_size
         self.tensors_per_batch = 1 + batch_size / dataset.datapoints_per_file
         super(TensorDatasetIterator, self).__init__(dataset.num_tensors, self.tensors_per_batch, shuffle, seed)
@@ -477,40 +530,32 @@ class TensorDatasetIterator(Iterator):
         batch_y = np.zeros(y_shape, dtype=y_dtype)
 
         # iteratively load sampled tensors
-        num_queued = 0
+        batch_ind = 0
         for tensor_ind in index_array[0]:
             # compute num remaining
-            num_remaining = self.iter_batch_size - num_queued
+            num_remaining = self.iter_batch_size - batch_ind
 
             # select datapoint indices within the tensor
             datapoint_indices = self.dataset.datapoint_indices_for_tensor(tensor_ind)
-            first_datapoint_index = np.min(datapoint_indices)
+            first_ind = np.min(datapoint_indices)
+            last_ind = np.max(datapoint_indices)
+            datapoint_indices = self.indices[(self.indices >= first_ind) & (self.indices <= last_ind)]
             num_datapoints = datapoint_indices.shape[0]
-            num_to_sample = min(num_datapoints, num_remaining)
+            num_sampled = min(num_datapoints, num_remaining)
             indices = np.random.choice(datapoint_indices,
-                                       size=num_to_sample)
+                                       size=num_sampled)
 
-            # preprocess x
-            x_ind = num_queued
+            # preprocess
             for i, datapoint_ind in enumerate(indices):
                 x = self.dataset.datapoint(datapoint_ind,
-                                           field_names=self.x_names)
+                                           field_names=self.all_names)
                 x = self._preprocess_input(x)
                 for x_name in self.x_names:
-                    batch_x[x_name][x_ind,...] = x[x_name]
-                    x_ind += 1
+                    batch_x[x_name][batch_ind,...] = x[x_name]
+                batch_y[batch_ind,...] = to_categorical(x[self.y_name],
+                                                        num_classes=self.num_classes)
+                batch_ind += 1
                     
-            # load y
-            y_ind = num_queued
-            norm_indices = indices - first_datapoint_index
-            y_tensor = self.dataset.tensor(self.y_name, tensor_ind)
-            batch_y[y_ind:y_ind+num_to_sample, :] = to_categorical(y_tensor.data[norm_indices,...],
-                                                                   num_classes=self.num_classes)
-            y_ind += num_to_sample
-
-            # update num queued
-            num_queued += num_to_sample
-
         # optionally, save images
         if self.save_to_dir:
             for x_name, x_tensor in batch_x.iteritems():
@@ -547,40 +592,6 @@ class TensorDatasetIterator(Iterator):
         # so it can be done in parallel
         return self._get_batches_of_transformed_samples(index_array)
 
-def finetune_network(config):
-    """ Main function. """
-    # read params
-    x_names = config['x_names']
-    y_name = config['y_name']
-    dataset_dir = config['dataset']
-
-    # data augmentation params
-    data_aug_config = config['data_augmentation']
-
-    # preprocessing params
-    preproc_config = config['preprocessing']
-
-    # create train and test dataset names
-    train_dataset_dir = os.path.join(dataset_dir, 'train')
-    val_dataset_dir = os.path.join(dataset_dir, 'val')
-
-    # read in the dataset
-    train_dataset = TensorDataset.open(train_dataset_dir)
-    val_dataset = TensorDataset.open(val_dataset_dir)
-
-    # create train and test generators
-    train_generator = TensorDataGenerator(**data_aug_config)
-    train_generator.fit(train_dataset, x_names, y_name, **preproc_config)
-   
-    test_generator = TensorDataGenerator(featurewise_center=featurewise_center,
-                                          featurewise_std_normalization=featurewise_std_normalization,
-                                          rotation_range=rotation_range,
-                                          image_gaussian_sigma=image_gaussian_sigma,
-                                          image_gaussian_corrcoef=image_gaussian_corrcoef)
-    test_generator.fit(test_dataset, x_names,
-                        augment=augment_mean_std_fit,
-                        rounds=num_augmentations)
-
 def plot_training(history):
     acc = history.history['acc']
     val_acc = history.history['val_acc']
@@ -599,85 +610,148 @@ def plot_training(history):
     plt.title('Training and validation loss')
     plt.show()
 
-def test_mean_std(config):
+def finetune_classification_cnn(config):
     """ Main function. """
     # read params
     dataset = config['dataset']
     x_names = config['x_names']
     y_name = config['y_name']
+    model_dir = config['model_dir']
+    debug = config['debug']
+
     batch_size = config['training']['batch_size']
-    model_filename = config['model_filename']
+    train_pct = config['training']['train_pct']
+    model_save_period = config['training']['model_save_period']
 
     data_aug_config = config['data_augmentation']
     preproc_config = config['preprocessing']
     iterator_config = config['data_iteration']
     model_config = config['model']
+    base_model_config = model_config['base']
     optimization_config = config['optimization']
     train_config = config['training']
+
+    model_params = {}
+    if 'params' in model_config.keys():
+        model_params = model_config['params']
     
+    base_model_params = {}
+    if 'params' in base_model_config.keys():
+        base_model_params = base_model_config['params']
+
+    if debug:
+        seed = 103
+        random.seed(seed)
+        np.random.seed(seed)
+
+    # generate model dir
+    if not os.path.exists(model_dir):
+        os.mkdir(model_dir)
+    model_id = utils.gen_experiment_id()
+    model_dir = os.path.join(model_dir, 'model_%s' %(model_id))
+    if not os.path.exists(model_dir):
+        os.mkdir(model_dir)
+    logging.info('Saving model to %s' %(model_dir))
+    latest_model_filename = os.path.join(model_dir, 'weights_{epoch:05d}.h5')
+    best_model_filename = os.path.join(model_dir, 'weights.h5')
+
     # open dataset
     dataset = TensorDataset.open(dataset)
-
-    # generator
-    generator = TensorDataGenerator(**data_aug_config)
-    fit_start = time.time()
-    generator.fit(dataset, x_names, y_name, **preproc_config)
-    fit_stop = time.time()
-    logging.info('Generator fit took %.3f sec' %(fit_stop - fit_start))
-    num_classes = generator.max_output + 1
-
-    # iterator
-    iterator = generator.flow_from_dataset(dataset, x_names, y_name,
-                                           batch_size=batch_size,
-                                           **iterator_config)
-    logging.info('Generating from iterator')
-    iter_start = time.time()
-    #batch_x, batch_y = iterator.next()
-    iter_stop = time.time()
-    logging.info('Iterator took %.3f sec' %(iter_stop - iter_start))
     
-    # setup model
-    input_shape = _obtain_input_shape(None,
-                                      default_size=IMAGENET_DEFAULT_SIZE,
-                                      min_size=IMAGENET_MIN_SIZE,
-                                      data_format=K.image_data_format(),
-                                      require_flatten=True,
-                                      weights=model_config['weights_filename'])
-    input_tensor = Input(shape=input_shape, name=x_names[0])
-    cnn = ResNet50(input_tensor=input_tensor,
-                   **model_config)
+    # split dataset
+    indices_filename = os.path.join(model_dir, 'splits.npz')
+    if os.path.exists(indices_filename):
+        indices = np.load(indices_filename)['arr_0'].tolist()
+        train_indices = indices['train']
+        val_indices = indices['val']
+    else:
+        train_indices, val_indices = dataset.split(train_pct)
+        indices = np.array({'train':train_indices,
+                            'val':val_indices})
+        np.savez_compressed(indices_filename, indices)
+    num_train = train_indices.shape[0]
+    num_val = val_indices.shape[0]
+    val_steps = int(np.ceil(float(num_val) / batch_size))
 
-    output = GlobalAveragePooling2D()(cnn.output)
-    output = Dense(num_classes, activation='softmax', name=y_name)(output)
-    model = Model(inputs=cnn.input, outputs=output,
-                  name='dex-res-net')
+    # init generator
+    train_generator_filename = os.path.join(model_dir, 'train_preprocessor.pkl')
+    val_generator_filename = os.path.join(model_dir, 'val_preprocessor.pkl')
+    if os.path.exists(train_generator_filename):
+        logging.info('Loading generators')
+        train_generator = pkl.load(open(train_generator_filename, 'rb'))
+        val_generator = pkl.load(open(val_generator_filename, 'rb'))
+    else:
+        logging.info('Fitting generator')
+        train_generator = TensorDataGenerator(**data_aug_config)
+        val_generator = TensorDataGenerator(featurewise_center=data_aug_config['featurewise_center'],
+                                            featurewise_std_normalization=data_aug_config['featurewise_std_normalization'])
+        fit_start = time.time()
+        train_generator.fit(dataset, x_names, y_name, indices=train_indices, **preproc_config)
+        val_generator.mean = train_generator.mean
+        val_generator.std = train_generator.std
+        val_generator.min_output = train_generator.min_output
+        val_generator.max_output = train_generator.max_output
+        fit_stop = time.time()
+        logging.info('Generator fit took %.3f sec' %(fit_stop - fit_start))
+        pkl.dump(train_generator, open(train_generator_filename, 'wb'))
+        pkl.dump(val_generator, open(val_generator_filename, 'wb'))
+    num_classes = int(train_generator.max_output + 1)
+
+    # init iterator
+    train_iterator = train_generator.flow_from_dataset(dataset, x_names, y_name,
+                                                       indices=train_indices,
+                                                       batch_size=batch_size,
+                                                       **iterator_config)
+    val_iterator = val_generator.flow_from_dataset(dataset, x_names, y_name,
+                                                   indices=val_indices,
+                                                   batch_size=batch_size,
+                                                   **iterator_config)
+
+    # setup model
+    base_cnn = ClassificationCNN.open(base_model_config['model'],
+                                      base_model_config['type'],
+                                      input_name=x_names[0],
+                                      **base_model_params)
+    cnn = FinetunedClassificationCNN(base_cnn=base_cnn,
+                                     name='dexresnet',
+                                     num_classes=num_classes,
+                                     output_name=y_name,
+                                     im_preprocessor=val_generator,
+                                     **model_params)
 
     # setup training
-    for layer in model.layers[:-1]:
-        layer.trainable = False
-    model.layers[-1].trainable = True
+    cnn.freeze_base_cnn()
     optimizer = SGD(lr=optimization_config['lr'],
                     momentum=optimization_config['momentum'])
-    model.compile(optimizer=optimizer,
-                  loss=optimization_config['loss'],
-                  metrics=optimization_config['metrics'])
+    cnn.model.compile(optimizer=optimizer,
+                      loss=optimization_config['loss'],
+                      metrics=optimization_config['metrics'])
 
     # train
-    steps_per_epoch = dataset.num_datapoints / batch_size
-    history = model.fit_generator(iterator,
-                                  steps_per_epoch=steps_per_epoch,
-                                  epochs=train_config['epochs'],
-                                  class_weight=train_config['class_weight'])
-
+    steps_per_epoch = int(np.ceil(float(num_train) / batch_size))
+    latest_model_ckpt = ModelCheckpoint(latest_model_filename, period=model_save_period)
+    best_model_ckpt = ModelCheckpoint(best_model_filename,
+                                      save_best_only=True,
+                                      period=model_save_period)
+    train_history_cb = TrainHistory(model_dir)
+    callbacks = [latest_model_ckpt, best_model_ckpt, train_history_cb]
+    history = cnn.model.fit_generator(train_iterator,
+                                      steps_per_epoch=steps_per_epoch,
+                                      epochs=train_config['epochs'],
+                                      callbacks=callbacks,
+                                      validation_data=val_iterator,
+                                      validation_steps=val_steps,
+                                      class_weight=train_config['class_weight'],
+                                      use_multiprocessing=train_config['use_multiprocessing'])
+    
     # save
-    model.save(model_filename)
+    cnn.save(model_dir)
 
     # plot
     plot_training(history)
     
     IPython.embed()
 
-    return
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.INFO)
 
@@ -685,5 +759,5 @@ if __name__ == '__main__':
     config = YamlConfig(sys.argv[1])
 
     # finetune
-    test_mean_std(config)
+    finetune_classification_cnn(config)
 

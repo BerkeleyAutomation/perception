@@ -5,6 +5,7 @@ Author: Jeff Mahler
 """
 import cv2
 import IPython
+import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -17,29 +18,20 @@ from perception.models.constants import *
 from perception.models import ClassificationCNN
 
 class VGG16(ClassificationCNN):
-    def __init__(self, weights_filename=None, include_fc=True,
-                 input_tensor=None, input_shape=None,
-                 output_pooling=None,
-                 im_mean=IMAGENET_BGR_MEAN,
-                 num_classes=IMAGENET_NUM_CLASSES):
+    def __init__(self, *args, **kwargs):
         """
         Initialize a VGG-16 model.
         """
-        ClassificationCNN.__init__(self,
-                                   weights_filename=weights_filename,
-                                   include_fc=include_fc,
-                                   input_tensor=input_tensor,
-                                   output_pooling=output_pooling,
-                                   im_mean=im_mean,
-                                   num_classes=num_classes)
+        ClassificationCNN.__init__(self, output_name=VGG_OUTPUT_NAME,
+                                   *args, **kwargs)
 
     def _build_network(self, input_tensor=None, include_fc=True,
-                       output_pooling=None):
+                       output_pooling=None, output_name=VGG_OUTPUT_NAME):
         """ Build the VGG-16 network """
         # Set inputs
         if input_tensor is None:
             input_tensor = self._input_tensor
-        
+
         # Block 1
         x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(self._input_tensor)
         x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')(x)
@@ -73,7 +65,7 @@ class VGG16(ClassificationCNN):
             x = Flatten(name='flatten')(x)
             x = Dense(4096, activation='relu', name='fc1')(x)
             x = Dense(4096, activation='relu', name='fc2')(x)
-            x = Dense(self._num_classes, activation='softmax', name='predictions')(x)
+            x = Dense(self._num_classes, activation='softmax', name=VGG_OUTPUT_NAME)(x)
         else:
             if output_pooling == 'avg':
                 x = GlobalAveragePooling2D()(x)

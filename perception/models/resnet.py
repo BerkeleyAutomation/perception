@@ -5,6 +5,7 @@ Author: Jeff Mahler
 """
 import cv2
 import IPython
+import logging
 import numpy as np
 import os
 import sys
@@ -18,11 +19,7 @@ from perception.models.constants import *
 from perception.models import ClassificationCNN
 
 class ResNet50(ClassificationCNN):
-    def __init__(self, weights_filename=None, include_fc=True,
-                 input_tensor=None, input_shape=None,
-                 output_pooling=None,
-                 im_mean=IMAGENET_BGR_MEAN,
-                 num_classes=IMAGENET_NUM_CLASSES):
+    def __init__(self, *args, **kwargs):
         """
         Initialize a ResNet-50 model.
         """
@@ -30,25 +27,20 @@ class ResNet50(ClassificationCNN):
             self._bn_axis = 3
         else:
             self._bn_axis = 1
-        ClassificationCNN.__init__(self,
-                                   weights_filename=weights_filename,
-                                   include_fc=include_fc,
-                                   input_tensor=input_tensor,
-                                   output_pooling=output_pooling,
-                                   im_mean=im_mean,
-                                   num_classes=num_classes)
-                                   
+        ClassificationCNN.__init__(self, output_name=RESNET_OUTPUT_NAME,
+                                   *args, **kwargs)
+
     @property
     def bn_axis(self):
         return self._bn_axis
         
     def _build_network(self, input_tensor=None, include_fc=True,
-                       output_pooling=None):
-        """ Build the VGG16 network """
+                       output_pooling=None, output_name=None):
+        """ Build the ResNet-50 network """
         # Set inputs
         if input_tensor is None:
             input_tensor = self._input_tensor
-        
+
         x = Conv2D(
             64, (7, 7), strides=(2, 2), padding='same', name='conv1')(input_tensor)
         x = BatchNormalization(axis=self.bn_axis, name='bn_conv1')(x)
@@ -79,7 +71,7 @@ class ResNet50(ClassificationCNN):
         
         if include_fc:
             x = Flatten()(x)
-            x = Dense(self.num_classes, activation='softmax', name='fc1000')(x)
+            x = Dense(self.num_classes, activation='softmax', name=RESNET_OUTPUT_NAME)(x)
         else:
             if output_pooling == 'avg':
                 x = GlobalAveragePooling2D()(x)

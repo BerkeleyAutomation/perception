@@ -780,7 +780,7 @@ class Image(object):
             If an unsupported file type is specified.
         """
         file_root, file_ext = os.path.splitext(filename)
-        if file_ext in constants.SUPPORTED_IMAGE_EXTS:
+        if file_ext in constants.COLOR_IMAGE_EXTS:
             im_data = self._image_data()
             pil_image = PImage.fromarray(im_data.squeeze())
             pil_image.save(filename)
@@ -836,9 +836,8 @@ class Image(object):
         """
         file_root, file_ext = os.path.splitext(filename)
         data = None
-        if file_ext.lower() in constants.SUPPORTED_IMAGE_EXTS:
-            pil_image = PImage.open(filename)
-            data = np.array(pil_image)
+        if file_ext.lower() in constants.COLOR_IMAGE_EXTS:
+            data = cv2.imread(filename)
         elif file_ext == '.npy':
             data = np.load(filename)
         elif file_ext == '.npz':
@@ -851,7 +850,7 @@ class ColorImage(Image):
     """An RGB color image.
     """
 
-    def __init__(self, data, frame='unspecified'):
+    def __init__(self, data, frame='unspecified', encoding='rgb8'):
         """Create a color image from an array of data.
 
         Parameters
@@ -867,6 +866,9 @@ class ColorImage(Image):
             A string representing the frame of reference in which this image
             lies.
 
+        encoding : :obj:`str`
+            Either rgb8 or bgr8, depending on the channel storage mode
+
         Raises
         ------
         ValueError
@@ -874,7 +876,9 @@ class ColorImage(Image):
             string.
         """
         Image.__init__(self, data, frame)
-        self._encoding = 'rgb8'
+        self._encoding = encoding
+        if self._encoding != 'rgb8' and self._encoding != 'bgr8':
+            raise ValueError('Illegal encoding: %s. Please use rgb8 or bgr8' %(self._encoding))
 
     def _check_valid_data(self, data):
         """Checks that the given data is a uint8 array with one or three
@@ -911,19 +915,29 @@ class ColorImage(Image):
     def r_data(self):
         """:obj:`numpy.ndarray` of uint8 : The red-channel data.
         """
-        return self.data[:,:,0]
+        return self.data[:,:,self.r_axis]
 
     @property
     def g_data(self):
         """:obj:`numpy.ndarray` of uint8 : The green-channel data.
         """
-        return self.data[:,:,1]
+        return self.data[:,:,self.g_axis]
 
     @property
     def b_data(self):
         """:obj:`numpy.ndarray` of uint8 : The blue-channel data.
         """
-        return self.data[:,:,2]
+        return self.data[:,:,self.b_axis]
+
+    def bgr2rgb(self):
+        """ Converts data using the cv conversion. """
+        new_data = cv2.cvtColor(self.raw_data, cv2.COLOR_BGR2RGB)
+        return ColorImage(new_data, frame=self.frame, encoding='rgb8')
+
+    def rgb2bgr(self):
+        """ Converts data using the cv conversion. """
+        new_data = cv2.cvtColor(self.raw_data, cv2.COLOR_RGB2BGR)
+        return ColorImage(new_data, frame=self.frame, encoding='bgr8')
 
     def swap_channels(self, channel_swap):
         """ Swaps the two channels specified in the tuple.
@@ -1686,7 +1700,7 @@ class DepthImage(Image):
         """
         file_root, file_ext = os.path.splitext(filename)
         data = Image.load_data(filename)
-        if file_ext.lower() in constants.SUPPORTED_IMAGE_EXTS:
+        if file_ext.lower() in constants.COLOR_IMAGE_EXTS:
             data = (data * (constants.MAX_DEPTH / BINARY_IM_MAX_VAL)).astype(np.float32)
         return DepthImage(data, frame)
 
