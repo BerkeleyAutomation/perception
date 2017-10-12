@@ -21,7 +21,7 @@ from keras.layers import Dense, Input, GlobalAveragePooling2D, Reshape
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator, Iterator, transform_matrix_offset_center, apply_transform
 from keras.applications.imagenet_utils import _obtain_input_shape
-from keras.optimizers import SGD
+from keras.optimizers import SGD, Adam
 from keras.utils import to_categorical
 
 import autolab_core.utils as utils
@@ -55,6 +55,7 @@ def finetune_classification_cnn(config):
     base_model_config = model_config['base']
     optimization_config = config['optimization']
     train_config = config['training']
+    optimizer_name = optimization_config['optimizer']
 
     model_params = {}
     if 'params' in model_config.keys():
@@ -136,15 +137,6 @@ def finetune_classification_cnn(config):
                                                    batch_size=batch_size,
                                                    **iterator_config)
 
-    #batch_x, batch_y = train_iterator.next()
-    
-    """
-    cnn = ClassificationCNN.open('test_model')
-    batch_x, batch_y = val_iterator.next()
-    IPython.embed()
-    exit(0)
-    """
-
     # setup model
     base_cnn = ClassificationCNN.open(base_model_config['model'],
                                       base_model_config['type'],
@@ -159,35 +151,17 @@ def finetune_classification_cnn(config):
 
     # setup training
     cnn.freeze_base_cnn()
-    optimizer = SGD(lr=optimization_config['lr'],
-                    momentum=optimization_config['momentum'])
-    model = cnn.model #Model(cnn.input_tensor, cnn.output_tensor, name='a')
+    if optimizer_name == 'sgd':
+        optimizer = SGD(lr=optimization_config['lr'],
+                        momentum=optimization_config['momentum'])
+    elif optimizer_name == 'adam':
+        optimizer = Adam(lr=optimization_config['lr'])
+    else:
+        raise ValueError('Optimizer %s not supported!' %(optimizer_name))
+    model = cnn.model
     model.compile(optimizer=optimizer,
                   loss=optimization_config['loss'],
                   metrics=optimization_config['metrics'])
-    w, b = model.layers[-1].get_weights()
-
-    # sample batches
-    num_test = 1
-    x_batches = []
-    y_batches = []
-    for i in range(num_test):
-        logging.info('Sampling batch %d' %(i))
-        batch_x, batch_y = train_iterator.next()
-        x_batches.append(batch_x)
-        y_batches.append(batch_y)
-    logging.info('Before')
-    for i, batches in enumerate(zip(x_batches, y_batches)):
-        logging.info('Scoring batch %d' %(i))
-        batch_x, batch_y = batches
-        pred_probs = model.predict(batch_x[x_names[0]])
-        true_labels = np.argmax(batch_y, axis=1)
-        c = ClassificationResult([pred_probs],[true_labels])
-        score = model.evaluate(batch_x, batch_y)
-        logging.info('Batch acc %.3f' %(c.accuracy))
-        logging.info('Batch loss %.3f' %(score[0]))
-        logging.info('Batch acc2 %.3f' %(score[1]))
-        
 
     # train
     steps_per_epoch = int(np.ceil(float(num_train) / batch_size))
@@ -196,32 +170,15 @@ def finetune_classification_cnn(config):
                                       save_best_only=True,
                                       period=model_save_period)
     train_history_cb = TrainHistory(model_dir)
-    callbacks = [] #latest_model_ckpt, best_model_ckpt, train_history_cb]
+    callbacks = [latest_model_ckpt, best_model_ckpt, train_history_cb]
     history = model.fit_generator(train_iterator,
                                   steps_per_epoch=steps_per_epoch,
                                   epochs=train_config['epochs'],
-                                  #callbacks=callbacks,
+                                  callbacks=callbacks,
                                   validation_data=val_iterator,
                                   validation_steps=val_steps,
                                   class_weight=train_config['class_weight'],
                                   use_multiprocessing=train_config['use_multiprocessing'])
-    """
-    model.fit(batch_x['rgbd_ims'], batch_y, 64,
-              epochs=25, verbose=1, validation_data=(batch_x['rgbd_ims'], batch_y))
-    """
-    # test
-    logging.info('After')
-    for i, batches in enumerate(zip(x_batches, y_batches)):
-        logging.info('Scoring batch %d' %(i))
-        batch_x, batch_y = batches
-        pred_probs = model.predict(batch_x[x_names[0]])
-        true_labels = np.argmax(batch_y, axis=1)
-        c = ClassificationResult([pred_probs],[true_labels])
-        score = model.evaluate(batch_x, batch_y)
-        logging.info('Batch acc %.3f' %(c.accuracy))
-        logging.info('Batch loss %.3f' %(score[0]))
-        logging.info('Batch acc2 %.3f' %(score[1]))
-    IPython.embed()
 
     # save model
     cnn.save(model_dir)
