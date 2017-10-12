@@ -17,12 +17,16 @@ from dexnet.learning import ClassificationResult, TensorDataset
 
 def analyze_classification_performance(model_dir, config, dataset_path=None):
     # read params
+    predict_batch_size = config['batch_size']
+    
     plotting_config = config['plotting']
     figsize = plotting_config['figsize']
     font_size = plotting_config['font_size']
+    legend_font_size = plotting_config['legend_font_size']
     line_width = plotting_config['line_width']
     colors = plotting_config['colors']
     dpi = plotting_config['dpi']
+    style = '-'
 
     # read training config
     training_config_filename = os.path.join(model_dir, 'training_config.yaml')
@@ -32,7 +36,7 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
     indices_filename = None
     if dataset_path is None:
         dataset_path = training_config['dataset']
-        indices_filename = os.path.join(model_dir, 'splits.pkl')
+        indices_filename = os.path.join(model_dir, 'splits.npz')
     _, dataset_name = os.path.split(dataset_path)
     x_names = training_config['x_names']
     y_name = training_config['y_name']
@@ -40,10 +44,17 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
     iterator_config = training_config['data_iteration']
     x_name = x_names[0]
 
-    # set analysis
+    # set analysis dir
     analysis_dir = os.path.join(model_dir, 'analysis')
     if not os.path.exists(analysis_dir):
         os.mkdir(analysis_dir)
+
+    # setup log file
+    experiment_log_filename = os.path.join(analysis_dir, '%s_analysis.log' %(dataset_name))
+    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+    hdlr = logging.FileHandler(experiment_log_filename)
+    hdlr.setFormatter(formatter)
+    logging.getLogger().addHandler(hdlr)
 
     # read dataset
     dataset = TensorDataset.open(dataset_path)
@@ -64,12 +75,18 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
         logging.info('Evaluating performance on split: %s' %(split_name))
 
         # predict
-        pred_probs, true_labels = cnn.evaluate_on_dataset(dataset, indices=indices)
+        pred_probs, true_labels = cnn.evaluate_on_dataset(dataset, indices=indices, batch_size=predict_batch_size)
         pred_labels = np.argmax(pred_probs, axis=1)
 
         # compute classification results
         result = ClassificationResult([pred_probs], [true_labels])
         results[split_name] = result
+
+        # print stats
+        logging.info('SPLIT: %s' %(split_name))
+        logging.info('Acc: %.3f' %(result.accuracy))
+        logging.info('AP: %.3f' %(result.ap_score))
+        logging.info('AUC: %.3f' %(result.auc_score))
 
         # analysis
         result_filename = os.path.join(analysis_dir, '%s.cres' %(split_name))
@@ -86,7 +103,7 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
         result = results[split_name]
         precision, recall, taus = result.precision_recall_curve()
         color = colormap(float(colors[i%num_colors]) / num_colors)
-        plt.plot(recall, precision, linewidth=line_width, color=colors[i], linestyle=style, label=split_name)
+        plt.plot(recall, precision, linewidth=line_width, color=color, linestyle=style, label=split_name)
     plt.xlabel('Recall', fontsize=font_size)
     plt.ylabel('Precision', fontsize=font_size)
     plt.title('Precision-Recall Curve', fontsize=font_size)
@@ -99,7 +116,7 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
         result = results[split_name]
         fpr, tpr, taus = result.roc_curve()
         color = colormap(float(colors[i%num_colors]) / num_colors)
-        plt.plot(fpr, tpr, linewidth=line_width, color=colors[i], linestyle=style, label=split_name)
+        plt.plot(fpr, tpr, linewidth=line_width, color=color, linestyle=style, label=split_name)
     plt.xlabel('FPR', fontsize=font_size)
     plt.ylabel('TPR', fontsize=font_size)
     plt.title('Receiver Operating Characteristic', fontsize=font_size)

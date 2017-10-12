@@ -12,7 +12,7 @@ data_augmentation:
   zoom_range: 0
 
   image_dropout_rate: 0.0
-  image_gaussian_sigma: 1.0
+  image_gaussian_sigma: 5.0
   image_gaussian_corrcoef: 8
   rot_180: 0
 
