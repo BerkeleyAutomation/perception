@@ -22,8 +22,8 @@ class VGG16(ClassificationCNN):
         """
         Initialize a VGG-16 model.
         """
-        ClassificationCNN.__init__(self, output_name=VGG_OUTPUT_NAME,
-                                   *args, **kwargs)
+        kwargs['output_name'] = VGG_OUTPUT_NAME
+        ClassificationCNN.__init__(self, *args, **kwargs)
 
     def _build_network(self, input_tensor=None, include_fc=True,
                        output_pooling=None, output_name=VGG_OUTPUT_NAME):
@@ -71,5 +71,6 @@ class VGG16(ClassificationCNN):
                 x = GlobalAveragePooling2D()(x)
             elif output_pooling == 'max':
                 x = GlobalMaxPooling2D()(x)
+        
         return x
 

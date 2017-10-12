@@ -40,9 +40,9 @@ model:
       params:
         include_fc: 0
 
-  params:
-    new_fc_layer_sizes:
-      - 128
+#  params:
+#    new_fc_layer_sizes:
+#      - 128
 
 optimization:
   lr: 0.001

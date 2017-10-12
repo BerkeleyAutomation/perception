@@ -15,3 +15,5 @@ IMAGENET_OUTPUT_NAME = 'label'
 VGG_OUTPUT_NAME = 'predictions'
 
 RESNET_OUTPUT_NAME = 'fc1000'
+
+ALEXNET_OUTPUT_NAME = 'softmax'

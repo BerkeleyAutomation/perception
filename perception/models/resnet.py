@@ -27,8 +27,8 @@ class ResNet50(ClassificationCNN):
             self._bn_axis = 3
         else:
             self._bn_axis = 1
-        ClassificationCNN.__init__(self, output_name=RESNET_OUTPUT_NAME,
-                                   *args, **kwargs)
+        kwargs['output_name'] = RESNET_OUTPUT_NAME
+        ClassificationCNN.__init__(self, *args, **kwargs)
 
     @property
     def bn_axis(self):
