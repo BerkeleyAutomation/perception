@@ -10,6 +10,7 @@ import numpy as np
 import os
 import sys
 
+import autolab_core.utils as utils
 from autolab_core import YamlConfig
 from perception.models import ClassificationCNN
 
@@ -28,6 +29,10 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
     dpi = plotting_config['dpi']
     style = '-'
 
+    class_remapping = None
+    if 'class_remapping' in config.keys():
+        class_remapping = config['class_remapping']
+
     # read training config
     training_config_filename = os.path.join(model_dir, 'training_config.yaml')
     training_config = YamlConfig(training_config_filename)
@@ -37,7 +42,9 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
     if dataset_path is None:
         dataset_path = training_config['dataset']
         indices_filename = os.path.join(model_dir, 'splits.npz')
-    _, dataset_name = os.path.split(dataset_path)
+    dataset_prefix, dataset_name = os.path.split(dataset_path)
+    if dataset_name == '':
+        _, dataset_name = os.path.split(dataset_prefix)
     x_names = training_config['x_names']
     y_name = training_config['y_name']
     batch_size = training_config['training']['batch_size']
@@ -51,23 +58,62 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
 
     # setup log file
     experiment_log_filename = os.path.join(analysis_dir, '%s_analysis.log' %(dataset_name))
+    if os.path.exists(experiment_log_filename):
+        os.remove(experiment_log_filename)
     formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
     hdlr = logging.FileHandler(experiment_log_filename)
     hdlr.setFormatter(formatter)
     logging.getLogger().addHandler(hdlr)
+
+    # setup plotting
+    plt.figure(figsize=(figsize, figsize))
 
     # read dataset
     dataset = TensorDataset.open(dataset_path)
 
     # read dataset splits
     if indices_filename is None:
-        splits = {dataset_name: np.arange(dataset.num_datatpoints)}
+        splits = {dataset_name: np.arange(dataset.num_datapoints)}
     else:
         splits = np.load(indices_filename)['arr_0'].tolist()
 
     # load cnn
     logging.info('Loading model %s' %(model_dir))
     cnn = ClassificationCNN.open(model_dir)
+
+    # save examples
+    logging.info('Saving examples of each class')
+    all_labels = np.arange(cnn.num_classes)
+    label_counts = {}
+    [label_counts.update({l:0}) for l in all_labels]
+    for tensor_ind in range(dataset.num_tensors):
+        tensor = dataset.tensor(y_name, tensor_ind)
+        for label in tensor:
+            label_counts[label] += 1
+
+    d = utils.sqrt_ceil(cnn.num_classes)
+    plt.clf()
+    for i, label in enumerate(all_labels):
+        tensor_ind = 0
+        label_found = False
+        while not label_found and tensor_ind < dataset.num_tensors:
+            tensor = dataset.tensor(y_name, tensor_ind)
+            ind = np.where(tensor.arr == label)[0]
+            if ind.shape[0] > 0:
+                ind = ind[0]
+                label_found = True
+            tensor_ind += 1
+        
+        if not label_found:
+            continue
+        datapoint = dataset[ind]
+        example_im = datapoint[x_name]
+                
+        plt.subplot(d,d,i+1)
+        plt.imshow(example_im[:,:,:3].astype(np.uint8))
+        plt.title('Class %03d: %.3f%%' %(label, float(label_counts[label]) / dataset.num_datapoints))
+        plt.axis('off')
+    plt.savefig(os.path.join(analysis_dir, '%s_classes.pdf' %(dataset_name)))
 
     # evaluate on dataset
     results = {}
@@ -77,6 +123,19 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
         # predict
         pred_probs, true_labels = cnn.evaluate_on_dataset(dataset, indices=indices, batch_size=predict_batch_size)
         pred_labels = np.argmax(pred_probs, axis=1)
+
+        # apply optional class re-mapping
+        if class_remapping is not None:
+            new_pred_probs = np.zeros(pred_probs.shape)
+            new_pred_labels = np.zeros(pred_labels.shape)
+            new_true_labels = np.zeros(true_labels.shape)
+            for orig_label, new_label in class_remapping.iteritems():
+                new_pred_probs[:,new_label] += pred_probs[:,orig_label]
+                new_pred_labels[pred_labels==orig_label] = new_label
+                new_true_labels[true_labels==orig_label] = new_label
+            pred_probs = new_pred_probs
+            pred_labels = new_pred_labels
+            true_labels = new_true_labels
 
         # compute classification results
         result = ClassificationResult([pred_probs], [true_labels])
@@ -88,15 +147,20 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
         logging.info('AP: %.3f' %(result.ap_score))
         logging.info('AUC: %.3f' %(result.auc_score))
 
-        # analysis
+        # save confusion matrix
+        confusion = result.confusion_matrix.data
+        plt.clf()
+        plt.imshow(confusion, cmap=plt.cm.gray, interpolation='none')
+        plt.locator_params(nticks=cnn.num_classes)
+        plt.savefig(os.path.join(analysis_dir, '%s_confusion.pdf' %(split_name)), dpi=dpi)
+
+        # save analysis
         result_filename = os.path.join(analysis_dir, '%s.cres' %(split_name))
         result.save(result_filename)
 
     # plot
     colormap = plt.get_cmap('tab10')
     num_colors = 9
-
-    plt.figure(figsize=(figsize, figsize))
 
     plt.clf()
     for i, split_name in enumerate(splits.keys()):

@@ -54,7 +54,7 @@ class ClassificationCNN(object):
             raise ValueError('Weights filename %s does not exist!' %(weights_filename))
 
         # read params
-        self._num_classes = num_classes
+        self._num_classes = int(num_classes)
         self._include_fc = include_fc
 
         # setup image preprocessing
@@ -93,6 +93,10 @@ class ClassificationCNN(object):
         # build standalone model
         self._model = self._build_model(input_tensor=input_tensor, name=name)
 
+        # check image shape
+        if not hasattr(self._im_preprocessor, 'image_shape'):
+            self._im_preprocessor.image_shape = self.im_shape
+
         # optionally auto-load weights
         if weights_filename is not None:
             self.model.load_weights(weights_filename)
@@ -120,6 +124,10 @@ class ClassificationCNN(object):
     @property
     def channels(self):
         return self.input_tensor.shape[3].value
+
+    @property
+    def im_shape(self):
+        return (self.im_height, self.im_width, self.channels)
 
     @property
     def model(self):
@@ -190,15 +198,18 @@ class ClassificationCNN(object):
     def predict(self, im):
         """ Predict the classwise probabilities for a single image. """
         # resize image
-        pred_im = im.resize((self.im_height, self.im_width))
-        pred_im_arr = pred_im.raw_data.astype(np.float32)
+        pred_im = im.raw_data.astype(np.float32)
+        if isinstance(self.im_preprocessor, TensorDataGenerator):
+            pred_im = {self.input_name: pred_im}
 
         # preprocess
-        pred_im_arr = self.im_preprocessor.standardize(pred_im_arr)
-        pred_im_arr = np.expand_dims(pred_im_arr, axis=0)
+        pred_im = self.im_preprocessor.standardize(pred_im)
+
+        if not isinstance(self.im_preprocessor, TensorDataGenerator):
+            pred_im = np.expand_dims(pred_im, axis=0)
 
         # predict
-        return self.model.predict(pred_im_arr)
+        return self.model.predict(pred_im)
 
     def top_prediction(self, im):
         """ Predict the most likely class for a single image. """
@@ -207,11 +218,13 @@ class ClassificationCNN(object):
     def evaluate_on_dataset(self, dataset, indices=None, batch_size=128):
         """ Evaluate predictions and true labels on
         a dataset for the subset of indices. """
+        # set vars
         input_name = self.input_name
         output_name = self.output_name[:self.output_name.find('/')]
         if indices is None:
             indices = np.arange(dataset.num_datapoints)
 
+        # setup iterator
         iterator = self.im_preprocessor.flow_from_dataset(dataset,
                                                           [input_name],
                                                           output_name,
@@ -219,50 +232,37 @@ class ClassificationCNN(object):
                                                           shuffle=False,
                                                           batch_size=batch_size)
 
+        # predict in batches
         num_predict = indices.shape[0]
+        num_batches = int(np.ceil(num_predict / batch_size))
         pred_probs = np.zeros([num_predict, self.num_classes])
         labels = np.zeros(num_predict)
         cur_i = 0
-        for i in range(dataset.num_tensors):
-            logging.info('Predicting batch %d' %(i))
+        for i in range(num_batches):
+            logging.info('Predicting batch %d of %d' %(i+1, num_batches))
             batch_x, batch_y = iterator.next()
             batch_size = batch_y.shape[0]
             end_i = cur_i + batch_size
             pred_probs[cur_i:end_i,:] = self.model.predict_on_batch(batch_x[input_name])
             labels[cur_i:end_i] = np.argmax(batch_y, axis=1)
             cur_i = end_i
-        return pred_probs, labels
+        return pred_probs[:end_i,:], labels[:end_i]
 
-    def predict_batch_probs(self, im_arr):
-        """ Predict the classwise probabilities for an array of images. """
-        # check image size
-        if len(im_arr.shape) != 4:
-            raise ValueError('Must provide a 4-channel tensor!')
-        # TODO: add back in
-        #if im_arr.shape[3] != self.channels:
-        #    raise ValueError('Number of input channels (%d) does not match expected number of input channels (%d)!' %(im_arr.shape[3], self.channels))
-            
+    def predict_batch_probs(self, im_batch):
+        """ Predict the classwise probabilities for a batch of images. """
+        # dictionary-ize
+        if self.input_name not in im_batch.keys():
+            im_batch = {self.input_name, im_batch}
+
         # preprocess
-        im_arr_dict = {self.input_name: im_arr.astype(np.float32)}
-        im_arr_dict = self.im_preprocessor.standardize(im_arr_dict)
-
-        # resize images
-        im_arr = im_arr_dict[self.input_name][:,:,:3] # TODO:remove
-        if im_arr.shape[1] != self.im_height or im_arr.shape[2] != self.im_width:
-            new_im_arr = np.zeros([im_arr.shape[0], self.im_height, self.im_width, self.channels])
-            for i, im in enumerate(im_arr):
-                new_im_arr[i,...] = sm.imresize(im,
-                                                size=(self.im_height,
-                                                      self.im_width),
-                                                interp='bilinear')
-            im_arr = new_im_arr
+        im_batch_std = self.im_preprocessor.standardize(im_batch)
 
         # predict
-        return self.model.predict(im_arr)
+        return self.model.predict_on_batch(image_batch_std[self.input_name])
 
-    def predict_batch_labels(self, im_arr):
-        """ Predict the most likely class for an array of images. """
-        return np.argmax(self.predict_batch_probs(im_arr), axis=1)
+    def predict_batch_labels(self, im_batch):
+        """ Predict the most likely class for a batch of images. """
+        return np.argmax(self.predict_batch_probs(im_batch), axis=1)
 
     def load(self, weights_filename):
         """ Load a set of weights. """
@@ -350,13 +350,11 @@ class FinetunedClassificationCNN(ClassificationCNN):
         self._activation = activation
 
         # load super class
-        kwargs['input_tensor'] = self.base_cnn.output
+        kwargs['input_tensor'] = self.base_cnn.input
         kwargs['input_shape'] = self.base_cnn.input_shape
         kwargs['input_name'] = self.base_cnn.input_name
         kwargs['num_classes'] = num_classes
         ClassificationCNN.__init__(self, *args, **kwargs)
-        self._input_tensor = self.base_cnn.input
-        self._input_name = self.input_tensor.name[:self.input_tensor.name.rfind(':')]
 
     @property
     def base_cnn(self):
@@ -382,16 +380,12 @@ class FinetunedClassificationCNN(ClassificationCNN):
     def _build_network(self, input_tensor=None, include_fc=True,
                        output_pooling=None, output_name=IMAGENET_OUTPUT_NAME):
         """ Build the network """
-        return self._add_fc_layers(input_tensor=input_tensor,
-                                   output_pooling=output_pooling,
-                                   output_name=output_name)
+        return self._add_fc_layers(output_name=output_name)
 
-    def _add_fc_layers(self, input_tensor=None, output_pooling=None,
-                       output_name=IMAGENET_OUTPUT_NAME):
+    def _add_fc_layers(self, output_name=IMAGENET_OUTPUT_NAME):
         """ Adds FC layers to the input tensor. """
         # set inputs
-        if input_tensor is None:
-            input_tensor = self.base_cnn.output_tensor
+        input_tensor = self.base_cnn.output_tensor
 
         # check the existence of new fc layers
         if self.num_new_fc_layers == 0:

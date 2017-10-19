@@ -17,19 +17,19 @@ if __name__ == '__main__':
     model_type = sys.argv[2]
     image_filename = sys.argv[3]
 
-    with open('data/images/imagenet.json', 'r') as f:
-        label_to_category = eval(f.read())
+    #with open('data/images/imagenet.json', 'r') as f:
+    #    label_to_category = eval(f.read())
 
     im = ColorImage.open(image_filename)
     cnn = ClassificationCNN.open(model_dir, model_typename=model_type)
     out = cnn.predict(im)
     label = cnn.top_prediction(im)
-    category = label_to_category[label]
+    #category = label_to_category[label]
 
     plt.figure()
     plt.imshow(im.bgr2rgb().data)
-    plt.title('Pred: %s' %(category))
+    plt.title('Pred: %d' %(label))
     plt.axis('off')
     plt.show()
 
-    IPython.embed()
+    #IPython.embed()

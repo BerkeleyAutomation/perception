@@ -76,6 +76,7 @@ class TensorDataGenerator(ImageDataGenerator):
                  image_gaussian_sigma=1e-6,
                  image_gaussian_corrcoef=1e-6,
                  rot_180=False,
+                 image_shape=None,
                  data_dropout_rate=0.0,
                  data_gaussian_sigma=1e-6,
                  image_tf_callback=None,
@@ -91,6 +92,7 @@ class TensorDataGenerator(ImageDataGenerator):
         self.image_gaussian_sigma = image_gaussian_sigma
         self.image_gaussian_corrcoef = image_gaussian_corrcoef
         self.rot_180 = rot_180
+        self.image_shape = image_shape
 
         self.data_dropout_rate = data_dropout_rate
         self.data_gaussian_sigma = data_gaussian_sigma
@@ -109,6 +111,10 @@ class TensorDataGenerator(ImageDataGenerator):
         self.min_output = None
         self.max_output = None
 
+    @property
+    def resize_images(self):
+        return (self.image_shape is not None)
+
     def standardize(self, x_dict):
         """Apply the normalization configuration to a batch of inputs.
 
@@ -123,6 +129,14 @@ class TensorDataGenerator(ImageDataGenerator):
             The inputs, normalized.
         """
         for x_name, x in x_dict.iteritems():
+            num_x = 1
+            x0 = x
+            if len(x.shape) == 4:
+                num_x = x.shape[0]
+                if num_x == 0:
+                    continue
+                x0 = x[0]
+                
             if self.preprocessing_function:
                 x = self.preprocessing_function(x)
             if self.rescale:
@@ -136,7 +150,10 @@ class TensorDataGenerator(ImageDataGenerator):
 
             if self.featurewise_center:
                 if self.mean is not None:
-                    x -= self.mean[x_name]
+                    if Image.can_convert(x0):
+                        x -= self.mean[x_name][:x0.shape[2]]
+                    else:
+                        x -= self.mean[x_name]
                 else:
                     warnings.warn('This TensorDataGenerator specifies '
                                   '`featurewise_center`, but it hasn\'t'
@@ -144,13 +161,35 @@ class TensorDataGenerator(ImageDataGenerator):
                                   'first by calling `.fit()`.')
             if self.featurewise_std_normalization:
                 if self.std is not None:
-                    x /= (self.std[x_name] + 1e-7)
+                    if Image.can_convert(x0):
+                        x /= (self.std[x_name][:x0.shape[2]] + 1e-7)
+                    else:
+                        x /= (self.std[x_name] + 1e-7)
                 else:
                     warnings.warn('This TensorDataGenerator specifies '
                                   '`featurewise_std_normalization`, but it hasn\'t'
                                   'been fit on any training data. Fit it '
                                   'first by calling `.fit()`.')
-            x_dict[x_name] = x
+
+            if self.resize_images and Image.can_convert(x0):
+                image_shape = x0.shape
+                if self.image_shape is not None:
+                    image_shape = self.image_shape
+
+                x_resized = np.zeros([num_x] + list(image_shape))
+                for i in range(num_x):
+                    im = x0
+                    if num_x > 1:
+                        im = x[i]
+                    for c in range(min(image_shape[2], x0.shape[2])):
+                        x_resized[i,...,c] = sm.imresize(im[:,:,c],
+                                                         size=(image_shape[0],
+                                                               image_shape[1]),
+                                                         interp='bilinear',
+                                                         mode='F')
+                    x = x_resized
+
+                x_dict[x_name] = x
         return x_dict
 
     def random_transform(self, x_dict, seed=None):
@@ -532,7 +571,11 @@ class TensorDatasetIterator(Iterator):
         # allocate new datapoint
         batch_x = {}
         for x_name in self.x_names:
-            x_shape = [self.iter_batch_size] + list(self.dataset.tensors[x_name].shape[1:])
+            x_shape = list(self.dataset.tensors[x_name].shape[1:])
+            if Image.can_convert(self.dataset.tensors[x_name][0]) and \
+               self.data_generator.resize_images:
+                x_shape = self.data_generator.image_shape
+            x_shape = [self.iter_batch_size] + list(x_shape)
             x_dtype = self.dataset.tensors[x_name].dtype
             batch_x[x_name] = np.zeros(x_shape, dtype=x_dtype)
         y_shape = [self.iter_batch_size, self.num_classes]
@@ -551,9 +594,9 @@ class TensorDatasetIterator(Iterator):
             last_ind = np.max(datapoint_indices)
             datapoint_indices = self.indices[(self.indices >= first_ind) & (self.indices <= last_ind)]
             num_datapoints = datapoint_indices.shape[0]
-            num_sampled = min(num_datapoints, num_remaining)
+            num_to_sample = min(num_datapoints, num_remaining)
             indices = np.random.choice(datapoint_indices,
-                                       size=num_sampled)
+                                       size=num_to_sample)
 
             # preprocess
             for i, datapoint_ind in enumerate(indices):
@@ -568,6 +611,7 @@ class TensorDatasetIterator(Iterator):
                                                         num_classes=self.num_classes)
                 batch_ind += 1
 
+        # subsample data
         for x_name in self.x_names:
             batch_x[x_name] = batch_x[x_name][:batch_ind,...]
         batch_y = batch_y[:batch_ind]
@@ -583,16 +627,6 @@ class TensorDatasetIterator(Iterator):
                                                                              hash=np.random.randint(1e4),
                                                                              format=self.save_format)
                         im.save(filename)
-
-        # resize images
-        # TODO: remove hardcoded sizes!!!!
-        for x_name, x in batch_x.iteritems():
-            new_x = np.zeros([x.shape[0], 224, 224, 3])
-            for i, im in enumerate(x):
-                im = im[:,:,:3]
-                for c in range(im.shape[2]):
-                    new_x[i,:,:,c] = sm.imresize(im[:,:,c], size=(224,224), interp='bilinear', mode='F')
-            batch_x[x_name] = new_x
 
         return batch_x, batch_y
 

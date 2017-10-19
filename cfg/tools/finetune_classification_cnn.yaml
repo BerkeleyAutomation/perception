@@ -7,13 +7,18 @@ model_dir: /home/autolab/Public/data/dex-net/data/models/classification/
 data_augmentation:
   featurewise_center: 1
   featurewise_std_normalization: 1
- 
+
+  image_shape:
+    - 224
+    - 224
+    - 3  
+
   rotation_range: 180
   zoom_range: 0
 
   image_dropout_rate: 0.0
   image_gaussian_sigma: 5.0
-  image_gaussian_corrcoef: 8
+  image_gaussian_corrcoef: 4
   rot_180: 0
 
   data_dropout_rate: 0.0
@@ -53,7 +58,7 @@ optimization:
     - accuracy
 
 training:
-  epochs: 25
+  epochs: 10
   class_weight: auto
   use_multiprocessing: 1
 
@@ -61,4 +66,4 @@ training:
   train_pct: 0.9
   model_save_period: 1
 
-debug: 0
+debug: 1

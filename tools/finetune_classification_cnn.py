@@ -55,6 +55,10 @@ def finetune_classification_cnn(config):
     base_model_config = model_config['base']
     optimization_config = config['optimization']
     train_config = config['training']
+
+    generator_image_shape = None
+    if 'image_shape' in data_aug_config.keys():
+        generator_image_shape = data_aug_config['image_shape']
     optimizer_name = optimization_config['optimizer']
 
     model_params = {}
@@ -66,7 +70,7 @@ def finetune_classification_cnn(config):
         base_model_params = base_model_config['params']
 
     if debug:
-        seed = 105
+        seed = 106
         random.seed(seed)
         np.random.seed(seed)
 
@@ -114,7 +118,8 @@ def finetune_classification_cnn(config):
         logging.info('Fitting generator')
         train_generator = TensorDataGenerator(**data_aug_config)
         val_generator = TensorDataGenerator(featurewise_center=data_aug_config['featurewise_center'],
-                                            featurewise_std_normalization=data_aug_config['featurewise_std_normalization'])
+                                            featurewise_std_normalization=data_aug_config['featurewise_std_normalization'],
+                                            image_shape=generator_image_shape)
         fit_start = time.time()
         train_generator.fit(dataset, x_names, y_name, indices=train_indices, **preproc_config)
         val_generator.mean = train_generator.mean
