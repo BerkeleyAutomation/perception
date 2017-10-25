@@ -837,7 +837,7 @@ class Image(object):
         file_root, file_ext = os.path.splitext(filename)
         data = None
         if file_ext.lower() in constants.COLOR_IMAGE_EXTS:
-            data = cv2.imread(filename)
+            data = cv2.cvtColor(cv2.imread(filename), cv2.COLOR_BGR2RGB)
         elif file_ext == '.npy':
             data = np.load(filename)
         elif file_ext == '.npz':
@@ -1881,7 +1881,7 @@ class GrayscaleImage(Image):
         :obj:`GrayscaleImage`
             The resized image.
         """
-        resized_data = sm.imresize(self._data, size, interp=interp)
+        resized_data = sm.imresize(self.data, size, interp=interp)
         return GrayscaleImage(resized_data, self._frame)
 
     @staticmethod

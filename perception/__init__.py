@@ -20,12 +20,6 @@ from detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, Rg
 from camera_sensor import CameraSensor
 
 try:
-    from cnn import AlexNetWeights, AlexNet, conv
-except Exception:
-    print 'Unable to import ConvNet modules! Likely due to missing tensorflow.'
-    print 'TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup'
-    
-try:
     from kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
 except Exception:
     print 'Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.'

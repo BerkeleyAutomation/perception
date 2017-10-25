@@ -1,8 +1,8 @@
-dataset: /home/autolab/Public/data/dex-net/data/regrasping/stp_09_20_17/tensors
+dataset: /nfs/diskstation/projects/dex-net/regrasping/datasets/stp_10_09_17/tensors
 x_names:
   - rgbd_ims
 y_name: cur_stp_id
-model_dir: /home/autolab/Public/data/dex-net/data/models/classification/
+model_dir: /nfs/diskstation/projects/dex-net/regrasping/models/classification/
 
 data_augmentation:
   featurewise_center: 1
@@ -13,6 +13,8 @@ data_augmentation:
     - 224
     - 3  
 
+  width_shift_range: 0.1
+  height_shift_range: 0.1
   rotation_range: 180
   zoom_range: 0
 
@@ -40,7 +42,7 @@ data_iteration:
 
 model:
   base:
-      model: /home/autolab/Public/data/dex-net/data/models/classification/resnet50_notop
+      model: /nfs/diskstation/projects/dex-net/models/classification/resnet50_notop
       type: resnet50
       params:
         include_fc: 0
@@ -62,8 +64,8 @@ training:
   class_weight: auto
   use_multiprocessing: 1
 
-  batch_size: 64
+  batch_size: 128
   train_pct: 0.9
   model_save_period: 1
 
-debug: 1
+debug: 0
