@@ -33,7 +33,7 @@ class _Camera(Process):
         self.codec = codec
 
         self.camera = camera
-        self.fourcc = cv2.cv.CV_FOURCC(*self.codec)
+        self.fourcc = cv2.VideoWriter_fourcc(*self.codec)
         
         self.cmd_q = cmd_q
         self.recording = False
