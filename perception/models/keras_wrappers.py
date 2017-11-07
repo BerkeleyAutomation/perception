@@ -82,6 +82,7 @@ class TensorDataGenerator(ImageDataGenerator):
                  image_tf_callback=None,
                  image_horiz_flip_callback=None,
                  image_vert_flip_callback=None,
+                 num_classes=None,
                  *args, **kwargs):
         ImageDataGenerator.__init__(self, *args, **kwargs)
 
@@ -110,6 +111,7 @@ class TensorDataGenerator(ImageDataGenerator):
 
         self.min_output = None
         self.max_output = None
+        self.num_classes = num_classes
 
     @property
     def resize_images(self):
@@ -129,6 +131,7 @@ class TensorDataGenerator(ImageDataGenerator):
             The inputs, normalized.
         """
         for x_name, x in x_dict.iteritems():
+            x = x.astype(np.float32)
             num_x = 1
             x0 = x
             if len(x.shape) == 4:
@@ -215,6 +218,15 @@ class TensorDataGenerator(ImageDataGenerator):
         if seed is not None:
             np.random.seed(seed)
 
+        # read im height
+        im_height = None
+        im_width = None
+        for x_name in x_dict.keys():
+            x = x_dict[x_name]
+            if Image.can_convert(x):
+                im_height = x.shape[img_row_axis]
+                im_width = x.shape[img_col_axis]
+            
         # use composition of homographies
         # to generate final transform that needs to be applied
         theta = 0
@@ -225,12 +237,12 @@ class TensorDataGenerator(ImageDataGenerator):
                 theta = np.pi
 
         if self.height_shift_range:
-            tx = np.random.uniform(-self.height_shift_range, self.height_shift_range) * x.shape[img_row_axis]
+            tx = np.random.uniform(-self.height_shift_range, self.height_shift_range) * im_height
         else:
             tx = 0
 
         if self.width_shift_range:
-            ty = np.random.uniform(-self.width_shift_range, self.width_shift_range) * x.shape[img_col_axis]
+            ty = np.random.uniform(-self.width_shift_range, self.width_shift_range) * im_width
         else:
             ty = 0
 
@@ -274,8 +286,8 @@ class TensorDataGenerator(ImageDataGenerator):
                 x = x_dict[x_name]
                 if Image.can_convert(x):
                     h, w = x.shape[img_row_axis], x.shape[img_col_axis]
-                    transform_matrix = transform_matrix_offset_center(transform_matrix, h, w)
-                    x_dict[x_name] = apply_transform(x, transform_matrix, img_channel_axis,
+                    tf_matrix = transform_matrix_offset_center(transform_matrix, h, w)
+                    x_dict[x_name] = apply_transform(x, tf_matrix, img_channel_axis,
                                                      fill_mode=self.fill_mode, cval=self.cval)
                 elif self.image_tf_callback:
                     x_dict[x_name] = self.image_tf_callback(x)
@@ -312,11 +324,11 @@ class TensorDataGenerator(ImageDataGenerator):
                     image_noise = ss.norm.rvs(scale=self.image_gaussian_sigma, size=image_num_px)
                     image_noise = image_noise.reshape(image_noise_height, image_noise_width)
                     image_noise = sm.imresize(image_noise, size=float(max(self.image_gaussian_corrcoef, 1)), interp='bilinear', mode='F')
-                    x[:,:,c] += image_noise
+                    x[:,:,c] += image_noise.astype(x.dtype)
             else:
                 data_noise = ss.norm.rvs(scale=self.data_gaussian_sigma,
                                          size=x.shape[0])
-                x += data_noise
+                x += data_noise.astype(x.dtype)
             x_dict[x_name] = x
 
         for x_name, x in x_dict.iteritems():
@@ -338,18 +350,17 @@ class TensorDataGenerator(ImageDataGenerator):
         return x_dict
 
     def flow_from_dataset(self, dataset, x_names, y_name, indices=None, batch_size=32, shuffle=True, seed=None,
-                          save_to_dir=None, save_prefix='', save_format='png'):
+                          save_to_dir=None, save_prefix=''):
         return TensorDatasetIterator(
             dataset, x_names, y_name, self,
             indices=indices,
             batch_size=batch_size,
-            num_classes=self.max_output+1,
+            num_classes=self.num_classes,
             shuffle=shuffle,
             seed=seed,
             data_format=self.data_format,
             save_to_dir=save_to_dir,
-            save_prefix=save_prefix,
-            save_format=save_format)
+            save_prefix=save_prefix)
 
     def fit(self, dataset, x_names, y_name,
             indices=None,
@@ -506,7 +517,9 @@ class TensorDataGenerator(ImageDataGenerator):
             # aggregate stats
             self.min_output = min(self.min_output, np.min(y_tensor.arr))
             self.max_output = max(self.max_output, np.max(y_tensor.arr))
-
+        if self.num_classes is None:
+            self.num_classes = int(self.max_output+1)
+            
 class TensorDatasetIterator(Iterator):
     """Iterator yielding data from a tensor dataset.
 
@@ -525,13 +538,11 @@ class TensorDatasetIterator(Iterator):
             applied, for debugging purposes.
         save_prefix: String prefix to use for saving sample
             images (if `save_to_dir` is set).
-        save_format: Format to use for saving sample images
-            (if `save_to_dir` is set).
     """
     def __init__(self, dataset, x_names, y_name, data_generator,
                  indices=None, batch_size=32, num_classes=1, shuffle=False, seed=None,
                  data_format=None,
-                 save_to_dir=None, save_prefix='', save_format='png'):
+                 save_to_dir=None, save_prefix=''):
         for x_name in x_names:
             if x_name not in dataset.field_names:
                 raise ValueError('Input field name %s not in dataset!' %(x_name)) 
@@ -550,7 +561,6 @@ class TensorDatasetIterator(Iterator):
         self.data_format = data_format
         self.save_to_dir = save_to_dir
         self.save_prefix = save_prefix
-        self.save_format = save_format
 
         if self.indices is None:
             self.indices = np.arange(self.dataset.num_datapoints)
@@ -577,7 +587,7 @@ class TensorDatasetIterator(Iterator):
                 x_shape = self.data_generator.image_shape
             x_shape = [self.iter_batch_size] + list(x_shape)
             x_dtype = self.dataset.tensors[x_name].dtype
-            batch_x[x_name] = np.zeros(x_shape, dtype=x_dtype)
+            batch_x[x_name] = np.zeros(x_shape, dtype=np.float32)
         y_shape = [self.iter_batch_size, self.num_classes]
         y_dtype = self.dataset.tensors[self.y_name].dtype
         batch_y = np.zeros(y_shape, dtype=y_dtype)
@@ -621,12 +631,11 @@ class TensorDatasetIterator(Iterator):
             for x_name, x_tensor in batch_x.iteritems():
                 if Image.can_convert(x_tensor[0]):
                     for i, x in enumerate(x_tensor):
-                        im = Image.from_array(x)
                         filename = '{prefix}_{index}_{hash}.{format}'.format(prefix=self.save_prefix,
                                                                              index=i,
                                                                              hash=np.random.randint(1e4),
-                                                                             format=self.save_format)
-                        im.save(filename)
+                                                                             format='npy')
+                        np.save(filename, x)
 
         return batch_x, batch_y
 

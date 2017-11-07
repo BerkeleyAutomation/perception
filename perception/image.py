@@ -252,7 +252,13 @@ class Image(object):
 
         if not Image.can_convert(x):
             raise ValueError('Cannot convert array to an Image!')
-            
+        
+        dtype = x.dtype
+        height = x.shape[0]
+        width = x.shape[1]
+        channels = 1
+        if len(x.shape) == 3:
+            channels = x.shape[2]
         if dtype == np.uint8:
             if channels == 1:
                 if np.any((x % BINARY_IM_MAX_VAL) > 0):

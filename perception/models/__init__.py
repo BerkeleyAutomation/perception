@@ -4,6 +4,5 @@ from keras_wrappers import TrainHistory, TensorDataGenerator, TensorDatasetItera
 from classification_cnn import ClassificationCNN, FinetunedClassificationCNN
 from vgg import VGG16
 from resnet import ResNet50
-from alexnet import AlexNet
 
 from model_types import CLASSIFICATION_CNN_TYPES, CLASSIFICATION_CNN_TYPENAMES

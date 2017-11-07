@@ -44,6 +44,10 @@ def finetune_classification_cnn(config):
     model_dir = config['model_dir']
     debug = config['debug']
 
+    num_classes = None
+    if 'num_classes' in config.keys():
+        num_classes = config['num_classes']
+
     batch_size = config['training']['batch_size']
     train_pct = config['training']['train_pct']
     model_save_period = config['training']['model_save_period']
@@ -70,7 +74,7 @@ def finetune_classification_cnn(config):
         base_model_params = base_model_config['params']
 
     if debug:
-        seed = 106
+        seed = 108
         random.seed(seed)
         np.random.seed(seed)
 
@@ -116,21 +120,26 @@ def finetune_classification_cnn(config):
         val_generator = pkl.load(open(val_generator_filename, 'rb'))
     else:
         logging.info('Fitting generator')
-        train_generator = TensorDataGenerator(**data_aug_config)
+        train_generator = TensorDataGenerator(num_classes=num_classes,
+                                              **data_aug_config)
         val_generator = TensorDataGenerator(featurewise_center=data_aug_config['featurewise_center'],
                                             featurewise_std_normalization=data_aug_config['featurewise_std_normalization'],
-                                            image_shape=generator_image_shape)
+                                            image_shape=generator_image_shape,
+                                            num_classes=num_classes)
         fit_start = time.time()
         train_generator.fit(dataset, x_names, y_name, indices=train_indices, **preproc_config)
         val_generator.mean = train_generator.mean
         val_generator.std = train_generator.std
         val_generator.min_output = train_generator.min_output
         val_generator.max_output = train_generator.max_output
+        val_generator.num_classes = train_generator.num_classes
         fit_stop = time.time()
         logging.info('Generator fit took %.3f sec' %(fit_stop - fit_start))
         pkl.dump(train_generator, open(train_generator_filename, 'wb'))
         pkl.dump(val_generator, open(val_generator_filename, 'wb'))
-    num_classes = int(train_generator.max_output + 1)
+        
+    if num_classes is None:
+        num_classes = int(train_generator.num_classes)
 
     # init iterator
     train_iterator = train_generator.flow_from_dataset(dataset, x_names, y_name,

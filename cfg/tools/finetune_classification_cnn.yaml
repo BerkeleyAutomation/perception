@@ -1,7 +1,8 @@
-dataset: /nfs/diskstation/projects/dex-net/regrasping/datasets/stp_10_09_17/tensors
+dataset: /nfs/diskstation/projects/dex-net/regrasping/datasets/lego_stp_10_24_17
 x_names:
-  - rgbd_ims
-y_name: cur_stp_id
+  - color_ims
+y_name: stp_labels
+num_classes: 84
 model_dir: /nfs/diskstation/projects/dex-net/regrasping/models/classification/
 
 data_augmentation:
@@ -19,37 +20,37 @@ data_augmentation:
   zoom_range: 0
 
   image_dropout_rate: 0.0
-  image_gaussian_sigma: 5.0
+  image_gaussian_sigma: 1.0
   image_gaussian_corrcoef: 4
   rot_180: 0
 
   data_dropout_rate: 0.0
-  data_gaussian_sigma: 0.000001
+  data_gaussian_sigma: 0.0000001
 
   horizontal_flip: 0
   vertical_flip: 0
 
 preprocessing:
   augment: 1
-  rounds: 5
-  num_tensors: 100
+  rounds: 3
+  num_tensors: 50
 
 data_iteration:
   shuffle: 1
   save_to_dir: 0
-  save_prefix: iter
-  save_format: png
+  save_prefix: logs/iter
 
 model:
   base:
-      model: /nfs/diskstation/projects/dex-net/models/classification/resnet50_notop
-      type: resnet50
+      model: /nfs/diskstation/projects/dex-net/models/classification/vgg16_notop
+      type: vgg16
       params:
         include_fc: 0
 
   params:
     new_fc_layer_sizes:
-      - 128
+      - 512
+      - 256
 
 optimization:
   optimizer: adam
@@ -60,12 +61,12 @@ optimization:
     - accuracy
 
 training:
-  epochs: 10
+  epochs: 25
   class_weight: auto
   use_multiprocessing: 1
 
   batch_size: 128
-  train_pct: 0.9
+  train_pct: 0.8
   model_save_period: 1
 
 debug: 0
