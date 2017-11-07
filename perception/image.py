@@ -885,6 +885,14 @@ class ColorImage(Image):
         self._encoding = encoding
         if self._encoding != 'rgb8' and self._encoding != 'bgr8':
             raise ValueError('Illegal encoding: %s. Please use rgb8 or bgr8' %(self._encoding))
+        if self._encoding == 'rgb8':
+            self.r_axis = 0
+            self.g_axis = 1
+            self.b_axis = 2
+        else:
+            self.r_axis = 2
+            self.g_axis = 1
+            self.b_axis = 0
 
     def _check_valid_data(self, data):
         """Checks that the given data is a uint8 array with one or three
@@ -2131,7 +2139,7 @@ class BinaryImage(Image):
             A list of resuting contours
         """
         # get all contours (connected components) from the binary image
-        contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        _, contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         num_contours = len(contours)
         kept_contours = []
 
