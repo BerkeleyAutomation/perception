@@ -11,18 +11,12 @@ class RenderMode(object):
     """
     SEGMASK = 'segmask'
     DEPTH = 'depth'
-    DEPTH_SCENE = 'depth_scene'
     SCALED_DEPTH = 'scaled_depth'
     COLOR = 'color'
-    COLOR_SCENE = 'color_scene'
     GRAY = 'gray'
-    GRAY_SCENE = 'gray_scene'
     GD = 'gd'
-    GD_SCENE = 'gd_scene'
     RGBD = 'rgbd'
-    RGBD_SCENE = 'rgbd_scene'
     GD = 'gd'
-    GD_SCENE = 'gd_scene'
     GRAYSCALE = 'gray'
 
 class ObjectRender(object):
