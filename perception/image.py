@@ -1401,14 +1401,11 @@ class DepthImage(Image):
             depth_data = (self._data - min_depth) / (max_depth - min_depth)
             depth_data = float(BINARY_IM_MAX_VAL) * depth_data.squeeze()
         else:
-            depth_data = (self._data * (float(BINARY_IM_MAX_VAL) / constants.MAX_DEPTH)).squeeze()
+            depth_data = ((self._data - constants.MIN_DEPTH) * (float(BINARY_IM_MAX_VAL) / (constants.MAX_DEPTH - constants.MIN_DEPTH))).squeeze()
         im_data = np.zeros([self.height, self.width, 3])
         im_data[:,:,0] = depth_data
         im_data[:,:,1] = depth_data
         im_data[:,:,2] = depth_data
-
-        zero_indices = np.where(im_data == 0)
-        im_data[zero_indices[0], zero_indices[1]] = BINARY_IM_MAX_VAL
         return im_data.astype(np.uint8)
 
     def resize(self, size, interp='bilinear'):
@@ -1544,7 +1541,7 @@ class DepthImage(Image):
         # fill in zero pixels with inpainted and resized image
         inpainted_im = DepthImage(cur_data, frame=self.frame)
         filled_data = inpainted_im.resize(1.0 / rescale_factor, interp='bilinear').data
-        new_data = self.data
+        new_data = np.copy(self.data)
         new_data[self.data == 0] = filled_data[self.data == 0]
         return DepthImage(new_data, frame=self.frame)
 
