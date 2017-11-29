@@ -1,0 +1,14 @@
+# REGISTRATION PARAMS
+calib_dir: /nfs/diskstation/calib # directory for the output
+pattern_tf: /nfs/diskstation/calib/ensenso/pattern_to_world.tf
+num_patterns: 10
+max_tries: 25
+
+# SENSOR CALIBRATION LIST
+sensor_frame: ensenso
+
+# ROBOT VERIFICATION PARAMS
+use_robot: 1
+gripper_offset_x: 0.0
+gripper_offset_y: -0.056
+gripper_offset_z: 0.0

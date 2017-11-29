@@ -77,7 +77,6 @@ class EnsensoSensor(CameraSensor):
         depth_ind = 2 + 4 * np.arange(num_points)
         depth_buf = raw_arr[depth_ind]
         depth_arr = depth_buf.reshape(msg.height, msg.width)
-        depth_arr = np.flipud(depth_arr)
         depth_im = DepthImage(depth_arr, frame=self._frame)
 
         return depth_im
@@ -197,11 +196,12 @@ def main(args):
             print('Frame %d' %(i))
             print('Avg FPS: %.5f' %(float(i) / total_time))
         
-    sensor.stop()
-
+    depth_im = sensor.median_depth_img(num_img=5)
     point_cloud = sensor.ir_intrinsics.deproject(depth_im) 
     point_cloud.remove_zero_points()
-    
+
+    sensor.stop()
+
     vis2d.figure()
     vis2d.imshow(depth_im)
     vis2d.title('Ensenso - Raw')

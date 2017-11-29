@@ -28,9 +28,13 @@ except Exception:
 try:
     from primesense_sensor import PrimesenseSensor, VirtualPrimesenseSensor, PrimesenseSensor_ROS, PrimesenseRegistrationMode
 except Exception:
-    print 'Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.'
-    print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
+    print 'Unable to import Primsense sensor modules! Likely due to missing OpenNI2.'
 
+try:
+    from ensenso_sensor import EnsensoSensor
+except Exception:
+    print 'Unable to import Ensenso sensor modules!.'
+    
 from opencv_camera_sensor import OpenCVCameraSensor
 from rgbd_sensors import RgbdSensorFactory
 from video_recorder import VideoRecorder
@@ -45,6 +49,7 @@ __all__ = [
     'Feature', 'LocalFeature', 'GlobalFeature', 'SHOTFeature', 'MVCNNFeature', 'BagOfFeatures',
     'Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage', 'RgbdImage', 'GdImage', 'SegmentationImage', 'BinaryImage', 'PointCloudImage', 'NormalCloudImage',
     'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode', 'Kinect2DepthMode', 'Kinect2Sensor', 'VirtualKinect2Sensor', 'Kinect2SensorFactory', 'load_images',
+    'EnsensoSensor',
     'RgbdSensorFactory', 'PrimesenseSensor', 'VirtualPrimesenseSensor', 'PrimesenseSensor_ROS', 'PrimesenseRegistrationMode',
     'RenderMode', 'ObjectRender', 'QueryImageBundle',
     'RegistrationResult', 'IterativeRegistrationSolver', 'PointToPlaneICPSolver',
