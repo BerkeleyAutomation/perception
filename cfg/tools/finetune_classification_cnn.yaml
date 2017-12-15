@@ -50,7 +50,7 @@ model:
   params:
     new_fc_layer_sizes:
       - 512
-      - 256
+      - 256      
 
 optimization:
   optimizer: adam

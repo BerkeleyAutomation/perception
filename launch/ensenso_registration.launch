@@ -16,7 +16,7 @@
     <param name="AutoBlackLevel"    type="bool"   value="true" />
     <param name="AutoExposure"      type="bool"   value="true" />
     <param name="AutoGain"          type="bool"   value="true" />
-    <param name="Binning"           type="int"    value="1" />
+    <param name="Binning"           type="int"    value="2" />
     <param name="BlackLevelOffset"  type="double" value="0.55" />
     <param name="DisparityMapAOI"   type="bool"   value="false" />
     <param name="Exposure"          type="double" value="1.5" />
@@ -33,7 +33,7 @@
     <param name="TriggerMode"       type="int"    value="0" />      <!-- Software: 0, FallingEdge: 1, RisingEdge: 2 -->
     <!-- Stereo parameters -->
     <param name="MinimumDisparity"      type="int"    value="-64" />
-    <param name="NumberOfDisparities"   type="int"    value="128" />
+    <param name="NumberOfDisparities"   type="int"    value="64" />
     <param name="OptimizationProfile"   type="int"    value="2" />  <!-- Aligned: 0, Diagonal: 1, AlignedAndDiagonal: 2 -->
     <param name="Scaling"               type="double" value="1.0" />
     <param name="DepthChangeCost"       type="int"    value="5" />

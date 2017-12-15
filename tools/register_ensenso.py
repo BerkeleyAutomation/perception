@@ -126,6 +126,7 @@ def register_ensenso(config):
                                          translation=t_gripper_world,
                                          from_frame='gripper',
                                          to_frame='world')
+
         # move robot to pose
         y = YuMiRobot(tcp=YMC.TCP_SUCTION_STIFF)
         y.reset_home()

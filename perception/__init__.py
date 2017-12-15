@@ -35,8 +35,11 @@ try:
 except Exception:
     print 'Unable to import Ensenso sensor modules!.'
     
-from opencv_camera_sensor import OpenCVCameraSensor
-from rgbd_sensors import RgbdSensorFactory
+try:
+    from opencv_camera_sensor import OpenCVCameraSensor
+    from rgbd_sensors import RgbdSensorFactory
+except Exception:
+    print 'Unable to import generic sensor modules!.'
 from video_recorder import VideoRecorder
 from video_writer import write_video
 

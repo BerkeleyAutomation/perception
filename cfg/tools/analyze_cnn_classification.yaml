@@ -1,4 +1,5 @@
 batch_size: 128
+randomize: 1
 
 plotting:
   figsize: 10

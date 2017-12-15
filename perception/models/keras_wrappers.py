@@ -139,6 +139,26 @@ class TensorDataGenerator(ImageDataGenerator):
                 if num_x == 0:
                     continue
                 x0 = x[0]
+
+            if self.resize_images and Image.can_convert(x0):
+                image_shape = x0.shape
+                if self.image_shape is not None:
+                    image_shape = self.image_shape
+
+                x_resized = np.zeros([num_x] + list(image_shape))
+                for i in range(num_x):
+                    im = x0
+                    if num_x > 1:
+                        im = x[i]
+                    for c in range(min(image_shape[2], x0.shape[2])):
+                        x_resized[i,...,c] = sm.imresize(im[:,:,c],
+                                                         size=(image_shape[0],
+                                                               image_shape[1]),
+                                                         interp='bilinear',
+                                                         mode='F')
+                    x = x_resized
+
+                x_dict[x_name] = x
                 
             if self.preprocessing_function:
                 x = self.preprocessing_function(x)
@@ -174,25 +194,6 @@ class TensorDataGenerator(ImageDataGenerator):
                                   'been fit on any training data. Fit it '
                                   'first by calling `.fit()`.')
 
-            if self.resize_images and Image.can_convert(x0):
-                image_shape = x0.shape
-                if self.image_shape is not None:
-                    image_shape = self.image_shape
-
-                x_resized = np.zeros([num_x] + list(image_shape))
-                for i in range(num_x):
-                    im = x0
-                    if num_x > 1:
-                        im = x[i]
-                    for c in range(min(image_shape[2], x0.shape[2])):
-                        x_resized[i,...,c] = sm.imresize(im[:,:,c],
-                                                         size=(image_shape[0],
-                                                               image_shape[1]),
-                                                         interp='bilinear',
-                                                         mode='F')
-                    x = x_resized
-
-                x_dict[x_name] = x
         return x_dict
 
     def random_transform(self, x_dict, seed=None):

@@ -13,12 +13,14 @@ import sys
 import autolab_core.utils as utils
 from autolab_core import YamlConfig
 from perception.models import ClassificationCNN
+from perception import ColorImage
 
 from dexnet.learning import ClassificationResult, TensorDataset
 
 def analyze_classification_performance(model_dir, config, dataset_path=None):
     # read params
     predict_batch_size = config['batch_size']
+    randomize = config['randomize']
     
     plotting_config = config['plotting']
     figsize = plotting_config['figsize']
@@ -100,18 +102,19 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
             tensor = dataset.tensor(y_name, tensor_ind)
             ind = np.where(tensor.arr == label)[0]
             if ind.shape[0] > 0:
-                ind = ind[0]
+                ind = ind[0] + dataset.datapoints_per_tensor * (tensor_ind)
                 label_found = True
+
             tensor_ind += 1
         
         if not label_found:
             continue
         datapoint = dataset[ind]
         example_im = datapoint[x_name]
-                
+        
         plt.subplot(d,d,i+1)
         plt.imshow(example_im[:,:,:3].astype(np.uint8))
-        plt.title('Class %03d: %.3f%%' %(label, float(label_counts[label]) / dataset.num_datapoints))
+        plt.title('Class %03d: %.3f%%' %(label, float(label_counts[label]) / dataset.num_datapoints), fontsize=3)
         plt.axis('off')
     plt.savefig(os.path.join(analysis_dir, '%s_classes.pdf' %(dataset_name)))
 
@@ -121,20 +124,39 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
         logging.info('Evaluating performance on split: %s' %(split_name))
 
         # predict
-        pred_probs, true_labels = cnn.evaluate_on_dataset(dataset, indices=indices, batch_size=predict_batch_size)
-        pred_labels = np.argmax(pred_probs, axis=1)
-
+        if randomize:
+            pred_probs, true_labels = cnn.evaluate_on_dataset(dataset, indices=indices, batch_size=predict_batch_size)
+            pred_labels = np.argmax(pred_probs, axis=1)
+        else:
+            true_labels = []
+            pred_labels = []
+            pred_probs = []
+            for datapoint in dataset:
+                im = ColorImage(datapoint['color_ims'].astype(np.uint8)[:,:,:3])
+                true_label = datapoint['stp_labels']
+                pred_prob = cnn.predict(im)
+                pred_label = np.argmax(pred_prob, axis=1)
+                true_labels.append(true_label)
+                pred_labels.append(pred_label)
+                pred_probs.append(pred_prob.ravel())
+                
+                """
+                if class_remapping is not None:
+                    true_label = class_remapping[true_label]
+                plt.figure()
+                plt.imshow(im.raw_data)
+                plt.title('T: %d, P: %d' %(true_label, pred_label))
+                plt.show()
+                """
+            true_labels = np.array(true_labels)
+            pred_labels = np.array(pred_labels)
+            pred_probs = np.array(pred_probs)
+                
         # apply optional class re-mapping
         if class_remapping is not None:
-            new_pred_probs = np.zeros(pred_probs.shape)
-            new_pred_labels = np.zeros(pred_labels.shape)
             new_true_labels = np.zeros(true_labels.shape)
             for orig_label, new_label in class_remapping.iteritems():
-                new_pred_probs[:,new_label] += pred_probs[:,orig_label]
-                new_pred_labels[pred_labels==orig_label] = new_label
                 new_true_labels[true_labels==orig_label] = new_label
-            pred_probs = new_pred_probs
-            pred_labels = new_pred_labels
             true_labels = new_true_labels
 
         # compute classification results
@@ -152,6 +174,8 @@ def analyze_classification_performance(model_dir, config, dataset_path=None):
         plt.clf()
         plt.imshow(confusion, cmap=plt.cm.gray, interpolation='none')
         plt.locator_params(nticks=cnn.num_classes)
+        plt.xlabel('Predicted', fontsize=font_size)
+        plt.ylabel('Actual', fontsize=font_size)
         plt.savefig(os.path.join(analysis_dir, '%s_confusion.pdf' %(split_name)), dpi=dpi)
 
         # save analysis

@@ -138,6 +138,12 @@ class CameraIntrinsics(object):
         return self._K
 
     @property
+    def vec(self):
+        """:obj:`numpy.ndarray` : Vector representation for this camera.
+        """
+        return np.r_[self.fx, self.fy, self.cx, self.cy, self.skew, self.height, self.width]
+    
+    @property
     def rosmsg(self):
         """:obj:`sensor_msgs.CamerInfo` : Returns ROS CamerInfo msg 
         """

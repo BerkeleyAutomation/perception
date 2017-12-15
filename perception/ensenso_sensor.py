@@ -10,15 +10,16 @@ import struct
 import sys
 import time
 
-from cv_bridge import CvBridge, CvBridgeError
-import rospy
-from sensor_msgs.msg import CameraInfo, PointCloud2
-import sensor_msgs.point_cloud2 as pc2
-
+try:
+    from cv_bridge import CvBridge, CvBridgeError
+    import rospy
+    from sensor_msgs.msg import CameraInfo, PointCloud2
+    import sensor_msgs.point_cloud2 as pc2
+except ImportError:
+    logging.warning("Failed to import ROS in ensenso_sensor.py. ROS functionality not available")
+    
 from constants import MM_TO_METERS, INTR_EXTENSION
-from perception import CameraIntrinsics, CameraSensor, DepthImage, Image
-from visualization import Visualizer2D as vis2d
-from visualization import Visualizer3D as vis3d
+from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, Image
 
 class EnsensoSensor(CameraSensor):
     """ Class for interfacing with an Ensenso N* sensor.
@@ -30,6 +31,7 @@ class EnsensoSensor(CameraSensor):
         self._format = None
         self._camera_intr = None
         self._cur_depth_im = None
+        self._running = False
         
     def __del__(self):
         """Automatically stop the sensor for safety.
@@ -114,6 +116,9 @@ class EnsensoSensor(CameraSensor):
         self._pointcloud_sub = rospy.Subscriber('/%s/depth/points' %(self.frame), PointCloud2, self._pointcloud_callback)
         self._camera_info_sub = rospy.Subscriber('/%s/left/camera_info' %(self.frame), CameraInfo, self._camera_info_callback)
 
+        while self._camera_intr is None:
+            time.sleep(0.1)
+        
         self._running = True
 
     def stop(self):
@@ -149,8 +154,11 @@ class EnsensoSensor(CameraSensor):
             
         # read next image
         depth_im = self._cur_depth_im
+        color_im = ColorImage(np.zeros([depth_im.height,
+                                        depth_im.width,
+                                        3]).astype(np.uint8), frame=self._frame)
         self._cur_depth_im = None
-        return None, depth_im, None
+        return color_im, depth_im, None
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):
         """Collect a series of depth images and return the median of the set.
@@ -176,6 +184,9 @@ class EnsensoSensor(CameraSensor):
         return median_depth
         
 def main(args):
+    from visualization import Visualizer2D as vis2d
+    from visualization import Visualizer3D as vis3d
+
     # set logging
     logging.getLogger().setLevel(logging.INFO)
     rospy.init_node('ensenso_reader', anonymous=True)
