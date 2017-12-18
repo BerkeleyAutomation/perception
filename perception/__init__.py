@@ -9,12 +9,12 @@ from .camera_intrinsics import CameraIntrinsics
 
 try:
     from .cnn import AlexNet, AlexNetWeights, conv
+    from .features import Feature, LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
+    from .feature_extractors import FeatureExtractor, CNNBatchFeatureExtractor, CNNReusableBatchFeatureExtractor    
 except Exception:
     logging.warning('Unable to import CNN modules! Likely due to missing tensorflow.')
     logging.warning('TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup')
 
-from .features import Feature, LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
-from .feature_extractors import FeatureExtractor, CNNBatchFeatureExtractor, CNNReusableBatchFeatureExtractor    
 from .feature_matcher import Correspondences, NormalCorrespondences, FeatureMatcher, RawDistanceFeatureMatcher, PointToPlaneFeatureMatcher
 from .image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, RgbdImage, GdImage, SegmentationImage, BinaryImage, PointCloudImage, NormalCloudImage
 from .object_render import RenderMode, ObjectRender, QueryImageBundle
