@@ -9,7 +9,7 @@ requirements = [
     'scipy',
     'autolab_core',
     'matplotlib',
-    'multiprocessing',
+    'multiprocess',
     'opencv-python',
     'tensorflow',
     'tensorflow-gpu',
