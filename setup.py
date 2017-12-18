@@ -10,6 +10,7 @@ requirements = [
     'autolab_core',
     'matplotlib',
     'multiprocessing',
+    'opencv-python',
     'tensorflow',
     'tensorflow-gpu',
     'keras',
