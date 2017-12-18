@@ -11,7 +11,7 @@ requirements = [
     'matplotlib',
     'multiprocess',
     'opencv-python',
-    'tensorflow',
+    'tensorflow>=1.0',
     'tensorflow-gpu',
     'keras',
     'cycler',
