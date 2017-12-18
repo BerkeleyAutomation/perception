@@ -8,10 +8,10 @@ import numpy as np
 import json
 import os
 
-from image import DepthImage, PointCloudImage
 from autolab_core import Point, PointCloud, ImageCoords
 
-from constants import INTR_EXTENSION
+from .constants import INTR_EXTENSION
+from .image import DepthImage, PointCloudImage
 
 try:
     from sensor_msgs.msg import CameraInfo, RegionOfInterest

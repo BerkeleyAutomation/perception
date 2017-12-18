@@ -8,9 +8,9 @@ import logging
 import numpy as np
 import time
 
-import constants as constants
-from cnn import AlexNet
-from image import Image, ColorImage, DepthImage
+import .constants as constants
+from .cnn import AlexNet
+from .image import Image, ColorImage, DepthImage
 
 class FeatureExtractor:
     __metaclass__ = ABCMeta

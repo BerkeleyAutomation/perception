@@ -4,7 +4,7 @@ Author: Jeff Mahler
 """
 from autolab_core import RigidTransform
 
-from image import BinaryImage, ColorImage, DepthImage
+from .image import BinaryImage, ColorImage, DepthImage
 
 class RenderMode(object):
     """Supported rendering modes.

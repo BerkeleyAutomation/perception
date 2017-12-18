@@ -12,8 +12,9 @@ import numpy as np
 import scipy.ndimage.morphology as snm
 
 from autolab_core import Box
-from image import BinaryImage, ColorImage, DepthImage
-from object_render import RenderMode
+
+from .image import BinaryImage, ColorImage, DepthImage
+from .object_render import RenderMode
 
 class RgbdDetection(object):
     """ Struct to wrap the results of rgbd detection.

@@ -3,9 +3,9 @@ Lean classes to encapculate images
 Author: Jeff
 """
 from abc import ABCMeta, abstractmethod
+import IPython
 import logging
 import os
-import IPython
 
 import cv2
 import matplotlib.pyplot as plt
@@ -19,7 +19,6 @@ import scipy.ndimage.interpolation as sni
 import scipy.ndimage.morphology as snm
 import scipy.spatial.distance as ssd
 import scipy.signal as ssg
-import matplotlib.pyplot as plt
 
 import sklearn.cluster as sc
 import sklearn.mixture as smx
@@ -29,8 +28,7 @@ import skimage.morphology as morph
 import scipy.ndimage.morphology as snm
 
 from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
-
-import constants as constants
+from .constants import *
 
 try:
     from cv_bridge import CvBridge, CvBridgeError
@@ -785,7 +783,7 @@ class Image(object):
             If an unsupported file type is specified.
         """
         file_root, file_ext = os.path.splitext(filename)
-        if file_ext in constants.COLOR_IMAGE_EXTS:
+        if file_ext in COLOR_IMAGE_EXTS:
             im_data = self._image_data()
             pil_image = PImage.fromarray(im_data.squeeze())
             pil_image.save(filename)
@@ -841,7 +839,7 @@ class Image(object):
         """
         file_root, file_ext = os.path.splitext(filename)
         data = None
-        if file_ext.lower() in constants.COLOR_IMAGE_EXTS:
+        if file_ext.lower() in COLOR_IMAGE_EXTS:
             data = cv2.cvtColor(cv2.imread(filename), cv2.COLOR_BGR2RGB)
         elif file_ext == '.npy':
             data = np.load(filename)
@@ -1400,7 +1398,7 @@ class DepthImage(Image):
             depth_data = (self._data - min_depth) / (max_depth - min_depth)
             depth_data = float(BINARY_IM_MAX_VAL) * depth_data.squeeze()
         else:
-            depth_data = ((self._data - constants.MIN_DEPTH) * (float(BINARY_IM_MAX_VAL) / (constants.MAX_DEPTH - constants.MIN_DEPTH))).squeeze()
+            depth_data = ((self._data - MIN_DEPTH) * (float(BINARY_IM_MAX_VAL) / (MAX_DEPTH - MIN_DEPTH))).squeeze()
         im_data = np.zeros([self.height, self.width, 3])
         im_data[:,:,0] = depth_data
         im_data[:,:,1] = depth_data
@@ -1710,8 +1708,8 @@ class DepthImage(Image):
         """
         file_root, file_ext = os.path.splitext(filename)
         data = Image.load_data(filename)
-        if file_ext.lower() in constants.COLOR_IMAGE_EXTS:
-            data = (data * (constants.MAX_DEPTH / BINARY_IM_MAX_VAL)).astype(np.float32)
+        if file_ext.lower() in COLOR_IMAGE_EXTS:
+            data = (data * (MAX_DEPTH / BINARY_IM_MAX_VAL)).astype(np.float32)
         return DepthImage(data, frame)
 
 class IrImage(Image):
@@ -1768,7 +1766,7 @@ class IrImage(Image):
             A 3D matrix representing the image. The first dimension is rows, the
             second is columns, and the third is simply the IR entry scaled to between 0 and BINARY_IM_MAX_VAL.
         """
-        return (self._data * (float(BINARY_IM_MAX_VAL) / constants.MAX_IR)).astype(np.uint8)
+        return (self._data * (float(BINARY_IM_MAX_VAL) / MAX_IR)).astype(np.uint8)
 
     def resize(self, size, interp='bilinear'):
         """Resize the image.
@@ -1812,7 +1810,7 @@ class IrImage(Image):
             The new IR image.
         """
         data = Image.load_data(filename)
-        data = (data * (constants.MAX_IR / BINARY_IM_MAX_VAL)).astype(np.uint16)
+        data = (data * (MAX_IR / BINARY_IM_MAX_VAL)).astype(np.uint16)
         return IrImage(data, frame)
 
 class GrayscaleImage(Image):

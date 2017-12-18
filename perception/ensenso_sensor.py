@@ -18,8 +18,8 @@ try:
 except ImportError:
     logging.warning("Failed to import ROS in ensenso_sensor.py. ROS functionality not available")
     
-from constants import MM_TO_METERS, INTR_EXTENSION
-from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, Image
+from .constants import MM_TO_METERS, INTR_EXTENSION
+from . import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, Image
 
 class EnsensoSensor(CameraSensor):
     """ Class for interfacing with an Ensenso N* sensor.

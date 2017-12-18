@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from autolab_core import PointCloud, RigidTransform, Point
-from perception import DepthImage
+from .image import DepthImage
 
 class ChessboardRegistrationResult(object):
     """ Struct to encapsulate results of camera-to-chessboard registration.

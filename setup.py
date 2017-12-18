@@ -8,6 +8,7 @@ requirements = [
     'numpy',
     'scipy',
     'matplotlib',
+    'multiprocessing',
     'tensorflow',
     'tensorflow-gpu',
     'keras',

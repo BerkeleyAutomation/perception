@@ -2,8 +2,8 @@
 Class to record videos from webcams using opencv
 Author: Jacky Liang
 '''
-from multiprocessing import Process, Queue
 import cv2
+from multiprocessing import Process, Queue
 import numpy as np
 import os
 import skvideo.io as si

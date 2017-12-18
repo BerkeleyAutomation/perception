@@ -2,7 +2,7 @@
 RGBD Sensor factory
 Author: Jeff Mahler
 """
-from perception import Kinect2Sensor, VirtualKinect2Sensor, PrimesenseSensor, VirtualPrimesenseSensor, PrimesenseSensor_ROS, EnsensoSensor
+from . import Kinect2Sensor, VirtualKinect2Sensor, PrimesenseSensor, VirtualPrimesenseSensor, PrimesenseSensor_ROS, EnsensoSensor
 
 class RgbdSensorFactory:
     """ Factory class for Rgbd camera sensors. """

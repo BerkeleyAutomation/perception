@@ -3,13 +3,13 @@ Classes for feature matching between point sets for registration
 Author: Jeff Mahler
 """
 from abc import ABCMeta, abstractmethod
-
 import numpy as np
 from scipy import spatial
 import scipy.spatial.distance as ssd
 
-from features import BagOfFeatures
 from autolab_core import PointCloud
+
+from .features import BagOfFeatures
 
 class Correspondences:
     """ Wrapper for point-set correspondences.
