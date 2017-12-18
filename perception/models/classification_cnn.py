@@ -29,8 +29,9 @@ from keras.applications.imagenet_utils import preprocess_input
 from keras.applications.imagenet_utils import _obtain_input_shape
 
 from autolab_core import YamlConfig
-from perception.models.constants import *
-from perception.models import TrainHistory, TensorDataGenerator, TensorDatasetIterator
+
+from .constants import *
+from . import TrainHistory, TensorDataGenerator, TensorDatasetIterator
 
 class ClassificationCNN(object):
     """ Base class for CNN-based classification.

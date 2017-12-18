@@ -4,7 +4,7 @@ Author: Jeff Mahler
 """
 
 from autolab_core.utils import reverse_dictionary
-from perception.models import ClassificationCNN, FinetunedClassificationCNN, ResNet50, VGG16
+from . import ClassificationCNN, FinetunedClassificationCNN, ResNet50, VGG16
 
 CLASSIFICATION_CNN_TYPES = {
     'finetuned': FinetunedClassificationCNN,

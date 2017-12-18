@@ -27,9 +27,10 @@ from keras.utils import to_categorical
 
 import autolab_core.utils as utils
 from autolab_core import YamlConfig
-from perception import Image, RgbdImage
-from perception.models.constants import *
 from visualization import Visualizer2D as vis
+
+from .constants import *
+from .. import Image, RgbdImage
 
 from dexnet.learning import TensorDataset, Tensor
 

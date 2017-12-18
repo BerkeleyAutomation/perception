@@ -15,8 +15,8 @@ from keras.layers import Flatten, Dense, Input, Conv2D, Activation, MaxPooling2D
 from keras import backend as K
 from keras.applications.resnet50 import identity_block, conv_block
 
-from perception.models.constants import *
-from perception.models import ClassificationCNN
+from .constants import *
+from . import ClassificationCNN
 
 class ResNet50(ClassificationCNN):
     def __init__(self, *args, **kwargs):

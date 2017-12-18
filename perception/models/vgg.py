@@ -14,8 +14,8 @@ import warnings
 
 from keras.layers import Flatten, Dense, Input, Conv2D, MaxPooling2D, GlobalAveragePooling2D, GlobalMaxPooling2D
 
-from perception.models.constants import *
-from perception.models import ClassificationCNN
+from .constants import *
+from . import ClassificationCNN
 
 class VGG16(ClassificationCNN):
     def __init__(self, *args, **kwargs):
