@@ -2,16 +2,14 @@
 Tests the image class.
 Author: Jeff Mahler
 """
-import unittest
 import logging
 import numpy as np
+import unittest
 
-from unittest import TestCase
 from constants import *
 from perception import Image, ColorImage, DepthImage, BinaryImage, SegmentationImage, GrayscaleImage, IrImage, PointCloudImage, NormalCloudImage
 
-class TestImage(TestCase):
-
+class TestImage(unittest.TestCase):
     def test_color_init(self):
         # valid data
         random_valid_data = (255.0 * np.random.rand(IM_HEIGHT, IM_WIDTH, 3)).astype(np.uint8)
@@ -70,8 +68,8 @@ class TestImage(TestCase):
     def test_binary_init(self):
         # valid data
         random_valid_data = (255.0 * np.random.rand(IM_HEIGHT, IM_WIDTH)).astype(np.uint8)
-        binary_data = 255 * (random_valid_data > 128)
-        im = BinaryImage(random_valid_data)
+        binary_data = 255 * (random_valid_data > BINARY_THRESH)
+        im = BinaryImage(random_valid_data, threshold=BINARY_THRESH)
         self.assertEqual(im.height, IM_HEIGHT)
         self.assertEqual(im.width, IM_WIDTH)
         self.assertEqual(im.channels, 1)
@@ -388,7 +386,7 @@ class TestImage(TestCase):
     def test_io(self, height=50, width=100):
         color_data = (255 * np.random.rand(height, width, 3)).astype(np.uint8)
         im = ColorImage(color_data, 'a')
-        file_root = 'test/data/test_color'
+        file_root = COLOR_IM_FILEROOT
 
         # save and load png
         filename = file_root + '.png'

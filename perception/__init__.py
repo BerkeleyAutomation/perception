@@ -2,13 +2,15 @@
 Alan Perception Module.
 Authors: Jeff, Jacky
 '''
+import logging
+
 from camera_intrinsics import CameraIntrinsics
 try:
     from cnn import AlexNet, AlexNetWeights, conv
     from feature_extractors import FeatureExtractor, CNNBatchFeatureExtractor, CNNReusableBatchFeatureExtractor
 except Exception:
-    print 'Unable to import ConvNet modules! Likely due to missing tensorflow.'
-    print 'TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup'
+    logging.warning('Unable to import ConvNet modules! Likely due to missing tensorflow.')
+    logging.warning('TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup')
 from feature_matcher import Correspondences, NormalCorrespondences, FeatureMatcher, RawDistanceFeatureMatcher, PointToPlaneFeatureMatcher
 from features import Feature, LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
 from image import Image, ColorImage, DepthImage, IrImage, GrayscaleImage, RgbdImage, GdImage, SegmentationImage, BinaryImage, PointCloudImage, NormalCloudImage
@@ -22,24 +24,24 @@ from camera_sensor import CameraSensor
 try:
     from kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
 except Exception:
-    print 'Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.'
-    print 'The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2'
+    logging.warning('Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.')
+    logging.warning('The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2')
 
 try:
     from primesense_sensor import PrimesenseSensor, VirtualPrimesenseSensor, PrimesenseSensor_ROS, PrimesenseRegistrationMode
 except Exception:
-    print 'Unable to import Primsense sensor modules! Likely due to missing OpenNI2.'
+    logging.warning('Unable to import Primsense sensor modules! Likely due to missing OpenNI2.')
 
 try:
     from ensenso_sensor import EnsensoSensor
 except Exception:
-    print 'Unable to import Ensenso sensor modules!.'
+    logging.warning('Unable to import Ensenso sensor modules!.')
     
 try:
     from opencv_camera_sensor import OpenCVCameraSensor
     from rgbd_sensors import RgbdSensorFactory
 except Exception:
-    print 'Unable to import generic sensor modules!.'
+    logging.warning('Unable to import generic sensor modules!.')
 from video_recorder import VideoRecorder
 from video_writer import write_video
 

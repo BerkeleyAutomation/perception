@@ -3,6 +3,7 @@ Encapsulates camera intrinsic parameters for projecting / deprojecitng points
 Author: Jeff Mahler
 """
 import copy
+import logging
 import numpy as np
 import json
 import os
@@ -16,7 +17,7 @@ try:
     from sensor_msgs.msg import CameraInfo, RegionOfInterest
     from std_msgs.msg import Header
 except Exception:
-    print ('WARNING: AUTOLab Perception module not installed as Catkin Package. ROS msg conversions will not be available for Perception wrappers.')
+    logging.warning('autolab_perception is not installed as a catkin package - ROS msg conversions will not be available for image wrappers')
 
 class CameraIntrinsics(object):
     """A set of intrinsic parameters for a camera. This class is used to project

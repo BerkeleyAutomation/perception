@@ -33,10 +33,10 @@ from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
 import constants as constants
 
 try:
-    from sensor_msgs.msg import Image
     from cv_bridge import CvBridge, CvBridgeError
+    from sensor_msgs.msg import Image
 except Exception:
-    print 'WARNING: AUTOLab Perception Module not installed as Catkin Package. ROS msg conversions will not be available for Perception wrappers'
+    logging.warning('autolab_perception is not installed as a catkin package - ROS msg conversions will not be available for image wrappers')
 
 BINARY_IM_MAX_VAL = np.iinfo(np.uint8).max
 BINARY_IM_DEFAULT_THRESH = BINARY_IM_MAX_VAL / 2
@@ -188,8 +188,7 @@ class Image(object):
         try:
             return cv_bridge.cv2_to_imgmsg(self._data, encoding=self._encoding)
         except CvBridgeError as cv_bridge_exception:
-            print cv_bridge_exception
-
+            logging.error('%s' %(str(cv_bridge_exception)))
 
     @abstractmethod
     def _check_valid_data(self, data):

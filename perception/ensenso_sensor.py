@@ -204,8 +204,8 @@ def main(args):
 
         if i > 0:
             total_time += time.time() - start_time
-            print('Frame %d' %(i))
-            print('Avg FPS: %.5f' %(float(i) / total_time))
+            logging.info('Frame %d' %(i))
+            logging.info('Avg FPS: %.5f' %(float(i) / total_time))
         
     depth_im = sensor.median_depth_img(num_img=5)
     point_cloud = sensor.ir_intrinsics.deproject(depth_im) 
