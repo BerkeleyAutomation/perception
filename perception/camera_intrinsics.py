@@ -3,20 +3,21 @@ Encapsulates camera intrinsic parameters for projecting / deprojecitng points
 Author: Jeff Mahler
 """
 import copy
+import logging
 import numpy as np
 import json
 import os
 
-from image import DepthImage, PointCloudImage
 from autolab_core import Point, PointCloud, ImageCoords
 
-from constants import INTR_EXTENSION
+from .constants import INTR_EXTENSION
+from .image import DepthImage, PointCloudImage
 
 try:
     from sensor_msgs.msg import CameraInfo, RegionOfInterest
     from std_msgs.msg import Header
 except Exception:
-    print ('WARNING: AUTOLab Perception module not installed as Catkin Package. ROS msg conversions will not be available for Perception wrappers.')
+    logging.warning('autolab_perception is not installed as a catkin package - ROS msg conversions will not be available for image wrappers')
 
 class CameraIntrinsics(object):
     """A set of intrinsic parameters for a camera. This class is used to project
@@ -137,6 +138,12 @@ class CameraIntrinsics(object):
         """
         return self._K
 
+    @property
+    def vec(self):
+        """:obj:`numpy.ndarray` : Vector representation for this camera.
+        """
+        return np.r_[self.fx, self.fy, self.cx, self.cy, self.skew, self.height, self.width]
+    
     @property
     def rosmsg(self):
         """:obj:`sensor_msgs.CamerInfo` : Returns ROS CamerInfo msg 

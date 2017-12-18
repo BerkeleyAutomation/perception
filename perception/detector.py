@@ -12,8 +12,9 @@ import numpy as np
 import scipy.ndimage.morphology as snm
 
 from autolab_core import Box
-from image import BinaryImage, ColorImage, DepthImage
-from object_render import RenderMode
+
+from .image import BinaryImage, ColorImage, DepthImage
+from .object_render import RenderMode
 
 class RgbdDetection(object):
     """ Struct to wrap the results of rgbd detection.
@@ -115,7 +116,7 @@ class RgbdDetector(object):
 
     @abstractmethod
     def detect(self, color_im, depth_im, cfg, camera_intr=None,
-               T_camera_world=None):
+               T_camera_world=None, segmask=None):
         """
         Detects all relevant objects in an rgbd image pair.
 
@@ -131,6 +132,8 @@ class RgbdDetector(object):
             intrinsics of the camera
         T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
+        segmask : :obj:`BinaryImage'
+            optional segmask of invalid pixels
 
         Returns
         ------
@@ -144,7 +147,7 @@ class RgbdForegroundMaskDetector(RgbdDetector):
     the images using background subtraction.
     """
     def detect(self, color_im, depth_im, cfg, camera_intr=None,
-               T_camera_world=None):
+               T_camera_world=None, segmask=None):
         """
         Detects all relevant objects in an rgbd image pair using foreground masking.
 
@@ -160,6 +163,8 @@ class RgbdForegroundMaskDetector(RgbdDetector):
             intrinsics of the camera
         T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
+        segmask : :obj:`BinaryImage'
+            optional segmask of invalid pixels
 
         Returns
         ------
@@ -294,7 +299,7 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
 
     def detect(self, color_im, depth_im, cfg, camera_intr=None,
                T_camera_world=None,
-               vis_foreground=False, vis_segmentation=False):
+               vis_foreground=False, vis_segmentation=False, segmask=None):
         """
         Detects all relevant objects in an rgbd image pair using foreground masking.
 
@@ -310,6 +315,8 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
             intrinsics of the camera
         T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
+        segmask : :obj:`BinaryImage'
+            optional segmask of invalid pixels
 
         Returns
         ------
@@ -427,7 +434,7 @@ class PointCloudBoxDetector(RgbdDetector):
     """
     def detect(self, color_im, depth_im, cfg, camera_intr,
                T_camera_world,
-               vis_foreground=False, vis_segmentation=False):
+               vis_foreground=False, vis_segmentation=False, segmask=None):
         """
         Detects all relevant objects in an rgbd image pair using foreground masking.
 
@@ -443,6 +450,8 @@ class PointCloudBoxDetector(RgbdDetector):
             intrinsics of the camera
         T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
+        segmask : :obj:`BinaryImage'
+            optional segmask of invalid pixels
 
         Returns
         ------
@@ -488,6 +497,8 @@ class PointCloudBoxDetector(RgbdDetector):
         # mask image using background detection
         bgmodel = color_im.background_model()
         binary_im = depth_im_seg.to_binary()
+        if segmask is not None:
+            binary_im = binary_im.mask_binary(segmask.inverse())
 
         # filter the image
         y, x = np.ogrid[-w/2+1:w/2+1, -w/2+1:w/2+1]
@@ -506,6 +517,7 @@ class PointCloudBoxDetector(RgbdDetector):
             plt.figure()
             plt.subplot(1,3,1)
             plt.imshow(color_im.data)
+            plt.imshow(segmask.data, cmap=plt.cm.gray)
             plt.axis('off')
             plt.subplot(1,3,2)
             plt.imshow(binary_im.data, cmap=plt.cm.gray)
@@ -550,6 +562,7 @@ class PointCloudBoxDetector(RgbdDetector):
                 # segment color to get refined detection
                 contour_mask = binary_im_filtered.contour_mask(contour)
                 binary_thumbnail = contour_mask.crop(query_box.height, query_box.width, query_box.ci, query_box.cj)
+
             else:
                 # otherwise take original bounding box
                 query_box = Box(contour.bounding_box.min_pt - box_padding_px,

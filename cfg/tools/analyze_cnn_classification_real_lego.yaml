@@ -1,0 +1,25 @@
+batch_size: 128
+randomize: 0
+
+class_remapping:
+  0: 76
+  1: 75
+  2: 79
+  3: 75
+  4: 78
+  5: 79
+  6: 81
+  7: 82
+  8: 81
+  9: 81
+
+plotting:
+  figsize: 10
+  font_size: 16
+  legend_font_size: 12
+  line_width: 2
+  dpi: 2
+  colors:
+    - 3
+    - 0
+    - 2

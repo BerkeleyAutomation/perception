@@ -2,14 +2,14 @@
 Classes for easy chessboard registration
 Authors: Jeff Mahler and Jacky Liang
 """
-import numpy as np
-import logging
 import cv2
-import matplotlib.pyplot as plt
+import logging
 import math
+import matplotlib.pyplot as plt
+import numpy as np
 
 from autolab_core import PointCloud, RigidTransform, Point
-from perception import DepthImage
+from .image import DepthImage
 
 class ChessboardRegistrationResult(object):
     """ Struct to encapsulate results of camera-to-chessboard registration.
@@ -131,7 +131,7 @@ class CameraChessboardRegistration:
             corner_px_round = np.round(small_corner_px).astype(np.uint16)
             corner_ind = depth_im.ij_to_linear(corner_px_round[:,0], corner_px_round[:,1])
             if corner_ind.shape[0] != sx*sy:
-                print 'Did not find all corners. Discarding...'
+                logging.warning('Did not find all corners. Discarding...')
                 continue
 
             # average 3d points

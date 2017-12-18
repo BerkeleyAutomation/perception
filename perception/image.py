@@ -3,9 +3,9 @@ Lean classes to encapculate images
 Author: Jeff
 """
 from abc import ABCMeta, abstractmethod
+import IPython
 import logging
 import os
-import IPython
 
 import cv2
 import matplotlib.pyplot as plt
@@ -19,7 +19,6 @@ import scipy.ndimage.interpolation as sni
 import scipy.ndimage.morphology as snm
 import scipy.spatial.distance as ssd
 import scipy.signal as ssg
-import matplotlib.pyplot as plt
 
 import sklearn.cluster as sc
 import sklearn.mixture as smx
@@ -29,14 +28,16 @@ import skimage.morphology as morph
 import scipy.ndimage.morphology as snm
 
 from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
-
-import constants as constants
+from .constants import *
 
 try:
-    from sensor_msgs.msg import Image
     from cv_bridge import CvBridge, CvBridgeError
+    from sensor_msgs.msg import Image
 except Exception:
-    print 'WARNING: AUTOLab Perception Module not installed as Catkin Package. ROS msg conversions will not be available for Perception wrappers'
+    logging.warning('autolab_perception is not installed as a catkin package - ROS msg conversions will not be available for image wrappers')
+
+BINARY_IM_MAX_VAL = np.iinfo(np.uint8).max
+BINARY_IM_DEFAULT_THRESH = BINARY_IM_MAX_VAL / 2
 
 class Image(object):
     """Abstract wrapper class for images.
@@ -185,8 +186,7 @@ class Image(object):
         try:
             return cv_bridge.cv2_to_imgmsg(self._data, encoding=self._encoding)
         except CvBridgeError as cv_bridge_exception:
-            print cv_bridge_exception
-
+            logging.error('%s' %(str(cv_bridge_exception)))
 
     @abstractmethod
     def _check_valid_data(self, data):
@@ -227,6 +227,59 @@ class Image(object):
             'bicubic', or 'cubic')
         """
         pass
+
+    @staticmethod
+    def can_convert(x):
+        """ Returns True if x can be converted to an image, False otherwise. """
+        if len(x.shape) < 2 or len(x.shape) > 3:
+            return False
+        dtype = x.dtype
+        height = x.shape[0]
+        width = x.shape[1]
+        channels = 1
+        if len(x.shape) == 3:
+            channels = x.shape[2]
+        if channels > 4:
+            return False
+        return True
+
+    @staticmethod
+    def from_array(x, frame='unspecified'):
+        """ Converts an array of data to an Image based on the values in the array and the data format. """
+
+        if not Image.can_convert(x):
+            raise ValueError('Cannot convert array to an Image!')
+        
+        dtype = x.dtype
+        height = x.shape[0]
+        width = x.shape[1]
+        channels = 1
+        if len(x.shape) == 3:
+            channels = x.shape[2]
+        if dtype == np.uint8:
+            if channels == 1:
+                if np.any((x % BINARY_IM_MAX_VAL) > 0):
+                    return GrayscaleImage(x, frame)
+                return BinaryImage(x, frame)
+            elif channels == 3:
+                return ColorImage(x, frame)
+            else:
+                raise ValueError('No available image conversion for uint8 array with 2 channels')
+        elif dtype == np.uint16:
+            if channels != 1:
+                raise ValueError('No available image conversion for uint16 array with 2 or 3 channels')
+            return GrayscaleImage(x, frame)
+        elif dtype == np.float32 or dtype == np.float64:
+            if channels == 1:
+                return DepthImage(x, frame)
+            elif channels == 2:
+                return GdImage(x, frame)
+            elif channels == 3:
+                logging.warning('Converting float array to uint8')
+                return ColorImage(x.astype(np.uint8), frame)
+            return RgbdImage(x, frame)
+        else:
+            raise ValueError('Conversion for dtype %s not supported!' %(str(dtype)))
 
     def transform(self, translation, theta, method='opencv'):
         """Create a new image by translating and rotating the current image.
@@ -460,11 +513,11 @@ class Image(object):
             if len(indices) > 1:
                 j = indices[1]
             if len(indices) > 2:
-                k = indices[2]
+                k = indices[2]  
         else:
             i = indices
 
-        # check indices
+        # check indices and slicing
         if (type(i) == int and i < 0) or \
            (j is not None and type(j) == int and j < 0) or \
            (k is not None and type(k) is int and k < 0) or \
@@ -472,6 +525,13 @@ class Image(object):
            (j is not None and type(j) == int and j >= self.width) or \
            (k is not None and type(k) == int and k >= self.channels):
             raise ValueError('Out of bounds indexing')
+        if (type(i) == slice and i.start < 0) or \
+           (j is not None and type(j) == slice and j.start < 0) or \
+           (k is not None and type(k) == slice and k.start < 0) or \
+           (type(i) == slice and i.stop > self.height) or \
+           (j is not None and type(j) == slice and j.stop > self.width) or \
+           (k is not None and type(k) == slice and k.stop > self.channels):
+           raise ValueError('Out of bounds slicing')
         if k is not None and type(k) == int and k > 1 and self.channels < 3:
             raise ValueError('Illegal indexing. Image is not 3 dimensional')
 
@@ -661,6 +721,18 @@ class Image(object):
         zero_px = np.c_[zero_px[0], zero_px[1]]
         return zero_px
 
+    def nan_pixels(self):
+        """ Return an array of the NaN pixels.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+             Nx2 array of the NaN pixels
+        """
+        nan_px = np.where(np.isnan(np.sum(self.raw_data, axis=2)))
+        nan_px = np.c_[nan_px[0], nan_px[1]]
+        return nan_px
+
     def finite_pixels(self):
         """ Return an array of the finite pixels.
 
@@ -711,7 +783,7 @@ class Image(object):
             If an unsupported file type is specified.
         """
         file_root, file_ext = os.path.splitext(filename)
-        if file_ext in constants.SUPPORTED_IMAGE_EXTS:
+        if file_ext in COLOR_IMAGE_EXTS:
             im_data = self._image_data()
             pil_image = PImage.fromarray(im_data.squeeze())
             pil_image.save(filename)
@@ -767,9 +839,8 @@ class Image(object):
         """
         file_root, file_ext = os.path.splitext(filename)
         data = None
-        if file_ext.lower() in constants.SUPPORTED_IMAGE_EXTS:
-            pil_image = PImage.open(filename)
-            data = np.array(pil_image)
+        if file_ext.lower() in COLOR_IMAGE_EXTS:
+            data = cv2.cvtColor(cv2.imread(filename), cv2.COLOR_BGR2RGB)
         elif file_ext == '.npy':
             data = np.load(filename)
         elif file_ext == '.npz':
@@ -782,7 +853,7 @@ class ColorImage(Image):
     """An RGB color image.
     """
 
-    def __init__(self, data, frame='unspecified'):
+    def __init__(self, data, frame='unspecified', encoding='rgb8'):
         """Create a color image from an array of data.
 
         Parameters
@@ -798,6 +869,9 @@ class ColorImage(Image):
             A string representing the frame of reference in which this image
             lies.
 
+        encoding : :obj:`str`
+            Either rgb8 or bgr8, depending on the channel storage mode
+
         Raises
         ------
         ValueError
@@ -805,7 +879,17 @@ class ColorImage(Image):
             string.
         """
         Image.__init__(self, data, frame)
-        self._encoding = 'rgb8'
+        self._encoding = encoding
+        if self._encoding != 'rgb8' and self._encoding != 'bgr8':
+            raise ValueError('Illegal encoding: %s. Please use rgb8 or bgr8' %(self._encoding))
+        if self._encoding == 'rgb8':
+            self.r_axis = 0
+            self.g_axis = 1
+            self.b_axis = 2
+        else:
+            self.r_axis = 2
+            self.g_axis = 1
+            self.b_axis = 0
 
     def _check_valid_data(self, data):
         """Checks that the given data is a uint8 array with one or three
@@ -842,19 +926,29 @@ class ColorImage(Image):
     def r_data(self):
         """:obj:`numpy.ndarray` of uint8 : The red-channel data.
         """
-        return self.data[:,:,0]
+        return self.data[:,:,self.r_axis]
 
     @property
     def g_data(self):
         """:obj:`numpy.ndarray` of uint8 : The green-channel data.
         """
-        return self.data[:,:,1]
+        return self.data[:,:,self.g_axis]
 
     @property
     def b_data(self):
         """:obj:`numpy.ndarray` of uint8 : The blue-channel data.
         """
-        return self.data[:,:,2]
+        return self.data[:,:,self.b_axis]
+
+    def bgr2rgb(self):
+        """ Converts data using the cv conversion. """
+        new_data = cv2.cvtColor(self.raw_data, cv2.COLOR_BGR2RGB)
+        return ColorImage(new_data, frame=self.frame, encoding='rgb8')
+
+    def rgb2bgr(self):
+        """ Converts data using the cv conversion. """
+        new_data = cv2.cvtColor(self.raw_data, cv2.COLOR_RGB2BGR)
+        return ColorImage(new_data, frame=self.frame, encoding='bgr8')
 
     def swap_channels(self, channel_swap):
         """ Swaps the two channels specified in the tuple.
@@ -988,7 +1082,7 @@ class ColorImage(Image):
             generation.
 
         scale : int
-            Size of background histogram bins -- there will be 255/size bins
+            Size of background histogram bins -- there will be BINARY_IM_MAX_VAL/size bins
             in the color histogram for each channel.
 
         bgmodel : :obj:`list` of int
@@ -1015,7 +1109,7 @@ class ColorImage(Image):
 
         # threshold
         binary_data = cv2.inRange(self.data, lower_bound, upper_bound)
-        binary_data[:,:,] = (255 - binary_data[:,:,])
+        binary_data[:,:,] = (BINARY_IM_MAX_VAL - binary_data[:,:,])
         binary_data[orig_zero_indices[0], orig_zero_indices[1],] = 0.0
         binary_im = BinaryImage(binary_data.astype(np.uint8), frame=self.frame)
         return binary_im
@@ -1035,7 +1129,7 @@ class ColorImage(Image):
             generation.
 
         scale : int
-            Size of background histogram bins -- there will be 255/size bins
+            Size of background histogram bins -- there will be BINARY_IM_MAX_VAL/size bins
             in the color histogram for each channel.
 
         Returns
@@ -1097,13 +1191,13 @@ class ColorImage(Image):
 
         #draw the vertical lines
         for j in range(min_j, max_j):
-            box_data[min_i,j,:] = 255 * np.ones(self.channels)
-            box_data[max_i,j,:] = 255 * np.ones(self.channels)
+            box_data[min_i,j,:] = BINARY_IM_MAX_VAL * np.ones(self.channels)
+            box_data[max_i,j,:] = BINARY_IM_MAX_VAL * np.ones(self.channels)
 
         #draw the horizontal lines
         for i in range(min_i, max_i):
-            box_data[i,min_j,:] = 255 * np.ones(self.channels)
-            box_data[i,max_j,:] = 255 * np.ones(self.channels)
+            box_data[i,min_j,:] = BINARY_IM_MAX_VAL * np.ones(self.channels)
+            box_data[i,max_j,:] = BINARY_IM_MAX_VAL * np.ones(self.channels)
 
         return ColorImage(box_data, self._frame)
 
@@ -1197,7 +1291,7 @@ class ColorImage(Image):
         :obj:`BinaryImage`
             Binary image corresponding to the nonzero px of the original image
         """
-        data = 255 * (self._data > threshold)
+        data = BINARY_IM_MAX_VAL * (self._data > threshold)
         return BinaryImage(data[:,:,0].astype(np.uint8), self._frame)
 
     def to_grayscale(self):
@@ -1296,22 +1390,19 @@ class DepthImage(Image):
         :obj:`numpy.ndarray` of uint8
             A 3D matrix representing the image. The first dimension is rows, the
             second is columns, and the third is a set of 3 RGB values, each of
-            which is simply the depth entry scaled to between 0 and 255.
+            which is simply the depth entry scaled to between 0 and BINARY_IM_MAX_VAL.
         """
         if normalize:
             min_depth = np.min(self._data)
             max_depth = np.max(self._data)
             depth_data = (self._data - min_depth) / (max_depth - min_depth)
-            depth_data = 255.0 * depth_data.squeeze()
+            depth_data = float(BINARY_IM_MAX_VAL) * depth_data.squeeze()
         else:
-            depth_data = (self._data * (255.0 / constants.MAX_DEPTH)).squeeze()
+            depth_data = ((self._data - MIN_DEPTH) * (float(BINARY_IM_MAX_VAL) / (MAX_DEPTH - MIN_DEPTH))).squeeze()
         im_data = np.zeros([self.height, self.width, 3])
         im_data[:,:,0] = depth_data
         im_data[:,:,1] = depth_data
         im_data[:,:,2] = depth_data
-
-        zero_indices = np.where(im_data == 0)
-        im_data[zero_indices[0], zero_indices[1]] = 255.0
         return im_data.astype(np.uint8)
 
     def resize(self, size, interp='bilinear'):
@@ -1447,9 +1538,28 @@ class DepthImage(Image):
         # fill in zero pixels with inpainted and resized image
         inpainted_im = DepthImage(cur_data, frame=self.frame)
         filled_data = inpainted_im.resize(1.0 / rescale_factor, interp='bilinear').data
-        new_data = self.data
+        new_data = np.copy(self.data)
         new_data[self.data == 0] = filled_data[self.data == 0]
         return DepthImage(new_data, frame=self.frame)
+
+    def invalid_pixel_mask(self):
+        """ Returns a binary mask for the NaN- and zero-valued pixels.
+        Serves as a mask for invalid pixels.
+
+        Returns
+        -------
+        :obj:`BinaryImage`
+            Binary image where a pixel value greater than zero indicates an invalid pixel.
+        """
+        # init mask buffer
+        mask = np.zeros([self.height, self.width, 1]).astype(np.uint8)
+        
+        # update invalid pixels
+        zero_pixels = self.zero_pixels()
+        nan_pixels = self.nan_pixels()
+        mask[zero_pixels[:,0], zero_pixels[:,1]] = BINARY_IM_MAX_VAL
+        mask[nan_pixels[:,0], nan_pixels[:,1]] = BINARY_IM_MAX_VAL
+        return BinaryImage(mask, frame=self.frame)
 
     def mask_binary(self, binary_im):
         """Create a new image by zeroing out data at locations
@@ -1464,8 +1574,8 @@ class DepthImage(Image):
 
         Returns
         -------
-        :obj:`Image`
-            A new Image of the same type, masked by the given binary image.
+        :obj:`DepthImage`
+            A new DepthImage of the same type, masked by the given binary image.
         """
         data = np.copy(self._data)
         ind = np.where(binary_im.data == 0)
@@ -1529,7 +1639,7 @@ class DepthImage(Image):
             A BinaryImage where all 1 points had a depth greater than threshold
             in the DepthImage.
         """
-        data = 255 * (self._data > threshold)
+        data = BINARY_IM_MAX_VAL * (self._data > threshold)
         return BinaryImage(data.astype(np.uint8), self._frame)
 
     def to_color(self, normalize=False):
@@ -1598,8 +1708,8 @@ class DepthImage(Image):
         """
         file_root, file_ext = os.path.splitext(filename)
         data = Image.load_data(filename)
-        if file_ext.lower() in constants.SUPPORTED_IMAGE_EXTS:
-            data = (data * (constants.MAX_DEPTH / 255.0)).astype(np.float32)
+        if file_ext.lower() in COLOR_IMAGE_EXTS:
+            data = (data * (MAX_DEPTH / BINARY_IM_MAX_VAL)).astype(np.float32)
         return DepthImage(data, frame)
 
 class IrImage(Image):
@@ -1654,9 +1764,9 @@ class IrImage(Image):
         -------
         :obj:`numpy.ndarray` of uint8
             A 3D matrix representing the image. The first dimension is rows, the
-            second is columns, and the third is simply the IR entry scaled to between 0 and 255.
+            second is columns, and the third is simply the IR entry scaled to between 0 and BINARY_IM_MAX_VAL.
         """
-        return (self._data * (255.0 / constants.MAX_IR)).astype(np.uint8)
+        return (self._data * (float(BINARY_IM_MAX_VAL) / MAX_IR)).astype(np.uint8)
 
     def resize(self, size, interp='bilinear'):
         """Resize the image.
@@ -1700,7 +1810,7 @@ class IrImage(Image):
             The new IR image.
         """
         data = Image.load_data(filename)
-        data = (data * (constants.MAX_IR / 255.0)).astype(np.uint16)
+        data = (data * (MAX_IR / BINARY_IM_MAX_VAL)).astype(np.uint16)
         return IrImage(data, frame)
 
 class GrayscaleImage(Image):
@@ -1756,7 +1866,7 @@ class GrayscaleImage(Image):
         :obj:`numpy.ndarray` of uint8
             A 3D matrix representing the image. The first dimension is rows, the
             second is columns, and the third is simply the greyscale entry
-            scaled to between 0 and 255.
+            scaled to between 0 and BINARY_IM_MAX_VAL.
         """
         return self._data
 
@@ -1779,7 +1889,7 @@ class GrayscaleImage(Image):
         :obj:`GrayscaleImage`
             The resized image.
         """
-        resized_data = sm.imresize(self._data, size, interp=interp)
+        resized_data = sm.imresize(self.data, size, interp=interp)
         return GrayscaleImage(resized_data, self._frame)
 
     @staticmethod
@@ -1805,10 +1915,10 @@ class GrayscaleImage(Image):
         return GrayscaleImage(data, frame)
 
 class BinaryImage(Image):
-    """A binary image in which individual pixels are either black or white (0 or 255).
+    """A binary image in which individual pixels are either black or white (0 or BINARY_IM_MAX_VAL).
     """
 
-    def __init__(self, data, frame='unspecified', threshold=128):
+    def __init__(self, data, frame='unspecified', threshold=BINARY_IM_DEFAULT_THRESH):
         """Create a BinaryImage image from an array of data.
 
         Parameters
@@ -1818,11 +1928,11 @@ class BinaryImage(Image):
             of the data should index rows, the second columns, and the third
             individual pixel elements (only one channel, all uint8).
             The data array will be thresholded
-            and will end up only containing elements that are 255 or 0.
+            and will end up only containing elements that are BINARY_IM_MAX_VAL or 0.
 
         threshold : int
             A threshold value. Any value in the data array greater than
-            threshold will be set to 255, and all others will be set to 0.
+            threshold will be set to BINARY_IM_MAX_VAL, and all others will be set to 0.
 
         frame : :obj:`str`
             A string representing the frame of reference in which this image
@@ -1835,7 +1945,7 @@ class BinaryImage(Image):
             string.
         """
         self._threshold = threshold
-        data = 255 * (data > threshold).astype(data.dtype) # binarize
+        data = BINARY_IM_MAX_VAL * (data > threshold).astype(data.dtype) # binarize
         Image.__init__(self, data, frame)
 
     def _check_valid_data(self, data):
@@ -1864,7 +1974,7 @@ class BinaryImage(Image):
         -------
         :obj:`numpy.ndarray` of uint8
             A 3D matrix representing the image. The first dimension is rows, the
-            second is columns, and the third is simply the binary 0/255 value.
+            second is columns, and the third is simply the binary 0/BINARY_IM_MAX_VAL value.
         """
         return self._data.squeeze()
 
@@ -1906,8 +2016,38 @@ class BinaryImage(Image):
         """
         data = np.copy(self._data)
         ind = np.where(binary_im.data == 0)
-        data[ind[0], ind[1], ...] = 0.0
+        data[ind[0], ind[1], ...] = 0
         return BinaryImage(data, self._frame)
+
+    def pixelwise_or(self, binary_im):
+        """ Takes OR operation with other binary image.
+
+        Parameters
+        ----------
+        binary_im : :obj:`BinaryImage`
+            binary image for and operation
+
+        Returns
+        -------
+        :obj:`BinaryImage`
+            OR of this binary image and other image
+        """
+        data = np.copy(self._data)
+        ind = np.where(binary_im.data > 0)
+        data[ind[0], ind[1], ...] = BINARY_IM_MAX_VAL
+        return BinaryImage(data, self._frame)        
+
+    def inverse(self):
+        """ Inverts image (all nonzeros become zeros and vice verse)
+        Returns
+        -------
+        :obj:`BinaryImage`
+            inverse of this binary image
+        """
+        data = np.zeros(self.shape).astype(np.uint8)
+        ind = np.where(self.data == 0)
+        data[ind[0], ind[1], ...] = BINARY_IM_MAX_VAL
+        return BinaryImage(data, self._frame)        
 
     def prune_contours(self, area_thresh=1000.0, dist_thresh=20,
                        preserve_topology=True):
@@ -1926,7 +2066,7 @@ class BinaryImage(Image):
             The new pruned binary image.
         """
         # get all contours (connected components) from the binary image
-        image, contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         num_contours = len(contours)
         middle_pixel = np.array(self.shape)[:2] / 2
         middle_pixel = middle_pixel.reshape(1,2)
@@ -1939,7 +2079,7 @@ class BinaryImage(Image):
             if area > area_thresh:
                 # check close to origin
                 fill = np.zeros([self.height, self.width, 3])
-                cv2.fillPoly(fill, pts=[contours[i]], color=(255,255,255))
+                cv2.fillPoly(fill, pts=[contours[i]], color=(BINARY_IM_MAX_VAL,BINARY_IM_MAX_VAL,BINARY_IM_MAX_VAL))
                 nonzero_px = np.where(fill > 0)
                 nonzero_px = np.c_[nonzero_px[0], nonzero_px[1]]
                 dists = ssd.cdist(middle_pixel, nonzero_px)
@@ -1969,7 +2109,7 @@ class BinaryImage(Image):
         # mask out bad areas in the image
         pruned_data = np.zeros([self.height, self.width, 3])
         for contour in pruned_contours:
-            cv2.fillPoly(pruned_data, pts=[contour], color=(255,255,255))
+            cv2.fillPoly(pruned_data, pts=[contour], color=(BINARY_IM_MAX_VAL,BINARY_IM_MAX_VAL,BINARY_IM_MAX_VAL))
         pruned_data = pruned_data[:,:,0] # convert back to one channel
 
         # preserve topology of original image
@@ -1993,14 +2133,14 @@ class BinaryImage(Image):
             A list of resuting contours
         """
         # get all contours (connected components) from the binary image
-        image, contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        _, contours, hierarchy = cv2.findContours(self.data.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         num_contours = len(contours)
         kept_contours = []
 
         # find which contours need to be pruned
         for i in range(num_contours):
             area = cv2.contourArea(contours[i])
-            logging.debug('Contour %d area: %.3f' %(i, area))
+            logging.debug('Contour %d area: %.3f' %(len(kept_contours), area))
             if area > min_area and area < max_area:
                 boundary_px = contours[i].squeeze()
                 boundary_px_ij_swapped = np.zeros(boundary_px.shape)
@@ -2018,7 +2158,9 @@ class BinaryImage(Image):
         boundary_px_ij_swapped = np.zeros([num_boundary, 1, 2])
         boundary_px_ij_swapped[:,0,0] = contour.boundary_pixels[:,1]
         boundary_px_ij_swapped[:,0,1] = contour.boundary_pixels[:,0]
-        cv2.fillPoly(new_data, pts=[boundary_px_ij_swapped.astype(np.int32)], color=(255,255,255))
+        cv2.fillPoly(new_data, pts=[boundary_px_ij_swapped.astype(np.int32)], color=(BINARY_IM_MAX_VAL,BINARY_IM_MAX_VAL,BINARY_IM_MAX_VAL))
+        orig_zeros = np.where(self.data == 0)
+        new_data[orig_zeros[0], orig_zeros[1]] = 0
         return BinaryImage(new_data.astype(np.uint8), frame=self._frame)
 
     def boundary_map(self):
@@ -2101,7 +2243,7 @@ class BinaryImage(Image):
         Returns
         -------
         :obj:`BinaryImage`
-            binary image with white (255) on the boundaries
+            binary image with white (BINARY_IM_MAX_VAL) on the boundaries
         """
         # check valid boundary pixels
         left_boundary = max(0, left_boundary)
@@ -2116,10 +2258,10 @@ class BinaryImage(Image):
 
         # fill in border pixels
         bordered_data = self.data.copy()
-        bordered_data[:upper_boundary,:] = 255
-        bordered_data[lower_boundary:,:] = 255
-        bordered_data[:,:left_boundary] = 255
-        bordered_data[:,right_boundary:] = 255
+        bordered_data[:upper_boundary,:] = BINARY_IM_MAX_VAL
+        bordered_data[lower_boundary:,:] = BINARY_IM_MAX_VAL
+        bordered_data[:,:left_boundary] = BINARY_IM_MAX_VAL
+        bordered_data[:,right_boundary:] = BINARY_IM_MAX_VAL
         return BinaryImage(bordered_data, frame=self._frame)
 
     def most_free_pixel(self):
@@ -2130,7 +2272,7 @@ class BinaryImage(Image):
         :obj:`numpy.ndarray`
             2-vector containing the most free pixel
         """
-        dist_tf = snm.distance_transform_edt(255 - self.data)
+        dist_tf = snm.distance_transform_edt(BINARY_IM_MAX_VAL - self.data)
         max_px = np.where(dist_tf == np.max(dist_tf))
         free_pixel = np.array([max_px[0][0], max_px[1][0]])
         return free_pixel
@@ -2151,9 +2293,9 @@ class BinaryImage(Image):
         :obj:`ColorImage`
             color image to visualize the image difference
         """
-        red = np.array([255,0,0])
-        yellow = np.array([255,255,0])
-        green = np.array([0,255,0])
+        red = np.array([BINARY_IM_MAX_VAL,0,0])
+        yellow = np.array([BINARY_IM_MAX_VAL,BINARY_IM_MAX_VAL,0])
+        green = np.array([0,BINARY_IM_MAX_VAL,0])
         overlap_data = np.zeros([self.height, self.width, 3])
         unfilled_px = np.where((self.data == 0) & (binary_im.data > 0))
         overlap_data[unfilled_px[0], unfilled_px[1], :] = red
@@ -2256,7 +2398,7 @@ class RgbdImage(Image):
             of the data should index rows, the second columns, and the third
             individual pixel elements (four channels, all float).
             The first three channels should be the red, greed, and blue channels
-            which must be in the range (0, 255).
+            which must be in the range (0, BINARY_IM_MAX_VAL).
             The fourth channel should be the depth channel.
 
         frame : :obj:`str`
@@ -2292,8 +2434,8 @@ class RgbdImage(Image):
             raise ValueError('Illegal data type. RGB-D images only support four channel')
 
         color_data = data[:,:,:3]
-        if np.any((color_data < 0) | (color_data > 255)):
-            raise ValueError('Color channels must be in the range (0, 255)')
+        if np.any((color_data < 0) | (color_data > BINARY_IM_MAX_VAL)):
+            raise ValueError('Color channels must be in the range (0, BINARY_IM_MAX_VAL)')
 
     @staticmethod
     def from_color_and_depth(color_im, depth_im):
@@ -2336,7 +2478,7 @@ class RgbdImage(Image):
         :obj:`numpy.ndarray` of uint8
             A 3D matrix representing the image. The first dimension is rows, the
             second is columns, and the third is a set of 3 RGB values, each of
-            which is simply the depth entry scaled to between 0 and 255.
+            which is simply the depth entry scaled to between 0 and BINARY_IM_MAX_VAL.
         """
         return self.color_im._image_data(normalize=normalize)
 
@@ -2494,7 +2636,7 @@ class GdImage(Image):
             of the data should index rows, the second columns, and the third
             individual pixel elements (two channels, both float).
             The first channel should be the grayscale channel
-            which must be in the range (0, 255).
+            which must be in the range (0, BINARY_IM_MAX_VAL).
             The second channel should be the depth channel.
 
         frame : :obj:`str`
@@ -2530,8 +2672,8 @@ class GdImage(Image):
             raise ValueError('Illegal data type. G-D images only support two channel')
 
         gray_data = data[:,:,0]
-        if np.any((gray_data < 0) | (gray_data > 255)):
-            raise ValueError('Gray channel must be in the range (0, 255)')
+        if np.any((gray_data < 0) | (gray_data > BINARY_IM_MAX_VAL)):
+            raise ValueError('Gray channel must be in the range (0, BINARY_IM_MAX_VAL)')
 
     @staticmethod
     def from_grayscale_and_depth(gray_im, depth_im):
@@ -2574,7 +2716,7 @@ class GdImage(Image):
         :obj:`numpy.ndarray` of uint8
             A 3D matrix representing the image. The first dimension is rows, the
             second is columns, and the third is a set of 3 RGB values, each of
-            which is simply the depth entry scaled to between 0 and 255.
+            which is simply the depth entry scaled to between 0 and BINARY_IM_MAX_VAL.
         """
         return self.gray_im._image_data(normalize=normalize)
 
@@ -2716,7 +2858,7 @@ class SegmentationImage(Image):
              binary image data
         """
         binary_data = np.zeros(self.shape)
-        binary_data[self.data == segnum+1] = 255
+        binary_data[self.data == segnum+1] = BINARY_IM_MAX_VAL
         return BinaryImage(binary_data.astype(np.uint8), frame=self.frame)
 
     def resize(self, size, interp='nearest'):

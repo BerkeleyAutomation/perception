@@ -1,0 +1,13 @@
+batch_size: 128
+randomize: 1
+
+plotting:
+  figsize: 10
+  font_size: 16
+  legend_font_size: 12
+  line_width: 2
+  dpi: 2
+  colors:
+    - 3
+    - 0
+    - 2

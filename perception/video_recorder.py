@@ -2,8 +2,12 @@
 Class to record videos from webcams using opencv
 Author: Jacky Liang
 '''
-from multiprocessing import Process, Queue
 import cv2
+from multiprocessing import Process, Queue
+import numpy as np
+import os
+import skvideo.io as si
+import sys
 
 class _Camera(Process):
     """ Private class to manage a separate webcam data collection process.
@@ -29,11 +33,12 @@ class _Camera(Process):
         self.codec = codec
 
         self.camera = camera
-        self.fourcc = cv2.cv.CV_FOURCC(*self.codec)
+        self.fourcc = cv2.VideoWriter_fourcc(*self.codec)
         
         self.cmd_q = cmd_q
         self.recording = False
         self.out = None
+        self.data_buf = None
 
     def run(self):
         """ Continually write images to the filename specified by a command queue. """
@@ -41,20 +46,19 @@ class _Camera(Process):
             if not self.cmd_q.empty():
                 cmd = self.cmd_q.get()
                 if cmd[0] == 'stop':
-                    self.out.release()
+                    self.out.close()
                     self.recording = False
                 elif cmd[0] == 'start':
                     filename = cmd[1]
-                    self.out = cv2.VideoWriter(filename, self.fourcc, self.fps, self.res)                    
-                    if not self.out.isOpened():
-                        raise Exception("Unable to open video writer for file {0}, codec {1}, at fps {2}, res {3}".format(
-                                                                            filename, self.codec, self.fps, self.res))
+                    self.out = si.FFmpegWriter(filename)
                     self.recording = True
                     
             if self.recording:
-                ret_val, frame = self.camera.read()
-                if ret_val:
-                    self.out.write(frame)
+                image, _, _ = self.camera.frames()
+                if self.data_buf is None:
+                    self.data_buf = np.zeros([1, image.height, image.width, image.channels])
+                self.data_buf[0,...] = image.raw_data
+                self.out.writeFrame(self.data_buf)
 
 class VideoRecorder:
     """ Encapsulates video recording processes.
@@ -70,25 +74,30 @@ class VideoRecorder:
     fps : int
         frames per second of video captures. defaults to 30
     """
-    def __init__(self, device_id, res=(640, 480), codec='XVID', fps=30):
+    def __init__(self, camera, device_id=0, res=(640, 480), codec='XVID', fps=30):
         self._res = res
         self._codec = codec
         self._fps = fps
         
         self._cmd_q = Queue()
         
-        self._actual_camera = None
-        self._actual_camera = cv2.VideoCapture(device_id)
+        self._actual_camera = camera
 
-        if not self._actual_camera.isOpened():
-            raise Exception("Unable to open video device for video{0}".format(device_id))
-        
         self._recording = False
         self._started = False
+
+    @property
+    def is_recording(self):
+        return self._recording
+
+    @property
+    def is_started(self):
+        return self._started
 
     def start(self):
         """ Starts the camera recording process. """
         self._started = True
+        self._actual_camera.start()
         self._camera = _Camera(self._actual_camera, self._cmd_q, self._res, self._codec, self._fps)
         self._camera.start()
 
@@ -119,5 +128,5 @@ class VideoRecorder:
         if not self._started:
             raise Exception("Cannot stop a video recorder before starting it!")
         self._started = False
-        self._actual_camera.release()
+        self._actual_camera.stop()
         self._camera.terminate()

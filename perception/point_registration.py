@@ -2,14 +2,13 @@
 Classes for point set registration using variants of Iterated-Closest Point
 Author: Jeff Mahler
 """
-import logging
 from abc import ABCMeta, abstractmethod
-
+import logging
 import numpy as np
 
 from autolab_core import RigidTransform, PointCloud, NormalCloud, skew
 
-from feature_matcher import PointToPlaneFeatureMatcher
+from .feature_matcher import PointToPlaneFeatureMatcher
 
 class RegistrationResult(object):
     """ Struct to hold results of point set registration.

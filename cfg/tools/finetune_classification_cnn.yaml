@@ -1,0 +1,72 @@
+dataset: /nfs/diskstation/projects/dex-net/regrasping/datasets/lego_stp_10_24_17
+x_names:
+  - color_ims
+y_name: stp_labels
+num_classes: 84
+model_dir: /nfs/diskstation/projects/dex-net/regrasping/models/classification/
+
+data_augmentation:
+  featurewise_center: 1
+  featurewise_std_normalization: 1
+
+  image_shape:
+    - 224
+    - 224
+    - 3  
+
+  width_shift_range: 0.1
+  height_shift_range: 0.1
+  rotation_range: 180
+  zoom_range: 0
+
+  image_dropout_rate: 0.0
+  image_gaussian_sigma: 1.0
+  image_gaussian_corrcoef: 4
+  rot_180: 0
+
+  data_dropout_rate: 0.0
+  data_gaussian_sigma: 0.0000001
+
+  horizontal_flip: 0
+  vertical_flip: 0
+
+preprocessing:
+  augment: 1
+  rounds: 3
+  num_tensors: 50
+
+data_iteration:
+  shuffle: 1
+  save_to_dir: 0
+  save_prefix: logs/iter
+
+model:
+  base:
+      model: /nfs/diskstation/projects/dex-net/models/classification/vgg16_notop
+      type: vgg16
+      params:
+        include_fc: 0
+
+  params:
+    new_fc_layer_sizes:
+      - 512
+      - 256      
+
+optimization:
+  optimizer: adam
+  lr: 0.001
+  momentum: 0.9
+  loss: categorical_crossentropy
+  metrics:
+    - accuracy
+
+training:
+  epochs: 25
+  class_weight: auto
+  use_multiprocessing: 1
+
+  batch_size: 128
+  train_pct: 0.8
+  model_save_period: 1
+
+debug: 0

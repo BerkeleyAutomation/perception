@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Identifiers for the device -->
+  <arg name="camera" default="ensenso" />
+  <arg name="serial" default="171766" />
+
+  <!-- Ensenso driver -->
+  <node name="ensenso_driver" pkg="ensenso" type="ensenso_driver" ns="$(arg camera)" output="screen"> 
+    <!-- Static parameters -->
+    <param name="stream_calib_pattern"  type="bool"   value="false" />
+    <param name="serial"                type="string" value="$(arg serial)" />
+    <param name="camera_frame_id"       type="string" value="$(arg camera)_optical_frame" />
+    
+    <!-- Capture parameters -->
+    <param name="AutoBlackLevel"    type="bool"   value="true" />
+    <param name="AutoExposure"      type="bool"   value="true" />
+    <param name="AutoGain"          type="bool"   value="true" />
+    <param name="Binning"           type="int"    value="2" />
+    <param name="BlackLevelOffset"  type="double" value="0.55" />
+    <param name="DisparityMapAOI"   type="bool"   value="false" />
+    <param name="Exposure"          type="double" value="1.5" />
+    <param name="FlexView"          type="bool"   value="false" />
+    <param name="FlexViewImages"    type="int"    value="2" />
+    <param name="FrontLight"        type="bool"   value="false" />
+    <param name="Gain"              type="double" value="1.0" />
+    <param name="GainBoost"         type="bool"   value="false" />
+    <param name="HardwareGamma"     type="bool"   value="true" />
+    <param name="Hdr"               type="bool"   value="false" />
+    <param name="PixelClock"        type="int"    value="24" />
+    <param name="Projector"         type="bool"   value="true" />
+    <param name="TargetBrightness"  type="int"    value="80" />
+    <param name="TriggerMode"       type="int"    value="0" />      <!-- Software: 0, FallingEdge: 1, RisingEdge: 2 -->
+    <!-- Stereo parameters -->
+    <param name="MinimumDisparity"      type="int"    value="-64" />
+    <param name="NumberOfDisparities"   type="int"    value="64" />
+    <param name="OptimizationProfile"   type="int"    value="2" />  <!-- Aligned: 0, Diagonal: 1, AlignedAndDiagonal: 2 -->
+    <param name="Scaling"               type="double" value="1.0" />
+    <param name="DepthChangeCost"       type="int"    value="5" />
+    <param name="DepthStepCost"         type="int"    value="30" />
+    <param name="ShadowingThreshold"    type="int"    value="1" />
+    <!-- Postprocessing parameters -->
+    <param name="UniquenessRatio"           type="int" value="10" />
+    <param name="MedianFilterRadius"        type="int" value="1" />
+    <param name="SpeckleComponentThreshold" type="int" value="3" />
+    <param name="SpeckleRegionSize"         type="int" value="150" />
+    <param name="FillBorderSpread"          type="int" value="6" />
+    <param name="FillRegionSize"            type="int" value="175" />
+    <!-- Streaming parameters -->    
+    <param name="Cloud"   type="bool"   value="true" />
+    <param name="Images"  type="bool"   value="true" />
+  </node>
+  
+</launch>

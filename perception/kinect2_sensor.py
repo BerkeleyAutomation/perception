@@ -7,15 +7,15 @@ import logging
 import numpy as np
 import os
 
-from constants import MM_TO_METERS, INTR_EXTENSION
 try:
     import pylibfreenect2 as lf2
 except:
     logging.warning('Unable to import pylibfreenect2. Python-only Kinect driver may not work properly.')
 
-from camera_intrinsics import CameraIntrinsics
-from image import ColorImage, DepthImage, IrImage, Image
-from camera_sensor import CameraSensor
+from .constants import MM_TO_METERS, INTR_EXTENSION
+from .camera_intrinsics import CameraIntrinsics
+from .camera_sensor import CameraSensor
+from .image import ColorImage, DepthImage, IrImage, Image
 
 class Kinect2PacketPipelineMode:
     """Type of pipeline for Kinect packet processing.
@@ -485,7 +485,9 @@ class VirtualKinect2Sensor(CameraSensor):
         depth_filename = os.path.join(self._path_to_images, 'depth_%d.npy' %(self._im_index))
         depth_im = DepthImage.open(depth_filename, frame=self._frame)
         ir_filename = os.path.join(self._path_to_images, 'ir_%d.npy' %(self._im_index))
-        ir_im = IrImage.open(ir_filename, frame=self._frame)
+        ir_im = None
+        if os.path.exists(ir_filename):
+            ir_im = IrImage.open(ir_filename, frame=self._frame)
         self._im_index += 1
         return color_im, depth_im, ir_im
 
