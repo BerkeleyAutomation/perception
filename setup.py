@@ -14,7 +14,7 @@ requirements = [
     'keras',
     'cycler',
     'Pillow',
-    'ipython',
+    'ipython==5.5.0',
     'scikit-image',
     'scikit-learn',
     'scikit-video'
