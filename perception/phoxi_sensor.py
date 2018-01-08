@@ -183,7 +183,7 @@ class PhoXiSensor(CameraSensor):
             logging.debug('Connected to PhoXi Sensor {}'.format(name))
             return True
 
-        except rospy.ServiceException, e:
+        except rospy.ServiceException as e:
             logging.error('Service call failed: {}'.format(e))
             return False
 
