@@ -38,7 +38,13 @@ try:
     from .ensenso_sensor import EnsensoSensor
 except Exception:
     logging.warning('Unable to import Ensenso sensor modules!.')
-    
+
+from .phoxi_sensor import PhoXiSensor
+try:
+    from .phoxi_sensor import PhoXiSensor
+except Exception as e:
+    logging.warning('Unable to import PhoXi sensor modules!')
+
 try:
     from .opencv_camera_sensor import OpenCVCameraSensor
     from .rgbd_sensors import RgbdSensorFactory

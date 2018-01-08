@@ -1961,6 +1961,17 @@ class GrayscaleImage(Image):
         resized_data = sm.imresize(self.data, size, interp=interp)
         return GrayscaleImage(resized_data, self._frame)
 
+    def to_color(self):
+        """Convert the grayscale image to a ColorImage.
+
+        Returns
+        -------
+        :obj:`ColorImage`
+            A color image equivalent to the grayscale one.
+        """
+        color_data = np.repeat(self.data[:,:,np.newaxis], 3, axis=2)
+        return ColorImage(color_data, self._frame)
+
     @staticmethod
     def open(filename, frame='unspecified'):
         """Creates a GrayscaleImage from a file.
