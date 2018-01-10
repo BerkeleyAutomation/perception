@@ -3097,7 +3097,7 @@ class PointCloudImage(Image):
         raise NotImplementedError(
             'Image conversion not supported for point cloud')
 
-    def resize(self, size, interp='bilinear'):
+    def resize(self, size, interp='nearest'):
         """Resize the image.
 
         Parameters
@@ -3116,7 +3116,15 @@ class PointCloudImage(Image):
         :obj:`PointCloudImage`
             The resized image.
         """
-        resized_data = sm.imresize(self._data, size, interp=interp)
+        resized_data_0 = sm.imresize(self._data[:,:,0], size, interp=interp, mode='F')
+        resized_data_1 = sm.imresize(self._data[:,:,1], size, interp=interp, mode='F')
+        resized_data_2 = sm.imresize(self._data[:,:,2], size, interp=interp, mode='F')
+        resized_data = np.zeros([resized_data_0.shape[0],
+                                 resized_data_0.shape[1],
+                                 self.channels])
+        resized_data[:,:,0] = resized_data_0
+        resized_data[:,:,1] = resized_data_1
+        resized_data[:,:,2] = resized_data_2
         return PointCloudImage(resized_data, self._frame)
 
     def to_point_cloud(self):
