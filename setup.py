@@ -43,10 +43,14 @@ setup(name='autolab_perception',
       packages=['perception'],
       setup_requres = requirements,
       install_requires = requirements,
-      extras_require = { 'docs' : [
-          'sphinx',
-          'sphinxcontrib-napoleon',
-          'sphinx_rtd_theme'
-      ],
-      }
+    extras_require = { 'docs' : [
+                            'sphinx',
+                            'sphinxcontrib-napoleon',
+                            'sphinx_rtd_theme'
+                        ],
+                       'ros' : [
+                           'catkin_pkg',
+                           'empy'
+                        ],
+    }
 )
