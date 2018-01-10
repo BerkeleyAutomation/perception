@@ -49,6 +49,7 @@ setup(name='autolab_perception',
                             'sphinx_rtd_theme'
                         ],
                        'ros' : [
+                           'rospkg',
                            'catkin_pkg',
                            'empy'
                         ],
