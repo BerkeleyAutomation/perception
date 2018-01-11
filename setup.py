@@ -41,9 +41,8 @@ setup(name='autolab_perception',
           'Topic :: Scientific/Engineering'
       ],
       packages=['perception'],
-      setup_requres = requirements,
       install_requires = requirements,
-    extras_require = { 'docs' : [
+      extras_require = { 'docs' : [
                             'sphinx',
                             'sphinxcontrib-napoleon',
                             'sphinx_rtd_theme'
