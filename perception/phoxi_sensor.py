@@ -44,10 +44,11 @@ class PhoXiSensor(CameraSensor):
 
         # Set up camera intrinsics for the sensor
         width, height = 2064, 1544
+        focal_x, focal_y = 2244., 2244.
+        center_x, center_y = 1023., 768.
         if size == 'small':
             width, height = 1032, 772
-        focal_x, focal_y = 525., 525.
-        center_x, center_y = float(width - 1) / 2.0, float(height - 1) / 2.0
+            center_x, center_y = 1023./2., 768./2.
 
         self._camera_intr = CameraIntrinsics(self._frame, focal_x, focal_y,
                                              center_x, center_y,
@@ -79,6 +80,18 @@ class PhoXiSensor(CameraSensor):
 
     @property
     def frame(self):
+        """str : The reference frame of the sensor.
+        """
+        return self._frame
+
+    @property
+    def color_frame(self):
+        """str : The reference frame of the sensor.
+        """
+        return self._frame
+
+    @property
+    def ir_frame(self):
         """str : The reference frame of the sensor.
         """
         return self._frame
@@ -190,13 +203,15 @@ class PhoXiSensor(CameraSensor):
     def _color_im_callback(self, msg):
         """Callback for handling textures (greyscale images).
         """
-        gsimage = GrayscaleImage(self._bridge.imgmsg_to_cv2(msg).astype(np.uint8), frame=self._frame)
+        data = self._bridge.imgmsg_to_cv2(msg)
+        data = np.clip(data, 0., 255.0).astype(np.uint8)
+        gsimage = GrayscaleImage(data, frame=self._frame)
         self._cur_color_im = gsimage.to_color()
 
     def _depth_im_callback(self, msg):
         """Callback for handling depth images.
         """
-        self._cur_depth_im = DepthImage(self._bridge.imgmsg_to_cv2(msg), frame=self._frame)
+        self._cur_depth_im = DepthImage(self._bridge.imgmsg_to_cv2(msg) / 1000.0, frame=self._frame)
 
     def _normal_map_callback(self, msg):
         """Callback for handling normal maps.
