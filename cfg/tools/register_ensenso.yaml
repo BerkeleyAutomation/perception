@@ -5,7 +5,7 @@ num_patterns: 10
 max_tries: 25
 
 # SENSOR CALIBRATION LIST
-sensor_frame: ensenso
+sensor_frame: ensenso_overhead
 
 # ROBOT VERIFICATION PARAMS
 use_robot: 1

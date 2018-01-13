@@ -12,8 +12,8 @@ chessboard_registration:
   debug: 1 # show the final pose detection
   scale_amt: 0.1 # scale for vis axes
 
-calib_dir: /home/autolab/Public/alan/calib # directory for the output
-chessboard_tf: /home/autolab/Public/alan/calib/chessboard/chessboard_to_world.tf
+calib_dir: /nfs/diskstation/calib # directory for the output
+chessboard_tf: /nfs/diskstation/calib/chessboard/chessboard_to_world.tf
 
 # SENSOR CALIBRATION LIST
 sensors:
