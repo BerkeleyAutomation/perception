@@ -3,7 +3,8 @@ Class to record videos from webcams using opencv
 Author: Jacky Liang
 '''
 import cv2
-from multiprocess import Process, Queue
+import logging
+from multiprocessing import Process, Queue
 import numpy as np
 import os
 import skvideo.io as si
@@ -128,5 +129,10 @@ class VideoRecorder:
         if not self._started:
             raise Exception("Cannot stop a video recorder before starting it!")
         self._started = False
-        self._actual_camera.stop()
-        self._camera.terminate()
+        if self._actual_camera.is_running:
+            self._actual_camera.stop()
+        if self._camera is not None:
+            try:
+                self._camera.terminate()
+            except:
+                pass
