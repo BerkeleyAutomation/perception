@@ -47,8 +47,12 @@ class PhoXiSensor(CameraSensor):
         focal_x, focal_y = 2244., 2244.
         center_x, center_y = 1023., 768.
         if size == 'small':
-            width, height = 1032, 772
-            center_x, center_y = 1023./2., 768./2.
+            width = 1032
+            height = 772
+            focal_x = focal_x / 2
+            focal_y = focal_y / 2
+            center_x = center_x / 2
+            center_y = center_y / 2
 
         self._camera_intr = CameraIntrinsics(self._frame, focal_x, focal_y,
                                              center_x, center_y,
@@ -150,7 +154,6 @@ class PhoXiSensor(CameraSensor):
 
         while self._cur_color_im is None or self._cur_depth_im is None or self._cur_normal_map is None:
             time.sleep(0.05)
-
         return self._cur_color_im, self._cur_depth_im, None
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):

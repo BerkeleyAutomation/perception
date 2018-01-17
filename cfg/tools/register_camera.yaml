@@ -5,7 +5,7 @@ chessboard_registration:
   flip_normal: 0
 
   # VISUALIZATION PARAMS
-  vis: False # visualize registration
+  vis: 1 # visualize registration
   debug: 1 # show the final pose detection
   scale_amt: 0.1 # scale for vis axes
 
@@ -14,7 +14,7 @@ chessboard_tf: /nfs/diskstation/calib/chessboard/chessboard_to_world.tf
 
 # SENSOR CALIBRATION LIST
 sensors:
-    primesense:
+    primesense_overhead:
         sensor_config:
             type: primesense_ros
             auto_white_balance: 0
@@ -26,10 +26,11 @@ sensors:
     phoxi:
         sensor_config:
             type: phoxi
+            size: small
         registration_config:
             num_transform_avg: 2
             num_images: 2
-            color_image_rescale_factor: 0.3
+            color_image_rescale_factor: 0.6
 
 # ROBOT VERIFICATION PARAMS
 use_robot: 1

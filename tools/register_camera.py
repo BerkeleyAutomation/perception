@@ -8,10 +8,12 @@ import logging
 import numpy as np
 import os
 import time
+import traceback
 
 from mpl_toolkits.mplot3d import Axes3D
 
 import rospy
+import rosgraph.roslogging as rl
 
 from autolab_core import Point, RigidTransform, YamlConfig
 from perception import CameraChessboardRegistration, RgbdSensorFactory
@@ -35,9 +37,11 @@ if __name__ == '__main__':
 
     # initialize node
     rospy.init_node('register_camera', anonymous=True)
+    logging.getLogger().addHandler(rl.RosStreamHandler())
 
     # get camera sensor object
     for sensor_frame, sensor_data in config['sensors'].iteritems():
+        logging.info('Registering %s' %(sensor_frame))
         sensor_config = sensor_data['sensor_config']
         registration_config = sensor_data['registration_config'].copy()
         registration_config.update(config['chessboard_registration'])
@@ -46,6 +50,7 @@ if __name__ == '__main__':
         try:
             sensor_type = sensor_config['type']
             sensor_config['frame'] = sensor_frame
+            logging.info('Creating sensor')
             sensor = RgbdSensorFactory.sensor(sensor_type, sensor_config)
             logging.info('Starting sensor')
             sensor.start()
@@ -67,8 +72,9 @@ if __name__ == '__main__':
             sensor.stop()
         except Exception as e:
             logging.error('Failed to register sensor {}'.format(sensor_frame))
+            traceback.print_exc()
             continue
-
+        
         # save tranformation arrays based on setup
         output_dir = os.path.join(config['calib_dir'], sensor_frame)
         if not os.path.exists(output_dir):

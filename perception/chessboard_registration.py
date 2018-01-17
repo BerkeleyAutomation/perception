@@ -109,7 +109,7 @@ class CameraChessboardRegistration:
                 plt.show()
 
             if corner_px is None:
-                logging.error('No chessboard detected')
+                logging.error('No chessboard detected! Check camera exposure settings')
                 continue
 
             # convert back to original image
