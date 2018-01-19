@@ -327,6 +327,38 @@ class Image(object):
                 self.data.dtype),
             frame=self._frame)
 
+    def align(self, scale, center, angle, height, width):
+        """ Create a thumbnail from the original image that
+        is scaled by the given factor, centered on the center pixel, oriented along the grasp angle, and cropped to the desired height and width.
+
+        Parameters
+        ----------
+        scale : float
+            scale factor to apply
+        center : 2D array
+            array containing the row and column index of the pixel to center on
+        angle : float
+            angle to align the image to
+        height : int
+            height of the final image
+        width : int
+            width of the final image
+        """
+        # rescale
+        scaled_im = self.resize(scale)
+
+        # transform
+        cx = scaled_im.center[1]
+        cy = scaled_im.center[0]
+        dx = cx - center[0] * scale
+        dy = cy - center[1] * scale
+        translation = np.array([dy, dx])
+        tf_im = scaled_im.transform(translation, angle)
+
+        # crop
+        aligned_im = tf_im.crop(height, width)
+        return aligned_im
+        
     def gradients(self):
         """Return the gradient as a pair of numpy arrays.
 
