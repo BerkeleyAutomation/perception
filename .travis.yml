@@ -7,6 +7,10 @@ python:
     - '3.5'
     - '3.6'
 
+before_install:
+    - pip install --upgrade pip setuptools wheel
+    - pip install --only-binary=numpy,scipy numpy scipy
+
 install:
     - pip install .
     - pip install nose2
@@ -23,4 +27,7 @@ deploy:
         tags: true
         branch: master
     password:
-        secure: VK1x0eiTgaxIC/OCsl4cknqyrtvd8g/YZYd7e+GBInzTA/5VPW85Ord9LinahrnDMlYIombG0fZDIU+MSMlcjNc+P5N9bbfwLuMWvqNLLn/5gUfCVXEhayXXC1mMHbl2qjAtwuiKHmgvGQGHBYT9x2qBhEpLp3DN45B9jsSiJvep6OQn9VW/7xyRp1wS9LKHy4C50eSE9yxzhBOcgQ+/Z5Cx/iHZF6ba+LJ+Zb+ciZbr+O7UcKQiTNA/lpZ/sMWvyRme0vdCmDaOddSI1Rff5KidkL8KD+vIRG0mP58JsFsfbnGfsrLOegxxJ1zg6J7HvZlMChDB1yaNHGAZ6+cZHTXnV4Hk3gRKHKCoVQmi15oY6lysprFDjlGEDRM5eb+EDjs75BBGvVCBqMuS5DQYeQhYWUAJ7UHyG9LX2PWvOZReodhzuWcVaFjyBB1VNcDIMDV0QjUThaMnG003Tqa+qV2o/6DMiRouiOezsPIvp8uBbF3cvMb2Mstdgoim4yUW+kI9nYk71arBAwO0825QyaZsKZ7m50G+ysplcVvq8dLeJ8pO43gYG6lUTkUMCnyOmZH7JIrTUD999vIrsdMqINc+QcQOVX8H4rR9knoCrTCI0Fc+KkZkqNvHiBiAx0NXsyi9zsfvF/AIwP4RcKVpkNcMqvPKzqtInz2Paw26KVA=
+        secure: TdW1HmmOmvt0M/5Z7x8IvD7qZ9McFoax7LqFK2JpvIx5m1P0S1mOLkLSnvR6noD5JQBiRFz0+LZC6QWbvndH2SFnl5RRDSvJP+PabcMxwG33XNLjfgweaoa3wIH+PVNRU09XBTnkT52w8Zcu9x615r9V5JPjhl2lARHqzKC+cX/vOelaDXlROcis4OkExTaFIzt+1SMksKe3FlW7jcEnHfbx1TbghWpDQALCitfdB2cQwk3xBZ227Ywa/O9p5d46nTv5LHWOYwlODfWYtAPjz7V2WT5Yp7MYuc5LdSO5urTyHvJdzmUHC33yfEzuzIoRv66DJ7JDole8Mdxy8sv/jQ8acW3+PFgit1LI+bbGK7CP5W2ZXXpKoX7Vg7n00aJU07C+0WsV0V4w0Daez4xYdTYglP46YBmoGeIFtDDjA7KQttf7X2NRvzF1wW6VMYRIif4Um4o8jmZyJ429a4WhmraAhPjPetqDTiYQSuSEb1bf9/9xbSL7T5paKxC/dFYpuljTVQFT3r+Z9TqZNtF3YzyU12x7Vp0w9Yt3sx8ZUnCYz/9qpOAQle0yL9Fw07tZ9/px2+5bMZZRL/8zBIWYXt4a3k9Oo3VwI8hzRYNeomtAyC3wTSIFvtFFpejKRMr6oFLagrlbBAsTx1ZrE4ZQ16L63gCRhN/crR5rYf4FcCE=
+
+notifications:
+    email: false

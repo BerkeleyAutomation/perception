@@ -68,7 +68,10 @@ def register_ensenso(config):
                 print('Detected pattern %d' %(num_detected))
                 num_detected += 1
             i += 1
-        
+
+        if i == max_tries:
+            raise ValueError('Failed to detect calibration pattern!')
+            
         print('Estimating pattern pose')
         estimate_pattern_pose = rospy.ServiceProxy('/%s/estimate_pattern_pose' %(sensor_frame), EstimatePatternPose)
         resp = estimate_pattern_pose(average)

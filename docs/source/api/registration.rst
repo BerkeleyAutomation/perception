@@ -1,5 +1,5 @@
 Point Cloud Registration
-======================
+========================
 Classes for point cloud registration.
 
 IterativeRegistrationSolver

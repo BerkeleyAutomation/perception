@@ -173,6 +173,17 @@ class CameraIntrinsics(object):
 
         return msg
 
+    @staticmethod
+    def from_vec(vec, frame='unassigned'):
+        return CameraIntrinsics(frame,
+                                fx=vec[0],
+                                fy=vec[1],
+                                cx=vec[2],
+                                cy=vec[3],
+                                skew=vec[4],
+                                height=vec[5],
+                                width=vec[6])
+    
     def crop(self, height, width, crop_ci, crop_cj):
         """ Convert to new camera intrinsics for crop of image from original camera.
 
