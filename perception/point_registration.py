@@ -66,7 +66,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
 
     Attributes
     ----------
-1    sample_size : int
+    sample_size : int
         number of randomly sampled points to use per iteration
     cost_sample_size : int
         number of randomly sampled points to use for cost evaluations

@@ -132,7 +132,7 @@ class RgbdDetector(object):
             intrinsics of the camera
         T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
-        segmask : :obj:`BinaryImage'
+        segmask : :obj:`BinaryImage`
             optional segmask of invalid pixels
 
         Returns
@@ -163,7 +163,7 @@ class RgbdForegroundMaskDetector(RgbdDetector):
             intrinsics of the camera
         T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
-        segmask : :obj:`BinaryImage'
+        segmask : :obj:`BinaryImage`
             optional segmask of invalid pixels
 
         Returns
@@ -315,7 +315,7 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
             intrinsics of the camera
         T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
-        segmask : :obj:`BinaryImage'
+        segmask : :obj:`BinaryImage`
             optional segmask of invalid pixels
 
         Returns
@@ -435,8 +435,7 @@ class PointCloudBoxDetector(RgbdDetector):
     def detect(self, color_im, depth_im, cfg, camera_intr,
                T_camera_world,
                vis_foreground=False, vis_segmentation=False, segmask=None):
-        """
-        Detects all relevant objects in an rgbd image pair using foreground masking.
+        """Detects all relevant objects in an rgbd image pair using foreground masking.
 
         Parameters
         ----------
@@ -450,11 +449,11 @@ class PointCloudBoxDetector(RgbdDetector):
             intrinsics of the camera
         T_camera_world : :obj:`autolab_core.RigidTransform`
             registration of the camera to world frame
-        segmask : :obj:`BinaryImage'
+        segmask : :obj:`BinaryImage`
             optional segmask of invalid pixels
 
         Returns
-        ------
+        -------
         :obj:`list` of :obj:`RgbdDetection`
             all detections in the image
         """
