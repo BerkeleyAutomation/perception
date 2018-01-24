@@ -148,8 +148,14 @@ class PhoXiSensor(CameraSensor):
         """
         # Run a software trigger
         times = []
+
         rospy.ServiceProxy('phoxi_camera/start_acquisition', Empty)()
         rospy.ServiceProxy('phoxi_camera/trigger_image', TriggerImage)()
+
+        self._cur_color_im = None
+        self._cur_depth_im = None
+        self._cur_normal_map = None
+
         rospy.ServiceProxy('phoxi_camera/get_frame', GetFrame)(-1)
 
         while self._cur_color_im is None or self._cur_depth_im is None or self._cur_normal_map is None:
@@ -187,6 +193,7 @@ class PhoXiSensor(CameraSensor):
             # Check if device is actively in list
             rospy.wait_for_service('phoxi_camera/get_device_list')
             device_list = rospy.ServiceProxy('phoxi_camera/get_device_list', GetDeviceList)().out
+            print device_list
             if not str(name) in device_list:
                 logging.error('PhoXi sensor {} not in list of active devices'.format(name))
                 return False

@@ -25,8 +25,10 @@ class _Camera(Process):
         string name of codec, e.g. XVID
     fps : int
         number of frames per second
+    rate : int
+        rate at which to read frames (e.g. 2 means skip every other frame)
     """
-    def __init__(self, camera, cmd_q, res, codec, fps):
+    def __init__(self, camera, cmd_q, res, codec, fps, rate=1):
         Process.__init__(self)
         
         self.res = res
@@ -35,12 +37,14 @@ class _Camera(Process):
 
         self.camera = camera
         self.fourcc = cv2.VideoWriter_fourcc(*self.codec)
+        self.rate = rate
         
         self.cmd_q = cmd_q
         self.recording = False
         self.out = None
         self.data_buf = None
-
+        self.count = 0
+        
     def run(self):
         """ Continually write images to the filename specified by a command queue. """
         while True:
@@ -55,12 +59,18 @@ class _Camera(Process):
                     self.recording = True
                     
             if self.recording:
-                image, _, _ = self.camera.frames()
-                if self.data_buf is None:
-                    self.data_buf = np.zeros([1, image.height, image.width, image.channels])
-                self.data_buf[0,...] = image.raw_data
-                self.out.writeFrame(self.data_buf)
+                if self.count == 0:
+                    image, _, _ = self.camera.frames()
+                    
+                    if self.data_buf is None:
+                        self.data_buf = np.zeros([1, image.height, image.width, image.channels])
+                    self.data_buf[0,...] = image.raw_data
+                    self.out.writeFrame(self.data_buf)
 
+                self.count += 1
+                if self.count == self.rate:
+                    self.count = 0
+                
 class VideoRecorder:
     """ Encapsulates video recording processes.
 
@@ -74,16 +84,19 @@ class VideoRecorder:
         codec used for encoding video. default to XVID. 
     fps : int
         frames per second of video captures. defaults to 30
+    rate : int
+        rate at which to read frames (e.g. 2 means skip every other frame)
     """
-    def __init__(self, camera, device_id=0, res=(640, 480), codec='XVID', fps=30):
+    def __init__(self, camera, device_id=0, res=(640, 480), codec='XVID', fps=30, rate=1):
         self._res = res
         self._codec = codec
         self._fps = fps
+        self._rate = rate
         
         self._cmd_q = Queue()
         
         self._actual_camera = camera
-
+        
         self._recording = False
         self._started = False
 
@@ -99,7 +112,7 @@ class VideoRecorder:
         """ Starts the camera recording process. """
         self._started = True
         self._actual_camera.start()
-        self._camera = _Camera(self._actual_camera, self._cmd_q, self._res, self._codec, self._fps)
+        self._camera = _Camera(self._actual_camera, self._cmd_q, self._res, self._codec, self._fps, self._rate)
         self._camera.start()
 
     def start_recording(self, output_file):
