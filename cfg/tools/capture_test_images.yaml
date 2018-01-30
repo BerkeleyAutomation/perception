@@ -1,7 +1,8 @@
-num_images: 25
-calib_dir: /home/autolab/Public/alan/calib
+num_images: 1
+calib_dir: /nfs/diskstation/calib
 
 sensor:
-  type: primesense_ros
-  frame: primesense_overhead
+  type: phoxi
+  frame: phoxi
   auto_white_balance: 0
+  size: small

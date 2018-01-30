@@ -22,7 +22,7 @@ from .chessboard_registration import ChessboardRegistrationResult, CameraChessbo
 from .point_registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
 from .detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector, PointCloudBoxDetector, RgbdDetectorFactory
 
-from .camera_sensor import CameraSensor
+from .camera_sensor import CameraSensor, VirtualSensor
 try:
     from .kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
 except Exception:
@@ -30,7 +30,7 @@ except Exception:
     logging.warning('The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2')
 
 try:
-    from .primesense_sensor import PrimesenseSensor, VirtualPrimesenseSensor, PrimesenseSensor_ROS, PrimesenseRegistrationMode
+    from .primesense_sensor import PrimesenseSensor, PrimesenseSensor_ROS, PrimesenseRegistrationMode
 except Exception:
     logging.warning('Unable to import Primsense sensor modules! Likely due to missing OpenNI2.')
 

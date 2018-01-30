@@ -3187,8 +3187,8 @@ class PointCloudImage(Image):
         gy_data = gy.reshape(self.height * self.width, 3)
         pc_grads = np.cross(gx_data, gy_data)  # default to point toward camera
         pc_grad_norms = np.linalg.norm(pc_grads, axis=1)
-        normal_data = pc_grads / np.tile(pc_grad_norms[:, np.newaxis], [1, 3])
-        normal_im_data = normal_data.reshape(self.height, self.width, 3)
+        pc_grads[pc_grad_norms > 0] = pc_grads[pc_grad_norms > 0] / np.tile(pc_grad_norms[pc_grad_norms > 0, np.newaxis], [1, 3])
+        normal_im_data = pc_grads.reshape(self.height, self.width, 3)
         return NormalCloudImage(normal_im_data, frame=self.frame)
 
     @staticmethod

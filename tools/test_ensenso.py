@@ -7,7 +7,7 @@ import rospy
 import sys
 import time
 
-from perception import EnsensoSensor
+from perception import EnsensoSensor, PhoXiSensor
 from visualization import Visualizer2D as vis2d
 from visualization import Visualizer3D as vis3d
 
@@ -17,7 +17,7 @@ def main(args):
     rospy.init_node('ensenso_reader', anonymous=True)
 
     num_frames = 10
-    sensor = EnsensoSensor()
+    sensor = PhoXiSensor()
     sensor.start()
 
     total_time = 0
