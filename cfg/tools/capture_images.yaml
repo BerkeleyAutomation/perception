@@ -1,4 +1,4 @@
-output_dir: /nfs/diskstation/projects/dex-net/segmentation/datasets/mars
+output_dir: /nfs/diskstation/projects/dex-net/segmentation/datasets/pushing
 calib_dir: /nfs/diskstation/calib
 
 sensors:

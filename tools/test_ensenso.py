@@ -17,7 +17,9 @@ def main(args):
     rospy.init_node('ensenso_reader', anonymous=True)
 
     num_frames = 10
-    sensor = PhoXiSensor()
+    sensor = PhoXiSensor(frame='phoxi',
+                         size='small')
+    #sensor = EnsensoSensor(frame='ensenso')
     sensor.start()
 
     total_time = 0
@@ -40,7 +42,7 @@ def main(args):
 
     vis2d.figure()
     vis2d.imshow(depth_im)
-    vis2d.title('Ensenso - Raw')
+    vis2d.title('PhoXi - Raw')
     vis2d.show()
 
     vis3d.figure()
