@@ -3,6 +3,7 @@ Script to capture a set of test images.
 Be sure to register beforehand!!!
 Author: Jeff Mahler
 """
+import argparse
 import copy
 import IPython
 import numpy as np
@@ -10,7 +11,6 @@ import os
 import logging
 import rospy
 import sys
-import argparse
 
 import matplotlib.pyplot as plt
 

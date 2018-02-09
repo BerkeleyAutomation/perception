@@ -17,9 +17,9 @@ def main(args):
     rospy.init_node('ensenso_reader', anonymous=True)
 
     num_frames = 10
-    sensor = PhoXiSensor(frame='phoxi',
-                         size='small')
-    #sensor = EnsensoSensor(frame='ensenso')
+    #sensor = PhoXiSensor(frame='phoxi',
+    #                     size='small')
+    sensor = EnsensoSensor(frame='ensenso')
     sensor.start()
 
     total_time = 0

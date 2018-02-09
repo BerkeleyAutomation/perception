@@ -1,4 +1,4 @@
-num_images: 1
+num_images: 3
 calib_dir: /nfs/diskstation/calib
 
 sensor:

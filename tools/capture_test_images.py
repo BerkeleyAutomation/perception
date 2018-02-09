@@ -3,13 +3,14 @@ Script to capture a set of test images.
 Be sure to register beforehand!!!
 Author: Jeff Mahler
 """
+import argparse
 import copy
 import IPython
 import numpy as np
 import os
 import logging
+import rospy
 import sys
-import argparse
 
 import matplotlib.pyplot as plt
 
@@ -19,9 +20,10 @@ from perception import RgbdSensorFactory, Image
 if __name__ == '__main__':
     # set up logger
     logging.getLogger().setLevel(logging.INFO)
+    rospy.init_node('capture_test_images', anonymous=True)
 
     # parse args
-    parser = argparse.ArgumentParser(description='Capture a set of test images from the Kinect2')
+    parser = argparse.ArgumentParser(description='Capture a set of test images from an RGB-D sensor')
     parser.add_argument('output_dir', type=str, help='location to save the images')
     parser.add_argument('--config_filename', type=str, default='cfg/tools/capture_test_images.yaml', help='path to configuration file to use')
     args = parser.parse_args()
