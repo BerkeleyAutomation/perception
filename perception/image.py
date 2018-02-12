@@ -1350,6 +1350,9 @@ class ColorImage(Image):
         :obj:`ColorImage`
             color image with zero pixels filled in
         """
+        # get original shape
+        orig_shape = (self.height, self.width)
+        
         # resize the image
         resized_data = self.resize(rescale_factor, interp='nearest').data
 
@@ -1361,7 +1364,7 @@ class ColorImage(Image):
 
         # fill in zero pixels with inpainted and resized image
         filled_data = inpainted_im.resize(
-            1.0 / rescale_factor, interp='bilinear').data
+            orig_shape, interp='bilinear').data
         new_data = self.data
         new_data[self.data == 0] = filled_data[self.data == 0]
         return ColorImage(new_data, frame=self.frame)
@@ -1604,6 +1607,9 @@ class DepthImage(Image):
         :obj:`DepthImage`
             depth image with zero pixels filled in
         """
+        # get original shape
+        orig_shape = (self.height, self.width)
+
         # form inpaint kernel
         inpaint_kernel = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
 
@@ -1628,7 +1634,7 @@ class DepthImage(Image):
         # fill in zero pixels with inpainted and resized image
         inpainted_im = DepthImage(cur_data, frame=self.frame)
         filled_data = inpainted_im.resize(
-            1.0 / rescale_factor, interp='bilinear').data
+            orig_shape, interp='bilinear').data
         new_data = np.copy(self.data)
         new_data[self.data == 0] = filled_data[self.data == 0]
         return DepthImage(new_data, frame=self.frame)
