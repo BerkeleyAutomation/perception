@@ -54,10 +54,10 @@ if __name__ == '__main__':
     depth_im_orig = depth_im.inpaint(rescale_factor)
     
     # convert to point cloud in world coords
-    #small_depth_im = depth_im.resize(rescale_factor)
-    #small_camera_intr = camera_intr.resize(rescale_factor)
+    small_depth_im = depth_im.resize(rescale_factor, interp='nearest')
+    small_camera_intr = camera_intr.resize(rescale_factor)
 
-    point_cloud_cam = camera_intr.deproject(depth_im)
+    point_cloud_cam = small_camera_intr.deproject(small_depth_im)
     point_cloud_cam.remove_zero_points()
     point_cloud_world = T_camera_world * point_cloud_cam
 
@@ -152,9 +152,9 @@ if __name__ == '__main__':
         
     # convert to depth image
     point_cloud_cam = T_camera_world.inverse() * point_cloud_filtered
-    depth_im_filtered = camera_intr.project_to_image(point_cloud_cam)
-    depth_im_filtered = depth_im_filtered.inpaint(rescale_factor)
-    #depth_im_filtered = depth_im_filtered.resize(1.0/rescale_factor)
+    depth_im_filtered = small_camera_intr.project_to_image(point_cloud_cam)
+    depth_im_filtered = depth_im_filtered.inpaint()#rescale_factor)
+    depth_im_filtered = depth_im_filtered.resize(1.0/rescale_factor)
     
     if vis_final_images:
         vis2d.figure()
