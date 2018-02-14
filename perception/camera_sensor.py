@@ -5,6 +5,7 @@ Author: Jeff Mahler
 from abc import ABCMeta, abstractmethod
 
 from .camera_intrinsics import CameraIntrinsics
+from .constants import *
 from .image import ColorImage, DepthImage, IrImage
 
 import os
