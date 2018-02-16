@@ -99,6 +99,9 @@ class PhoXiSensor(CameraSensor):
     def start(self):
         """Start the sensor.
         """
+        if rospy.get_name() == '/unnamed':
+            raise ValueError('PhoXi sensor must be run inside a ros node!')
+
         # Connect to the cameras
         if not self._connect_to_sensor():
             self._running = False

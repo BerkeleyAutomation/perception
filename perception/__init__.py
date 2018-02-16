@@ -51,6 +51,11 @@ try:
 except Exception:
     logging.warning('Unable to import generic sensor modules!.')
 
+try:
+    from .weight_sensor import WeightSensor
+except:
+    logging.warning('Unable to import weight sensor modules!')
+
 from .video_recorder import VideoRecorder
 
 __all__ = [
