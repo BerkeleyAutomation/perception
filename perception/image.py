@@ -2326,6 +2326,68 @@ class BinaryImage(Image):
                      contour.boundary_pixels[:, 1].astype(np.uint8)] = np.iinfo(np.uint8).max
         return BinaryImage(new_data.astype(np.uint8), frame=self.frame)
 
+    def closest_pixel_to_set(self, start, pixel_set, direction, w=13, t=0.5):
+        """Starting at pixel, moves start by direction * t until there is a
+        pixel from pixel_set within a radius w of start. Then, returns start.
+
+        Parameters
+        ----------
+        start : :obj:`numpy.ndarray` of float
+            The initial pixel location at which to start.
+
+        pixel_set : set of 2-tuples of float
+            The set of pixels to check set intersection with
+
+        direction : :obj:`numpy.ndarray` of float
+            The 2D direction vector in which to move pixel.
+
+        w : int
+            A circular radius in which to check for pixels.
+            As soon as the current pixel has some non-zero pixel with a raidus
+            w of it, this function returns the current pixel location.
+
+        t : float
+            The step size with which to move pixel along direction.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray` of float
+            The first pixel location along the direction vector at which there
+            exists some intersection with pixel_set within a radius w.
+        """
+
+        # create circular structure for checking clearance
+        y, x = np.meshgrid(np.arange(w) - w / 2, np.arange(w) - w / 2)
+        cur_px_y = np.ravel(y + start[0]).astype(np.uint16)
+        cur_px_x = np.ravel(x + start[1]).astype(np.uint16)
+        
+        # create comparison set, check set overlap
+        cur_px = set(zip(cur_px_y, cur_px_x))
+        includes = True
+        if np.all(
+            cur_px_y >= 0) and np.all(
+            cur_px_y < self.height) and np.all(
+            cur_px_x >= 0) and np.all(
+                cur_px_x < self.width):
+            includes = not cur_px.isdisjoint(pixel_set)
+
+        # Continue until out of bounds or sets overlap
+        while not includes:
+            start = start + t * direction
+            cur_px_y = np.ravel(y + start[0]).astype(np.uint16)
+            cur_px_x = np.ravel(x + start[1]).astype(np.uint16)
+            cur_px = set(zip(cur_px_y, cur_px_x))
+            if np.all(
+                cur_px_y >= 0) and np.all(
+                cur_px_y < self.height) and np.all(
+                cur_px_x >= 0) and np.all(
+                    cur_px_x < self.width):
+                includes = not cur_px.isdisjoint(pixel_set)
+            else:
+                includes = True
+        
+        return start
+
     def closest_nonzero_pixel(self, pixel, direction, w=13, t=0.5):
         """Starting at pixel, moves pixel by direction * t until there is a
         non-zero pixel within a radius w of pixel. Then, returns pixel.
@@ -2357,14 +2419,14 @@ class BinaryImage(Image):
 
         cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
         cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
-        occupied = True
+        occupied = False
         if np.all(
             cur_px_y >= 0) and np.all(
             cur_px_y < self.height) and np.all(
             cur_px_x >= 0) and np.all(
                 cur_px_x < self.width):
             occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
-        while occupied:
+        while not occupied:
             pixel = pixel + t * direction
             cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
             cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
@@ -2375,7 +2437,64 @@ class BinaryImage(Image):
                     cur_px_x < self.width):
                 occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
             else:
-                occupied = False
+                occupied = True
+        return pixel
+    
+    def closest_allzero_pixel(self, pixel, direction, w=13, t=0.5):
+        """Starting at pixel, moves pixel by direction * t until all
+        zero pixels within a radius w of pixel. Then, returns pixel.
+
+        Parameters
+        ----------
+        pixel : :obj:`numpy.ndarray` of float
+            The initial pixel location at which to start.
+
+        direction : :obj:`numpy.ndarray` of float
+            The 2D direction vector in which to move pixel.
+
+        w : int
+            A circular radius in which to check for zero pixels.
+            As soon as the current pixel has all zero pixels with a raidus
+            w of it, this function returns the current pixel location.
+
+        t : float
+            The step size with which to move pixel along direction.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray` of float
+            The first pixel location along the direction vector at which there
+            exists all zero pixels within a radius w.
+        """
+        # create circular structure for checking clearance
+        y, x = np.meshgrid(np.arange(w) - w / 2, np.arange(w) - w / 2)
+
+        cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
+        cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
+        
+        # Check if all pixels in radius are in bounds and zero-valued
+        empty = False
+        if np.all(
+            cur_px_y >= 0) and np.all(
+            cur_px_y < self.height) and np.all(
+            cur_px_x >= 0) and np.all(
+                cur_px_x < self.width):
+            empty = np.all(self[cur_px_y, cur_px_x] <= self._threshold)
+        
+        # If some nonzero pixels, continue incrementing along direction
+        # and checking for empty space
+        while not empty:
+            pixel = pixel + t * direction
+            cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
+            cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
+            if np.all(
+                cur_px_y >= 0) and np.all(
+                cur_px_y < self.height) and np.all(
+                cur_px_x >= 0) and np.all(
+                    cur_px_x < self.width):
+                empty = np.all(self[cur_px_y, cur_px_x] <= self._threshold)
+            else:
+                empty = True
 
         return pixel
 
