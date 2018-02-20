@@ -108,9 +108,16 @@ class VirtualSensor(CameraSensor):
 
         # load color intrinsics
         color_intr_filename = os.path.join(self._path_to_images, '%s_color.intr' %(self._frame))
-        self._color_intr = CameraIntrinsics.load(color_intr_filename)
         ir_intr_filename = os.path.join(self._path_to_images, '%s_ir.intr' %(self._frame))
-        self._ir_intr = CameraIntrinsics.load(ir_intr_filename)
+        generic_intr_filename = os.path.join(self._path_to_images, '%s.intr' %(self._frame))
+        if os.path.exists(color_intr_filename):
+            self._color_intr = CameraIntrinsics.load(color_intr_filename)
+        else:
+            self._color_intr = CameraIntrinsics.load(generic_intr_filename)
+        if os.path.exists(ir_intr_filename):            
+            self._ir_intr = CameraIntrinsics.load(ir_intr_filename)
+        else:
+            self._ir_intr = CameraIntrinsics.load(generic_intr_filename)            
 
     @property
     def path_to_images(self):
