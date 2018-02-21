@@ -48,7 +48,7 @@ class VirtualSensor(CameraSensor):
     stored to disk instead of actually connecting to a sensor.
     For debugging purposes.
     """
-    def __init__(self, path_to_images, frame=None):
+    def __init__(self, path_to_images, frame=None, loop=True):
         """Create a new virtualized Primesense sensor.
 
         This requires a directory containing a specific set of files.
@@ -74,10 +74,11 @@ class VirtualSensor(CameraSensor):
         path_to_images : :obj:`str`
             The path to a directory containing images that the virtualized
             sensor will return.
-
         frame : :obj:`str`
             The name of the frame of reference in which the sensor resides.
             If None, this will be discovered from the files in the directory.
+        loop : :obj:`str`
+            Whether or not to loop back to the first image after running out
         """
         self._running = False
         self._path_to_images = path_to_images
@@ -209,7 +210,7 @@ class VirtualSensor(CameraSensor):
         if not self._running:
             raise RuntimeError('Device pointing to %s not runnning. Cannot read frames' %(self._path_to_images))
 
-        if self._im_index > self._num_images:
+        if self._im_index >= self._num_images:
             raise RuntimeError('Device is out of images')
 
         # read images
@@ -217,7 +218,7 @@ class VirtualSensor(CameraSensor):
         color_im = ColorImage.open(color_filename, frame=self._frame)
         depth_filename = os.path.join(self._path_to_images, 'depth_%d.npy' %(self._im_index))
         depth_im = DepthImage.open(depth_filename, frame=self._frame)
-        self._im_index += 1
+        self._im_index = (self._im_index + 1) % self._num_images
         return color_im, depth_im, None
 
     def median_depth_img(self, num_img=1):
