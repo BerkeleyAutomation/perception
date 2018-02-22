@@ -72,15 +72,18 @@ class WeightPublisher(object):
         # Identify which of the devices are LoadStar Serial Sensors
         sensors = []
         for device in all_devices:
-            ser = serial.Serial(port=device, timeout=0.5)
-            ser.write('ID\r')
-            ser.flush()
-            time.sleep(0.05)
-            resp = ser.read(13)
-            ser.close()
+            try:
+                ser = serial.Serial(port=device, timeout=0.5)
+                ser.write('ID\r')
+                ser.flush()
+                time.sleep(0.05)
+                resp = ser.read(13)
+                ser.close()
 
-            if len(resp) >= 10 and resp[:len(id_mask)] == id_mask:
-                sensors.append((device, resp.rstrip('\r\n')))
+                if len(resp) >= 10 and resp[:len(id_mask)] == id_mask:
+                    sensors.append((device, resp.rstrip('\r\n')))
+            except:
+                continue
         sensors = sorted(sensors, key=lambda x : x[1])
 
         # Connect to each of the serial devices
