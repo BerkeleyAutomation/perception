@@ -1679,7 +1679,7 @@ class DepthImage(Image):
         data[ind[0], ind[1]] = 0.0
         return DepthImage(data, self._frame)
 
-    def pixels_farther_than(self, depth_im):
+    def pixels_farther_than(self, depth_im, filter_equal_depth=False):
         """
         Returns the pixels that are farther away
         than those in the corresponding depth image.
@@ -1688,6 +1688,8 @@ class DepthImage(Image):
         ----------
         depth_im : :obj:`DepthImage`
             depth image to query replacement with
+        filter_equal_depth : bool
+            whether or not to mark depth values that are equal
 
         Returns
         -------
@@ -1695,7 +1697,10 @@ class DepthImage(Image):
             the pixels
         """
         # take closest pixel
-        farther_px = np.where(self.data > depth_im.data)
+        if filter_equal_depth:
+            farther_px = np.where(self.data > depth_im.data)
+        else:
+            farther_px = np.where(self.data >= depth_im.data)
         farther_px = np.c_[farther_px[0], farther_px[1]]
         return farther_px
 
