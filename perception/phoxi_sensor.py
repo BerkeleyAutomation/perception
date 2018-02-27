@@ -207,6 +207,7 @@ class PhoXiSensor(CameraSensor):
         """Callback for handling textures (greyscale images).
         """
         data = self._bridge.imgmsg_to_cv2(msg)
+        data = 255.0 * data / 1200.0 # Experimentally set value for white
         data = np.clip(data, 0., 255.0).astype(np.uint8)
         gsimage = GrayscaleImage(data, frame=self._frame)
         self._cur_color_im = gsimage.to_color()
