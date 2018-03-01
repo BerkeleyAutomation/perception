@@ -18,7 +18,7 @@ class PhoXiSensor(CameraSensor):
     """Class for interfacing with a PhoXi Structured Light Sensor.
     """
 
-    def __init__(self, frame='phoxi', device_name='1703005', size='large'):
+    def __init__(self, frame='phoxi', device_name='2018-02-020-LC3', size='small'):
         """Initialize a PhoXi Sensor.
 
         Parameters
@@ -27,6 +27,8 @@ class PhoXiSensor(CameraSensor):
             A name for the frame in which depth images, normal maps, and RGB images are returned.
         device_name : str
             The string name of the PhoXi device (SN listed on sticker on back sensor).
+            Old PhoXi: 1703005
+            New PhoXi: 2018-02-020-LC3
         size : str
             An indicator for which size of image is desired.
             Either 'large' (2064x1544) or 'small' (1032x772).
@@ -207,7 +209,8 @@ class PhoXiSensor(CameraSensor):
         """Callback for handling textures (greyscale images).
         """
         data = self._bridge.imgmsg_to_cv2(msg)
-        data = 255.0 * data / 1200.0 # Experimentally set value for white
+        if np.max(data) > 255.0:
+            data = 255.0 * data / 1200.0 # Experimentally set value for white
         data = np.clip(data, 0., 255.0).astype(np.uint8)
         gsimage = GrayscaleImage(data, frame=self._frame)
         self._cur_color_im = gsimage.to_color()
