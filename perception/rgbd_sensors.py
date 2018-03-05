@@ -38,7 +38,9 @@ class RgbdSensorFactory:
         elif sensor_type == 'ensenso':
             s = EnsensoSensor(frame=cfg['frame'])
         elif sensor_type == 'phoxi':
-            s = PhoXiSensor(frame=cfg['frame'], size=cfg['size'])
+            s = PhoXiSensor(frame=cfg['frame'],
+                            device_name=cfg['device_name'],
+                            size=cfg['size'])
         else:
             raise ValueError('RGBD sensor type %s not supported' %(sensor_type))
         return s

@@ -282,6 +282,8 @@ class CameraIntrinsics(object):
         if round_px:
             points_proj = np.round(points_proj)
 
+        if isinstance(point_cloud, Point):
+            return Point(data=points_proj[:2,:].astype(np.int16), frame=self._frame)
         return ImageCoords(data=points_proj[:2,:].astype(np.int16), frame=self._frame)
 
     def project_to_image(self, point_cloud, round_px=True):

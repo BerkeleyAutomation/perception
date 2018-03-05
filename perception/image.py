@@ -2347,8 +2347,8 @@ class BinaryImage(Image):
             The 2D direction vector in which to move pixel.
 
         w : int
-            A circular radius in which to check for pixels.
-            As soon as the current pixel has some non-zero pixel with a raidus
+            A circular diameter in which to check for pixels.
+            As soon as the current pixel has some non-zero pixel with a diameter
             w of it, this function returns the current pixel location.
 
         t : float
@@ -2406,8 +2406,8 @@ class BinaryImage(Image):
             The 2D direction vector in which to move pixel.
 
         w : int
-            A circular radius in which to check for non-zero pixels.
-            As soon as the current pixel has some non-zero pixel with a raidus
+            A circular diameter in which to check for non-zero pixels.
+            As soon as the current pixel has some non-zero pixel with a diameter
             w of it, this function returns the current pixel location.
 
         t : float
@@ -2458,8 +2458,8 @@ class BinaryImage(Image):
             The 2D direction vector in which to move pixel.
 
         w : int
-            A circular radius in which to check for zero pixels.
-            As soon as the current pixel has all zero pixels with a raidus
+            A circular diameter in which to check for zero pixels.
+            As soon as the current pixel has all zero pixels with a diameter
             w of it, this function returns the current pixel location.
 
         t : float
