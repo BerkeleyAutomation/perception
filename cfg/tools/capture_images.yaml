@@ -7,13 +7,14 @@ sensors:
     frame: primesense_overhead
     auto_white_balance: 0
     num_images: 3
-  ensenso:
-    type: ensenso
-    frame: ensenso
-    num_images: 3
+#  ensenso:
+#    type: ensenso
+#    frame: ensenso
+#    num_images: 3
   phoxi:
     type: phoxi
     frame: phoxi
+    device_name: 2018-02-020-LC3
     size: small
     num_images: 1
     

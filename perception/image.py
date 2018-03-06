@@ -2442,7 +2442,7 @@ class BinaryImage(Image):
                     cur_px_x < self.width):
                 occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
             else:
-                occupied = True
+                return None
         return pixel
     
     def closest_allzero_pixel(self, pixel, direction, w=13, t=0.5):
@@ -2499,8 +2499,8 @@ class BinaryImage(Image):
                     cur_px_x < self.width):
                 empty = np.all(self[cur_px_y, cur_px_x] <= self._threshold)
             else:
-                empty = True
-
+                return None
+                
         return pixel
 
     def add_frame(
@@ -2548,6 +2548,16 @@ class BinaryImage(Image):
         bordered_data[:, right_boundary:] = BINARY_IM_MAX_VAL
         return BinaryImage(bordered_data, frame=self._frame)
 
+    def to_distance_im(self):
+        """ Returns the distance-transformed image as a raw float array.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+            HxW float array containing the distance transform of the binary image
+        """
+        return snm.distance_transform_edt(BINARY_IM_MAX_VAL - self.data)
+        
     def most_free_pixel(self):
         """ Find the black pixel with the largest distance from the white pixels.
 
@@ -2556,11 +2566,11 @@ class BinaryImage(Image):
         :obj:`numpy.ndarray`
             2-vector containing the most free pixel
         """
-        dist_tf = snm.distance_transform_edt(BINARY_IM_MAX_VAL - self.data)
+        dist_tf = self.to_distance_im()
         max_px = np.where(dist_tf == np.max(dist_tf))
         free_pixel = np.array([max_px[0][0], max_px[1][0]])
         return free_pixel
-
+    
     def diff_with_target(self, binary_im):
         """ Creates a color image to visualize the overlap between two images.
         Nonzero pixels that match in both images are green.
@@ -3175,7 +3185,7 @@ class SegmentationImage(Image):
              binary image data
         """
         binary_data = np.zeros(self.shape)
-        binary_data[self.data == segnum + 1] = BINARY_IM_MAX_VAL
+        binary_data[self.data == segnum] = BINARY_IM_MAX_VAL
         return BinaryImage(binary_data.astype(np.uint8), frame=self.frame)
 
     def resize(self, size, interp='nearest'):
