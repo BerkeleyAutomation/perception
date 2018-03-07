@@ -15,7 +15,7 @@ from perception import OpenCVCameraSensor, PrimesenseSensor_ROS, VideoRecorder
 from visualization import Visualizer2D as vis
 
 if __name__ == '__main__':
-    sensor = PrimesenseSensor_ROS(frame='primesense_overhead')
+    sensor = OpenCVCameraSensor(device_id=0)
     sensor.start()
 
     recorder = VideoRecorder(sensor)

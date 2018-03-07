@@ -20,7 +20,7 @@ class OpenCVCameraSensor(CameraSensor):
         Raises:
             Exception if unable to open stream
         """
-        self._sensor = VideoCapture(self._device_id)
+        self._sensor = cv2.VideoCapture(self._device_id)
         if not self._sensor.isOpened():
             raise Exception("Unable to open OpenCVCameraSensor for id {0}".format(self._device_id))
         self.flush()
