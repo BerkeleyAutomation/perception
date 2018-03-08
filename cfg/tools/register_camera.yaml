@@ -26,7 +26,7 @@ sensors:
     phoxi:
         sensor_config:
             type: phoxi
-            device_name: 2018-02-020-LC3
+            device_name: 1703005
             size: small
         registration_config:
             num_transform_avg: 3
@@ -35,8 +35,8 @@ sensors:
 
 # CB TF FIX PARAMS
 fix_orientation_cb_to_world: 0
-grid_x: 6
-grid_y: 6
+grid_x: 5
+grid_y: 5
 grid_width: 0.2
 grid_height: 0.2
 grid_center_x: 0.33
@@ -47,7 +47,6 @@ vis_points: 1
 # ROBOT VERIFICATION PARAMS
 use_robot: 1
 vis_cb_corners: 1
-cb_thickness: 0.00312
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
 gripper_offset_z: 0.005

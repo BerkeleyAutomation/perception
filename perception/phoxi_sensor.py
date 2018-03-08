@@ -33,7 +33,7 @@ class PhoXiSensor(CameraSensor):
         """
 
         self._frame = frame
-        self._device_name = device_name
+        self._device_name = str(device_name)
         self._camera_intr = None
         self._running = False
         self._bridge = CvBridge()

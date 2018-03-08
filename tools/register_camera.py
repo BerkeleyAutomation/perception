@@ -26,8 +26,8 @@ from yumipy import YuMiConstants as YMC
 
 global clicked_pt
 clicked_pt = None
-pt_radius = 5
-pt_color = (0,0,0)
+pt_radius = 2
+pt_color = (255,0,0)
 def click_gripper(event, x, y, flags, param):
     global clicked_pt
     if event == cv2.EVENT_LBUTTONDBLCLK:
@@ -46,7 +46,11 @@ if __name__ == '__main__':
     
     # get known tf from chessboard to world
     T_cb_world = RigidTransform.load(config['chessboard_tf'])
-
+    #T_cb_world.rotation = RigidTransform.x_axis_rotation(np.pi/256).dot(T_cb_world.rotation)
+    #T_cb_world.rotation = RigidTransform.y_axis_rotation(np.pi/512).dot(T_cb_world.rotation)
+    #T_cb_world.save(config['chessboard_tf'])
+    #print T_cb_world.rotation
+    
     # initialize node
     rospy.init_node('register_camera', anonymous=True)
     logging.getLogger().addHandler(rl.RosStreamHandler())
@@ -105,9 +109,9 @@ if __name__ == '__main__':
                     y = -float(grid_height) / 2 + grid_center_y + float(j * grid_height) / num_pts_y
 
                     # form robot pose
-                    R_robot_world = np.array([[0, 1, 0],
+                    R_robot_world = np.array([[1, 0, 0],
                                               [0, 0, 1],
-                                              [1, 0, 0]])
+                                              [0, -1, 0]])
                     t_robot_world = np.array([x, y, gripper_height])
                     T_robot_world = RigidTransform(rotation=R_robot_world,
                                                    translation=t_robot_world,
@@ -131,15 +135,15 @@ if __name__ == '__main__':
                 y.right.goto_pose(robot_pose, wait_for_res=True)
                     
                 # capture image
-                _, depth_im, _ = sensor.frames()
+                color_im, depth_im, _ = sensor.frames()
                 depth_im = depth_im.inpaint(0.25)
                 cv2.namedWindow('click')
                 cv2.setMouseCallback('click', click_gripper)
                 while True:
                     if clicked_pt is None:
-                        cv2.imshow('click', depth_im.data)
+                        cv2.imshow('click', color_im.data)
                     else:
-                        im = depth_im.data.copy()
+                        im = color_im.data.copy()
                         cv2.circle(im,
                                    tuple(clicked_pt.tolist()),
                                    pt_radius,
@@ -170,23 +174,73 @@ if __name__ == '__main__':
                                                                  frame=ir_intrinsics.frame)
             mean_true_robot_point = np.mean(true_robot_points_world.data, axis=1).reshape(3,1)
             mean_est_robot_point = np.mean(est_robot_points_world.data, axis=1).reshape(3,1)
-            est_robot_points_world._data = est_robot_points_world._data - mean_est_robot_point + mean_true_robot_point
 
             # fit a plane
-            H = est_robot_points_world.data.dot(true_robot_points_world.data.T)
-            U, S, V = np.linalg.svd(H)
-            R_cb_world = V.T.dot(U.T)
+            best_R_cb_world = None
+            best_dist = np.inf
+            k = 0
+            K = 25
+            num_poses = len(robot_poses)
+            sample_size = int(num_poses * 0.3)
+            min_inliers = int(num_poses * 0.6)
+            dist_thresh = 0.0015
+            true_robot_points_world._data = true_robot_points_world._data - mean_true_robot_point
+            est_robot_points_world._data = est_robot_points_world._data - mean_est_robot_point
+            while k < K:
+                ind = np.random.choice(num_poses, size=sample_size, replace=False)
+                H = est_robot_points_world.data[:,ind].dot(true_robot_points_world.data[:,ind].T)
+                U, S, V = np.linalg.svd(H)
+                R_cb_world = V.T.dot(U.T)
+                
+                fixed_robot_points_world = R_cb_world.dot(est_robot_points_world.data)
+                diffs = fixed_robot_points_world - true_robot_points_world.data
+                dists = np.linalg.norm(diffs, axis=0)
+                inliers = np.where(dists < dist_thresh)[0]
+                num_inliers = inliers.shape[0]
+
+                print k, num_inliers, np.mean(dists)
+
+                if num_inliers >= min_inliers:
+                    ind = inliers
+                    H = est_robot_points_world.data[:,ind].dot(true_robot_points_world.data[:,ind].T)
+                    U, S, V = np.linalg.svd(H)
+                    R_cb_world = V.T.dot(U.T)
+                
+                    fixed_robot_points_world = R_cb_world.dot(est_robot_points_world.data)
+                    diffs = fixed_robot_points_world - true_robot_points_world.data
+                    dists = np.linalg.norm(diffs, axis=0)
+
+                    mean_dist = np.mean(dists[ind])
+                    if mean_dist < best_dist:
+                        best_dist = mean_dist
+                        best_R_cb_world = R_cb_world
+                k += 1
+                        
+            import IPython
+            IPython.embed()
+
+            R_cb_world = best_R_cb_world
             T_corrected_cb_world = RigidTransform(rotation=R_cb_world,
                                                   from_frame='world',
                                                   to_frame='world')
-            T_cb_world = T_corrected_cb_world * T_cb_world
-            T_camera_world = T_corrected_cb_world * T_camera_world
+            R_cb_world = R_cb_world.dot(T_cb_world.rotation)
+            T_cb_world = RigidTransform(rotation=R_cb_world,
+                                        translation=T_cb_world.translation,
+                                        from_frame=T_cb_world.from_frame,
+                                        to_frame=T_cb_world.to_frame)
+            T_camera_world = T_cb_world * reg_result.T_camera_cb
             T_cb_world.save(config['chessboard_tf'])
             
             # vis
             if config['vis_points']:
                 _, depth_im, _ = sensor.frames()
                 points_world = T_camera_world * ir_intrinsics.deproject(depth_im)
+                true_robot_points_world = PointCloud(np.array([T.translation for T in robot_poses]).T,
+                                                     frame=ir_intrinsics.frame)
+                est_robot_points_world = T_camera_world * PointCloud(np.array(robot_points_camera).T,
+                                                                     frame=ir_intrinsics.frame)
+                mean_est_robot_point = np.mean(est_robot_points_world.data, axis=1).reshape(3,1)
+                est_robot_points_world._data = est_robot_points_world._data - mean_est_robot_point + mean_true_robot_point
                 fixed_robot_points_world = T_corrected_cb_world * est_robot_points_world
                 mean_fixed_robot_point = np.mean(fixed_robot_points_world.data, axis=1).reshape(3,1)
                 fixed_robot_points_world._data = fixed_robot_points_world._data - mean_fixed_robot_point + mean_true_robot_point
@@ -217,8 +271,6 @@ if __name__ == '__main__':
             dir_world = np.array([1.0, -1.0, 0])
             dir_world = dir_world / np.linalg.norm(dir_world)
             ip = dir_world.dot(cb_point_data_world)
-            target_ind = np.where(ip == np.max(ip))[0]
-            target_pt_world = cb_points_world[target_ind[0]]
 
             if config['vis_cb_corners']:
                 _, depth_im, _ = sensor.frames()
@@ -227,8 +279,18 @@ if __name__ == '__main__':
                 vis3d.points(cb_points_world, color=(0,0,1), scale=0.005)
                 vis3d.points(points_world, color=(0,1,0), subsample=10, random=True, scale=0.001)
                 vis3d.pose(T_camera_world)
+                vis3d.table(dim=0.5, T_table_world=T_cb_world)
                 vis3d.show()
-            
+
+            # open interface to robot
+            y = YuMiRobot(tcp=YMC.TCP_SUCTION_STIFF)
+            y.reset_home()
+            time.sleep(1)
+                
+            # choose target point #1
+            target_ind = np.where(ip == np.max(ip))[0]
+            target_pt_world = cb_points_world[target_ind[0]]
+                
             # create robot pose relative to target point
             R_gripper_world = np.array([[1.0, 0, 0],
                                      [0, -1.0, 0],
@@ -242,19 +304,74 @@ if __name__ == '__main__':
                                              to_frame='cb')
             logging.info('Moving robot to point x=%f, y=%f, z=%f' %(t_gripper_world[0], t_gripper_world[1], t_gripper_world[2]))
 
-            # move robot to pose
-            y = YuMiRobot(tcp=YMC.TCP_SUCTION_STIFF)
-            y.reset_home()
-            time.sleep(1)
+            T_lift = RigidTransform(translation=(0,0,0.05), from_frame='cb', to_frame='cb')
+            T_gripper_world_lift = T_lift * T_gripper_world
+            T_orig_gripper_world_lift = T_gripper_world_lift.copy()
+            y.right.goto_pose(T_gripper_world_lift)
+            y.right.goto_pose(T_gripper_world)
+            
+            # wait for human measurement
+            yesno = raw_input('Take measurement. Hit [ENTER] when done')
+            y.right.goto_pose(T_gripper_world_lift)
 
+            # choose target point 2
+            target_ind = np.where(ip == np.min(ip))[0]
+            target_pt_world = cb_points_world[target_ind[0]]
+                
+            # create robot pose relative to target point
+            R_gripper_world = np.array([[1.0, 0, 0],
+                                     [0, -1.0, 0],
+                                     [0, 0, -1.0]])
+            t_gripper_world = np.array([target_pt_world.x + config['gripper_offset_x'],
+                                        target_pt_world.y + config['gripper_offset_y'],
+                                        target_pt_world.z + config['gripper_offset_z']])
+            T_gripper_world = RigidTransform(rotation=R_gripper_world,
+                                             translation=t_gripper_world,
+                                             from_frame='gripper',
+                                             to_frame='cb')
+            logging.info('Moving robot to point x=%f, y=%f, z=%f' %(t_gripper_world[0], t_gripper_world[1], t_gripper_world[2]))
+            
             T_lift = RigidTransform(translation=(0,0,0.05), from_frame='cb', to_frame='cb')
             T_gripper_world_lift = T_lift * T_gripper_world
             y.right.goto_pose(T_gripper_world_lift)
             y.right.goto_pose(T_gripper_world)
-
+            
             # wait for human measurement
             yesno = raw_input('Take measurement. Hit [ENTER] when done')
             y.right.goto_pose(T_gripper_world_lift)
+            y.right.goto_pose(T_orig_gripper_world_lift)
+
+            # choose target point 3
+            dir_world = np.array([1.0, 1.0, 0])
+            dir_world = dir_world / np.linalg.norm(dir_world)
+            ip = dir_world.dot(cb_point_data_world)
+            target_ind = np.where(ip == np.max(ip))[0]
+            target_pt_world = cb_points_world[target_ind[0]]
+                
+            # create robot pose relative to target point
+            R_gripper_world = np.array([[1.0, 0, 0],
+                                     [0, -1.0, 0],
+                                     [0, 0, -1.0]])
+            t_gripper_world = np.array([target_pt_world.x + config['gripper_offset_x'],
+                                        target_pt_world.y + config['gripper_offset_y'],
+                                        target_pt_world.z + config['gripper_offset_z']])
+            T_gripper_world = RigidTransform(rotation=R_gripper_world,
+                                             translation=t_gripper_world,
+                                             from_frame='gripper',
+                                             to_frame='cb')
+            logging.info('Moving robot to point x=%f, y=%f, z=%f' %(t_gripper_world[0], t_gripper_world[1], t_gripper_world[2]))
+            
+            T_lift = RigidTransform(translation=(0,0,0.05), from_frame='cb', to_frame='cb')
+            T_gripper_world_lift = T_lift * T_gripper_world
+            y.right.goto_pose(T_gripper_world_lift)
+            y.right.goto_pose(T_gripper_world)
+            
+            # wait for human measurement
+            yesno = raw_input('Take measurement. Hit [ENTER] when done')
+            y.right.goto_pose(T_gripper_world_lift)
+            y.right.goto_pose(T_orig_gripper_world_lift)
+            
+            # stop robot
             y.reset_home()
             y.stop()
 
