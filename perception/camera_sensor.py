@@ -267,10 +267,10 @@ class TensorDatasetVirtualSensor(VirtualSensor):
         if 'image_rescale_factor' in self._dataset.metadata.keys():
             self._image_rescale_factor = 1.0 / self._dataset.metadata['image_rescale_factor']
         
-        datapoint = self._dataset.datapoint(0, TensorDatasetVirtualSensor.CAMERA_INTR_FIELD)
+        datapoint = self._dataset.datapoint(0, [TensorDatasetVirtualSensor.CAMERA_INTR_FIELD])
         camera_intr_vec = datapoint[TensorDatasetVirtualSensor.CAMERA_INTR_FIELD]
-        self._color_intr = CameraIntrinsics.from_vec(camera_intr_vec).resize(self._image_rescale_factor)
-        self._ir_intr = CameraIntrinsics.from_vec(camera_intr_vec).resize(self._image_rescale_factor)
+        self._color_intr = CameraIntrinsics.from_vec(camera_intr_vec, frame=self._color_frame).resize(self._image_rescale_factor)
+        self._ir_intr = CameraIntrinsics.from_vec(camera_intr_vec, frame=self._ir_frame).resize(self._image_rescale_factor)
 
     def frames(self):
         """Retrieve the next frame from the tensor dataset and convert it to a ColorImage,
