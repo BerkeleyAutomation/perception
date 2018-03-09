@@ -14,7 +14,7 @@ sensors:
   phoxi:
     type: phoxi
     frame: phoxi
-    device_name: 2018-02-020-LC3
+    device_name: 1703005
     size: small
     num_images: 1
     

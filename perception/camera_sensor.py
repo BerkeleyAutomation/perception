@@ -242,3 +242,71 @@ class VirtualSensor(CameraSensor):
 
         return Image.median_images(depths)
     
+
+class TensorDatasetVirtualSensor(VirtualSensor):
+    CAMERA_INTR_FIELD = 'camera_intrs'
+    COLOR_IM_FIELD = 'color_ims'
+    DEPTH_IM_FIELD = 'depth_ims'
+    IMAGE_FIELDS = [COLOR_IM_FIELD, DEPTH_IM_FIELD]
+    
+    """ Class for a virtual sensor that runs off of images stored in a
+    tensor dataset.
+    """
+    def __init__(self, dataset_path, frame=None, loop=True):
+        self._dataset_path = dataset_path
+        self._frame = frame
+        self._color_frame = frame
+        self._ir_frame = frame
+        self._im_index = 0
+        self._running = False
+        
+        from dexnet.learning import TensorDataset
+        self._dataset = TensorDataset.open(self._dataset_path)
+        self._num_images = self._dataset.num_datapoints
+        self._image_rescale_factor = 1.0
+        if 'image_rescale_factor' in self._dataset.metadata.keys():
+            self._image_rescale_factor = 1.0 / self._dataset.metadata['image_rescale_factor']
+        
+        datapoint = self._dataset.datapoint(0, TensorDatasetVirtualSensor.CAMERA_INTR_FIELD)
+        camera_intr_vec = datapoint[TensorDatasetVirtualSensor.CAMERA_INTR_FIELD]
+        self._color_intr = CameraIntrinsics.from_vec(camera_intr_vec).resize(self._image_rescale_factor)
+        self._ir_intr = CameraIntrinsics.from_vec(camera_intr_vec).resize(self._image_rescale_factor)
+
+    def frames(self):
+        """Retrieve the next frame from the tensor dataset and convert it to a ColorImage,
+        a DepthImage, and an IrImage.
+
+        Parameters
+        ----------
+        skip_registration : bool
+            If True, the registration step is skipped.
+
+        Returns
+        -------
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
+            The ColorImage, DepthImage, and IrImage of the current frame.
+
+        Raises
+        ------
+        RuntimeError
+            If the stream is not running or if all images in the
+            directory have been used.
+        """
+        if not self._running:
+            raise RuntimeError('Device pointing to %s not runnning. Cannot read frames' %(self._path_to_images))
+
+        if self._im_index >= self._num_images:
+            raise RuntimeError('Device is out of images')
+
+        # read images
+        datapoint = self._dataset.datapoint(self._im_index,
+                                            TensorDatasetVirtualSensor.IMAGE_FIELDS)
+        color_im = ColorImage(datapoint[TensorDatasetVirtualSensor.COLOR_IM_FIELD],
+                              frame=self._frame)
+        depth_im = DepthImage(datapoint[TensorDatasetVirtualSensor.DEPTH_IM_FIELD],
+                              frame=self._frame)
+        if self._image_rescale_factor != 1.0:
+            color_im = color_im.resize(self._image_rescale_factor)
+            depth_im = depth_im.resize(self._image_rescale_factor, interp='nearest')
+        self._im_index = (self._im_index + 1) % self._num_images
+        return color_im, depth_im, None
