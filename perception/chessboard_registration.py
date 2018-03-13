@@ -71,6 +71,7 @@ class CameraChessboardRegistration:
         num_images = config['num_images']
         sx = config['corners_x']
         sy = config['corners_y']
+        point_order = config['point_order']
         color_image_rescale_factor = config['color_image_rescale_factor']
         flip_normal = config['flip_normal']
         vis = config['vis']
@@ -158,16 +159,35 @@ class CameraChessboardRegistration:
         points_3d_centered = T_camera_table * points_3d_plane
 
         # get points along y
-        coord_pos_y = int(math.floor(sx*(sy-1)/2.0))
-        coord_neg_y = int(math.ceil(sx*(sy+1)/2.0))
-        points_pos_y = points_3d_centered[:coord_pos_y]
-        points_neg_y = points_3d_centered[coord_neg_y:]
-        y_axis = np.mean(points_pos_y.data, axis=1) - np.mean(points_neg_y.data, axis=1)
-        y_axis = y_axis - np.vdot(y_axis, n)*n
-        y_axis = y_axis / np.linalg.norm(y_axis)
-        x_axis = np.cross(-n, y_axis)
+        if point_order == 'row_major':
+            coord_pos_x = int(math.floor(sx*sy/2.0))
+            coord_neg_x = int(math.ceil(sx*sy/2.0))
+            points_pos_x = points_3d_centered[coord_pos_x:]
+            points_neg_x = points_3d_centered[:coord_neg_x]
+            x_axis = np.mean(points_pos_x.data, axis=1) - np.mean(points_neg_x.data, axis=1)
+            x_axis = x_axis - np.vdot(x_axis, n)*n
+            x_axis = x_axis / np.linalg.norm(x_axis)
+            y_axis = np.cross(n, x_axis)
 
-        # WARNING! May need symmetry breaking but it appears the points are ordered consistently
+            """
+            from visualization import Visualizer3D as vis3d
+            vis3d.figure()
+            vis3d.points(points_3d_centered, scale=0.001, color=(0,0,1))
+            vis3d.points(points_pos_x, scale=0.0015, color=(0,1,0))
+            vis3d.points(points_neg_x, scale=0.0015, color=(1,0,0))
+            vis3d.show()
+            import IPython
+            IPython.embed()
+            """
+        else:
+            coord_pos_y = int(math.floor(sx*(sy-1)/2.0))
+            coord_neg_y = int(math.ceil(sx*(sy+1)/2.0))
+            points_pos_y = points_3d_centered[:coord_pos_y]
+            points_neg_y = points_3d_centered[coord_neg_y:]
+            y_axis = np.mean(points_pos_y.data, axis=1) - np.mean(points_neg_y.data, axis=1)
+            y_axis = y_axis - np.vdot(y_axis, n)*n
+            y_axis = y_axis / np.linalg.norm(y_axis)
+            x_axis = np.cross(-n, y_axis)
 
         # produce translation and rotation from plane center and chessboard basis
         rotation_cb_camera = RigidTransform.rotation_from_axes(x_axis, y_axis, n)
