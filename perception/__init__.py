@@ -22,7 +22,7 @@ from .chessboard_registration import ChessboardRegistrationResult, CameraChessbo
 from .point_registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
 from .detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector, PointCloudBoxDetector, RgbdDetectorFactory
 
-from .camera_sensor import CameraSensor, VirtualSensor
+from .camera_sensor import CameraSensor, VirtualSensor, TensorDatasetVirtualSensor
 try:
     from .kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
 except Exception:

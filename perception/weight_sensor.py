@@ -12,7 +12,7 @@ class WeightSensor(object):
     """Class for reading from a set of load cells.
     """
 
-    def __init__(self, id_mask='F1804', ntaps=6):
+    def __init__(self, id_mask='F1804', ntaps=6, debug=False):
         """Initialize the WeightSensor.
 
         Parameters
@@ -21,10 +21,13 @@ class WeightSensor(object):
             A template for the first n digits of the device IDs for valid load cells.
         ntaps : int
             Maximum number of samples to perform filtering over.
+        debug : bool
+            If True, have sensor seem to work normally but just return zeros.
         """
         self._id_mask = id_mask
         self._weight_buffers = []
         self._ntaps = ntaps
+        self._debug = debug
         self._filter_coeffs = signal.firwin(ntaps, 0.1)
         self._running = False
 
@@ -89,6 +92,9 @@ class WeightSensor(object):
     def _raw_weights(self):
         """Create a numpy array containing the raw sensor weights.
         """
+        if self._debug:
+            return np.array([[],[],[],[]])
+
         if not self._running:
             raise ValueError('Weight sensor is not running!')
         if len(self._weight_buffers) == 0:

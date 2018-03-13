@@ -10,7 +10,7 @@ try:
     from std_srvs.srv import Empty
     from perception.srv import ConnectCamera, GetDeviceList, GetFrame, TriggerImage
 except ImportError:
-    logging.warning("Failed to import ROS in phoxi_sensory.py. PhoXiSensor functionality unavailable.")
+    logging.warning("Failed to import ROS in phoxi_sensor.py. PhoXiSensor functionality unavailable.")
 
 from . import CameraSensor, DepthImage, ColorImage, GrayscaleImage, CameraIntrinsics, Image
 
