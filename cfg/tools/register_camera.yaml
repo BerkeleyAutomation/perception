@@ -10,8 +10,8 @@ chessboard_registration:
   debug: 1 # show the final pose detection
   scale_amt: 0.1 # scale for vis axes
 
-calib_dir: /nfs/diskstation/calib # directory for the output
-chessboard_tf: /nfs/diskstation/calib/chessboard/metal_chessboard_to_world_yumi1.tf
+calib_dir: /mnt/data/diskstation/calib # directory for the output
+chessboard_tf: /mnt/data/diskstation/calib/chessboard/metal_chessboard_to_world_yumi1_v2.tf
 
 # SENSOR CALIBRATION LIST
 sensors:
@@ -30,7 +30,7 @@ sensors:
             device_name: 1703005
             size: small
         registration_config:
-            num_transform_avg: 3
+            num_transform_avg: 5
             num_images: 1
             color_image_rescale_factor: 0.6
 
@@ -50,4 +50,4 @@ use_robot: 1
 vis_cb_corners: 0
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
-gripper_offset_z: 0.005
+gripper_offset_z: 0.0075

@@ -12,7 +12,7 @@ class WeightSensor(object):
     """Class for reading from a set of load cells.
     """
 
-    def __init__(self, id_mask='F1804', ntaps=6, debug=False):
+    def __init__(self, id_mask='F1804', ntaps=4, debug=False):
         """Initialize the WeightSensor.
 
         Parameters
