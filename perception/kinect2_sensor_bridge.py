@@ -10,28 +10,28 @@ import os
 import struct
 import sys
 import time
+import signal
 
 try:
     from cv_bridge import CvBridge, CvBridgeError
     import rospy
-    from sensor_msgs.msg import CameraInfo, PointCloud2
+    import sensor_msgs.msg
     import sensor_msgs.point_cloud2 as pc2
 except ImportError:
-    logging.warning("Failed to import ROS in ensenso_sensor.py. ROS functionality not available")
+    logging.warning("Failed to import ROS in Kinect2_sensor.py. Kinect will not be able to be used in bridged mode")
     
 from .constants import MM_TO_METERS, INTR_EXTENSION
 from . import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, Image
 
-class Kinect2Quality:
-    """Kinect depth mode setting.
-    """
-    HD = "hd"
-    QUARTER_HD = "qhd"
-    SD = "sd"
 
-class KinectSensorBridge(CameraSensor):
+
+class KinectSensorBridged(CameraSensor):
     """ Class for interfacing with an Ensenso N* sensor.
     """
+    QUALITY = Kinect2BridgedQuality.HD
+    TOPIC_IMAGE_COLOR = '/kinect2/%s/image_color' %(QUALITY)
+    TOPIC_IMAGE_DEPTH = '/kinect2/%s/image_depth_rect' %(QUALITY)
+    TOPIC_INFO_CAMERA = '/kinect2/%s/camera_info' %(QUALITY)
 
     def __init__(self, quality=Kinect2Quality.HD, frame='ensenso'):
         # set member vars
@@ -43,17 +43,13 @@ class KinectSensorBridge(CameraSensor):
         self._camera_intr = None
         self._cur_depth_im = None
         self._running = False
+        self._bridge = CvBridge()
         
     def __del__(self):
         """Automatically stop the sensor for safety.
         """
         if self.is_running:
             self.stop()
-        
-    def _set_format(self, msg):
-        """ Set the buffer formatting. """
-        num_points = msg.height * msg.width
-        self._format = '<' + num_points * 'ffff'
             
     def _set_camera_properties(self, msg):
         """ Set the camera intrinsics from an info msg. """
@@ -68,41 +64,42 @@ class KinectSensorBridge(CameraSensor):
                                              height=im_height,
                                              width=im_width)
 
-    def _depth_im_from_pointcloud(self, msg):
-        """ Convert a pointcloud2 message to a depth image. """
-        # set format
-        if self._format is None:
-            self._set_format(msg)
+    def _process_image_msg(self, msg):
+        """ Process an image message and return a numpy array with the image data
+        Returns
+        -------
+        :obj:`numpy.ndarray` containing the image in the image message
 
-        # rescale camera intr in case binning is turned on
-        if msg.height != self._camera_intr.height:
-            rescale_factor = float(msg.height) / self._camera_intr.height
-            self._camera_intr = self._camera_intr.resize(rescale_factor)
-            
-        # read num points
-        num_points = msg.height * msg.width
-            
-        # read buffer
-        raw_tup = struct.Struct(self._format).unpack_from(msg.data, 0)
-        raw_arr = np.array(raw_tup)
-
-        # subsample depth values and reshape
-        depth_ind = 2 + 4 * np.arange(num_points)
-        depth_buf = raw_arr[depth_ind]
-        depth_arr = depth_buf.reshape(msg.height, msg.width)
-        depth_im = DepthImage(depth_arr, frame=self._frame)
-
-        return depth_im
-
-    def _pointcloud_callback(self, msg):
-        """ Callback for handling point clouds. """
-        self._cur_depth_im = self._depth_im_from_pointcloud(msg)
+        Raises
+        ------
+        CvBridgeError
+            If the bridge is not able to convert the image
+        """
+        encoding = msg.encoding
+        try:
+            image = self._bridge.imgmsg_to_cv2(msg, encoding)
+        except CvBridgeError as e:
+            rospy.logerr(e)
+        return image
+        
+    def _color_image_callback(self, image_msg):
+        """ subscribe to image topic and keep it up to date
+        """
+        color_arr = self._process_image_msg(image_msg)
+        self._cur_color_im = ColorImage(color_arr[:,:,::-1], self._frame)
+ 
+    def _depth_image_callback(self, image_msg):
+        """ subscribe to depth image topic and keep it up to date
+        """
+        depth_arr = self._process_image_msg(image_msg)
+        depth = np.array(depth_arr, np.float32)
+        self._cur_depth_im = DepthImage(depth, self._frame)
         
     def _camera_info_callback(self, msg):
         """ Callback for reading camera info. """
         self._camera_info_sub.unregister()
         self._set_camera_properties(msg)
-        
+    
     @property
     def ir_intrinsics(self):
         """:obj:`CameraIntrinsics` : The camera intrinsics for the Ensenso IR camera.
@@ -124,8 +121,19 @@ class KinectSensorBridge(CameraSensor):
     def start(self):
         """ Start the sensor """
         # initialize subscribers
-        self._pointcloud_sub = rospy.Subscriber('/kinect2/%s/points' %(self._quality), PointCloud2, self._pointcloud_callback)
-        self._camera_info_sub = rospy.Subscriber('/kinect2/%s/camera_info' %(self._quality), CameraInfo, self._camera_info_callback)
+        self._image_sub = rospy.Subscriber(KinectSensorBridged.TOPIC_IMAGE_COLOR, sensor_msgs.msg.Image, self._color_image_callback)
+        self._depth_sub = rospy.Subscriber(KinectSensorBridged.TOPIC_IMAGE_DEPTH, sensor_msgs.msg.Image, self._depth_image_callback)
+        self._camera_info_sub = rospy.Subscriber(KinectSensorBridged.TOPIC_INFO_CAMERA, sensor_msgs.msg.CameraInfo, self._camera_info_callback)
+        
+        timeout = 10
+        try:
+            logging.info("waiting to recieve a message from the Kinect")
+            rospy.wait_for_message(KinectSensorBridged.TOPIC_IMAGE_COLOR, sensor_msgs.msg.Image, timeout=timeout)
+            rospy.wait_for_message(KinectSensorBridged.TOPIC_IMAGE_DEPTH, sensor_msgs.msg.Image, timeout=timeout)
+            rospy.wait_for_message(KinectSensorBridged.TOPIC_INFO_CAMERA, sensor_msgs.msg.CameraInfo, timeout=timeout)
+        except rospy.ROSException as e:
+            logging.error("Kinect topic not found, Kinect not started")
+            logging.error(e)
 
         while self._camera_intr is None:
             time.sleep(0.1)
@@ -136,18 +144,20 @@ class KinectSensorBridge(CameraSensor):
         """ Stop the sensor """
         # check that everything is running
         if not self._running:
-            logging.warning('Ensenso not running. Aborting stop')
+            logging.warning('Kinect not running. Aborting stop')
             return False
 
         # stop subs
-        self._pointcloud_sub.unregister()
-        self._camera_info_sub.unregister()
+        self._image_sub.unregister()
+        self._depth_sub.unregister()
+        self._camera_info_sub.unregister
+
         self._running = False
         return True
 
     def frames(self):
         """Retrieve a new frame from the Ensenso and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        a DepthImage, IrImage is always none for this type
 
         Returns
         -------
@@ -157,18 +167,20 @@ class KinectSensorBridge(CameraSensor):
         Raises
         ------
         RuntimeError
-            If the Ensenso stream is not running.
+            If the Kinect stream is not running.
         """
         # wait for a new image
-        while self._cur_depth_im is None:
+        while self._cur_depth_im is None or self._cur_color_im is None:
             time.sleep(0.01)
             
         # read next image
         depth_im = self._cur_depth_im
-        color_im = ColorImage(np.zeros([depth_im.height,
-                                        depth_im.width,
-                                        3]).astype(np.uint8), frame=self._frame)
+        color_im = self._cur_color_im
+
+        self._cur_color_im = None
         self._cur_depth_im = None
+
+        #TODO add ir image
         return color_im, depth_im, None
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):
@@ -200,12 +212,18 @@ def main(args):
     import matplotlib.pyplot as vis2d
 
     # set logging
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.DEBUG)
     rospy.init_node('kinect_reader', anonymous=True)
 
     num_frames = 5
     sensor = KinectSensorBridge()
     sensor.start()
+    def handler(signum, frame):
+        rospy.loginfo('caught CTRL+C, exiting...')        
+        if sensor is not None:
+            sensor.stop()            
+        exit(0)
+    signal.signal(signal.SIGINT, handler)
 
     total_time = 0
     for i in range(num_frames):        
@@ -220,14 +238,18 @@ def main(args):
             logging.info('Avg FPS: %.5f' %(float(i) / total_time))
         
     depth_im = sensor.median_depth_img(num_img=5)
-    point_cloud = sensor.ir_intrinsics.deproject(depth_im) 
-    point_cloud.remove_zero_points()
+    color_im, depth_im, _ = sensor.frames()
 
     sensor.stop()
 
     vis2d.figure()
+    vis2d.subplot('211')
     vis2d.imshow(depth_im.data)
-    vis2d.title('Ensenso - Raw')
+    vis2d.title('Kinect - depth Raw')
+    
+    vis2d.subplot('212')
+    vis2d.imshow(color_im.data)
+    vis2d.title("kinect color")
     vis2d.show()
     
 if __name__ == '__main__':
