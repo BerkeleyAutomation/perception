@@ -9,6 +9,7 @@ import os
 import time
 
 try:
+    import cv2
     import pylibfreenect2 as lf2
 except:
     logging.warning('Unable to import pylibfreenect2. Python-only Kinect driver may not work properly.')
@@ -52,7 +53,7 @@ class Kinect2DepthMode:
     MILLIMETERS = 1
 
 class Kinect2BridgedQuality:
-    """Kinect depth mode setting for bridged mode
+    """Kinect quality for bridged mode
     """
     HD = "hd"
     QUARTER_HD = "qhd"
@@ -342,10 +343,6 @@ class KinectSensorBridged(CameraSensor):
     https://github.com/code-iai/iai_kinect2. This is preferrable for visualization and debug
     because the kinect bridge will continuously publish image and point cloud info.
     """
-    QUALITY = Kinect2BridgedQuality.HD
-    TOPIC_IMAGE_COLOR = '/kinect2/%s/image_color' %(QUALITY)
-    TOPIC_IMAGE_DEPTH = '/kinect2/%s/image_depth_rect' %(QUALITY)
-    TOPIC_INFO_CAMERA = '/kinect2/%s/camera_info' %(QUALITY)
 
     def __init__(self, quality=Kinect2BridgedQuality.HD, frame='kinect2_rgb_optical_frame'):
         """Initialize a Kinect v2 sensor which connects to the iai_kinect2 bridge
@@ -358,7 +355,10 @@ class KinectSensorBridged(CameraSensor):
        """
         # set member vars
         self._frame = frame
-        self._quality = quality
+
+        self.topic_image_color = '/kinect2/%s/image_color_rect' %(quality)
+        self.topic_image_depth = '/kinect2/%s/image_depth_rect' %(quality)
+        self.topic_info_camera = '/kinect2/%s/camera_info' %(quality)
         
         self._initialized = False
         self._format = None
@@ -413,10 +413,16 @@ class KinectSensorBridged(CameraSensor):
     def _depth_image_callback(self, image_msg):
         """ subscribe to depth image topic and keep it up to date
         """
-        depth_arr = self._process_image_msg(image_msg)
-        depth = np.array(depth_arr, np.float32)
+        encoding = image_msg.encoding
+        try:
+            depth_arr = self._bridge.imgmsg_to_cv2(image_msg, encoding)
+            import pdb; pdb.set_trace()
+
+        except CvBridgeError as e:
+            rospy.logerr(e)
+        depth = np.array(depth_arr*MM_TO_METERS, np.float32)
         self._cur_depth_im = DepthImage(depth, self._frame)
-        
+
     def _camera_info_callback(self, msg):
         """ Callback for reading camera info. """
         self._camera_info_sub.unregister()
@@ -443,19 +449,20 @@ class KinectSensorBridged(CameraSensor):
     def start(self):
         """ Start the sensor """
         # initialize subscribers
-        self._image_sub = rospy.Subscriber(KinectSensorBridged.TOPIC_IMAGE_COLOR, sensor_msgs.msg.Image, self._color_image_callback)
-        self._depth_sub = rospy.Subscriber(KinectSensorBridged.TOPIC_IMAGE_DEPTH, sensor_msgs.msg.Image, self._depth_image_callback)
-        self._camera_info_sub = rospy.Subscriber(KinectSensorBridged.TOPIC_INFO_CAMERA, sensor_msgs.msg.CameraInfo, self._camera_info_callback)
+        self._image_sub = rospy.Subscriber(self.topic_image_color, sensor_msgs.msg.Image, self._color_image_callback)
+        self._depth_sub = rospy.Subscriber(self.topic_image_depth, sensor_msgs.msg.Image, self._depth_image_callback)
+        self._camera_info_sub = rospy.Subscriber(self.topic_info_camera, sensor_msgs.msg.CameraInfo, self._camera_info_callback)
         
         timeout = 10
         try:
-            logging.info("waiting to recieve a message from the Kinect")
-            rospy.wait_for_message(KinectSensorBridged.TOPIC_IMAGE_COLOR, sensor_msgs.msg.Image, timeout=timeout)
-            rospy.wait_for_message(KinectSensorBridged.TOPIC_IMAGE_DEPTH, sensor_msgs.msg.Image, timeout=timeout)
-            rospy.wait_for_message(KinectSensorBridged.TOPIC_INFO_CAMERA, sensor_msgs.msg.CameraInfo, timeout=timeout)
+            rospy.loginfo("waiting to recieve a message from the Kinect")
+            rospy.wait_for_message(self.topic_image_color, sensor_msgs.msg.Image, timeout=timeout)
+            rospy.wait_for_message(self.topic_image_depth, sensor_msgs.msg.Image, timeout=timeout)
+            rospy.wait_for_message(self.topic_info_camera, sensor_msgs.msg.CameraInfo, timeout=timeout)
         except rospy.ROSException as e:
-            logging.error("Kinect topic not found, Kinect not started")
-            logging.error(e)
+            print("KINECT NOT FOUND")
+            rospy.logerr("Kinect topic not found, Kinect not started")
+            rospy.logerr(e)
 
         while self._camera_intr is None:
             time.sleep(0.1)
@@ -527,7 +534,7 @@ class KinectSensorBridged(CameraSensor):
         median_depth = Image.median_images(depths)
         median_depth.data[median_depth.data == 0.0] = fill_depth
         return median_depth
-  
+
 
 class VirtualKinect2Sensor(CameraSensor):
     """Class for a virtual Kinect v2 sensor that uses pre-captured images
