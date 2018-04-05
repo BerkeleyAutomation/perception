@@ -3299,6 +3299,76 @@ class PointCloudImage(Image):
         resized_data[:,:,2] = resized_data_2
         return PointCloudImage(resized_data, self._frame)
 
+    def to_mesh(self, dist_thresh=0.025):
+        """ Convert the point cloud to a mesh.
+
+        Returns
+        -------
+        :obj:`trimesh.Trimesh`
+            mesh of the point cloud
+        """
+        # init vertex and triangle buffers
+        vertices = []
+        triangles = []
+        vertex_indices = -1 * np.ones([self.height, self.width]).astype(np.int16)
+        
+        for i in range(self.height-1):
+            for j in range(self.width-1):
+                # read corners of square
+                v0 = self.data[i,j,:]
+                v1 = self.data[i,j+1,:]
+                v2 = self.data[i+1,j,:]
+                v3 = self.data[i+1,j+1,:]
+
+                # check distances
+                d01 = np.abs(v0[2] - v1[2])
+                d02 = np.abs(v0[2] - v2[2])
+                d03 = np.abs(v0[2] - v3[2])
+                d13 = np.abs(v1[2] - v3[2])
+                d23 = np.abs(v2[2] - v3[2])
+
+                # add tri 1
+                if max(d01, d03, d13) < dist_thresh:
+                    # add vertices
+                    if vertex_indices[i,j] == -1:
+                        vertices.append(v0)
+                        vertex_indices[i,j] = len(vertices)-1
+                    if vertex_indices[i,j+1] == -1:
+                        vertices.append(v1)
+                        vertex_indices[i,j+1] = len(vertices)-1
+                    if vertex_indices[i+1,j+1] == -1:
+                        vertices.append(v3)
+                        vertex_indices[i+1,j+1] = len(vertices)-1
+                
+                    # add tri
+                    i0 = vertex_indices[i,j]
+                    i1 = vertex_indices[i,j+1]
+                    i3 = vertex_indices[i+1,j+1]
+                    triangles.append([i0, i1, i3])
+
+                # add tri 2
+                if max(d01, d03, d23) < dist_thresh:
+                    # add vertices
+                    if vertex_indices[i,j] == -1:
+                        vertices.append(v0)
+                        vertex_indices[i,j] = len(vertices)-1
+                    if vertex_indices[i+1,j] == -1:
+                        vertices.append(v2)
+                        vertex_indices[i+1,j] = len(vertices)-1
+                    if vertex_indices[i+1,j+1] == -1:
+                        vertices.append(v3)
+                        vertex_indices[i+1,j+1] = len(vertices)-1
+                
+                    # add tri
+                    i0 = vertex_indices[i,j]
+                    i2 = vertex_indices[i+1,j]
+                    i3 = vertex_indices[i+1,j+1]
+                    triangles.append([i0, i3, i2])
+
+        # return trimesh
+        import trimesh
+        return trimesh.Trimesh(vertices, triangles)
+                    
     def to_point_cloud(self):
         """Convert the image to a PointCloud object.
 
@@ -3313,7 +3383,7 @@ class PointCloudImage(Image):
                 self.width,
                 3).T,
             frame=self._frame)
-
+    
     def normal_cloud_im(self):
         """Generate a NormalCloudImage from the PointCloudImage.
 
