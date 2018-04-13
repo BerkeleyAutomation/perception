@@ -24,7 +24,7 @@ from .detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, R
 
 from .camera_sensor import CameraSensor
 try:
-    from .kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2Sensor, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
+    from .kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2BridgedQuality, Kinect2Sensor, KinectSensorBridged, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
 except Exception:
     logging.warning('Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2.')
     logging.warning('The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2')
@@ -66,7 +66,7 @@ __all__ = [
     'Correspondences', 'NormalCorrespondences', 'FeatureMatcher', 'RawDistanceFeatureMatcher', 'PointToPlaneFeatureMatcher',
     'Feature', 'LocalFeature', 'GlobalFeature', 'SHOTFeature', 'MVCNNFeature', 'BagOfFeatures',
     'Image', 'ColorImage', 'DepthImage', 'IrImage', 'GrayscaleImage', 'RgbdImage', 'GdImage', 'SegmentationImage', 'BinaryImage', 'PointCloudImage', 'NormalCloudImage',
-    'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode', 'Kinect2DepthMode', 'Kinect2Sensor', 'VirtualKinect2Sensor', 'Kinect2SensorFactory', 'load_images',
+    'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode', 'Kinect2DepthMode', 'Kinect2BridgedQuality', 'Kinect2Sensor','KinectSensorBridged','VirtualKinect2Sensor', 'Kinect2SensorFactory', 'load_images',
     'EnsensoSensor',
     'RgbdSensorFactory', 'PrimesenseSensor', 'VirtualPrimesenseSensor', 'PrimesenseSensor_ROS', 'PrimesenseRegistrationMode',
     'RenderMode', 'ObjectRender', 'QueryImageBundle',
