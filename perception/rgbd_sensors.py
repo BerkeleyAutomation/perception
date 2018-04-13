@@ -2,7 +2,7 @@
 RGBD Sensor factory
 Author: Jeff Mahler
 """
-from . import Kinect2Sensor, VirtualKinect2Sensor, PrimesenseSensor, VirtualPrimesenseSensor, PrimesenseSensor_ROS, EnsensoSensor, PhoXiSensor, KinectSensorBridged
+from . import Kinect2Sensor, PrimesenseSensor, VirtualSensor, PrimesenseSensor_ROS, EnsensoSensor, PhoXiSensor, TensorDatasetVirtualSensor, KinectSensorBridged
 
 class RgbdSensorFactory:
     """ Factory class for Rgbd camera sensors. """
@@ -25,9 +25,6 @@ class RgbdSensorFactory:
                               frame=cfg['frame'])
         elif sensor_type == 'bridged_kinect2':
             s = KinectSensorBridged(quality=cfg['quality'], frame=cfg['frame'])
-        elif sensor_type == 'virtual_kinect2':
-            s = VirtualKinect2Sensor(cfg['image_dir'],
-                                     frame=cfg['frame'])
         elif sensor_type == 'primesense':
             flip_images = True
             if 'flip_images' in cfg.keys():
@@ -35,15 +32,20 @@ class RgbdSensorFactory:
             s = PrimesenseSensor(auto_white_balance=cfg['auto_white_balance'],
                                  flip_images=flip_images,
                                  frame=cfg['frame'])
-        elif sensor_type == 'virtual_primesense':
-            s = VirtualPrimesenseSensor(cfg['image_dir'],
-                                        frame=cfg['frame'])
+        elif sensor_type == 'virtual':
+            s = VirtualSensor(cfg['image_dir'],
+                              frame=cfg['frame'])
+        elif sensor_type == 'tensor_dataset':
+            s = TensorDatasetVirtualSensor(cfg['dataset_dir'],
+                                           frame=cfg['frame'])
         elif sensor_type == 'primesense_ros':
             s = PrimesenseSensor_ROS(frame=cfg['frame'])
         elif sensor_type == 'ensenso':
             s = EnsensoSensor(frame=cfg['frame'])
         elif sensor_type == 'phoxi':
-            s = PhoXiSensor(frame=cfg['frame'])
+            s = PhoXiSensor(frame=cfg['frame'],
+                            device_name=cfg['device_name'],
+                            size=cfg['size'])
         else:
             raise ValueError('RGBD sensor type %s not supported' %(sensor_type))
         return s

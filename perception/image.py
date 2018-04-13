@@ -327,6 +327,38 @@ class Image(object):
                 self.data.dtype),
             frame=self._frame)
 
+    def align(self, scale, center, angle, height, width):
+        """ Create a thumbnail from the original image that
+        is scaled by the given factor, centered on the center pixel, oriented along the grasp angle, and cropped to the desired height and width.
+
+        Parameters
+        ----------
+        scale : float
+            scale factor to apply
+        center : 2D array
+            array containing the row and column index of the pixel to center on
+        angle : float
+            angle to align the image to
+        height : int
+            height of the final image
+        width : int
+            width of the final image
+        """
+        # rescale
+        scaled_im = self.resize(scale)
+
+        # transform
+        cx = scaled_im.center[1]
+        cy = scaled_im.center[0]
+        dx = cx - center[0] * scale
+        dy = cy - center[1] * scale
+        translation = np.array([dy, dx])
+        tf_im = scaled_im.transform(translation, angle)
+
+        # crop
+        aligned_im = tf_im.crop(height, width)
+        return aligned_im
+        
     def gradients(self):
         """Return the gradient as a pair of numpy arrays.
 
@@ -812,8 +844,15 @@ class Image(object):
         file_root, file_ext = os.path.splitext(filename)
         if file_ext in COLOR_IMAGE_EXTS:
             im_data = self._image_data()
-            pil_image = PImage.fromarray(im_data.squeeze())
-            pil_image.save(filename)
+            if im_data.dtype.type == np.uint8:
+                pil_image = PImage.fromarray(im_data.squeeze())
+                pil_image.save(filename)
+            else:
+                try:
+                    import png
+                except:
+                    raise ValueError('PyPNG not installed! Cannot save 16-bit images')
+                png.fromarray(im_data, 'L').save(filename)
         elif file_ext == '.npy':
             np.save(filename, self._data)
         elif file_ext == '.npz':
@@ -1318,6 +1357,9 @@ class ColorImage(Image):
         :obj:`ColorImage`
             color image with zero pixels filled in
         """
+        # get original shape
+        orig_shape = (self.height, self.width)
+        
         # resize the image
         resized_data = self.resize(rescale_factor, interp='nearest').data
 
@@ -1329,7 +1371,7 @@ class ColorImage(Image):
 
         # fill in zero pixels with inpainted and resized image
         filled_data = inpainted_im.resize(
-            1.0 / rescale_factor, interp='bilinear').data
+            orig_shape, interp='bilinear').data
         new_data = self.data
         new_data[self.data == 0] = filled_data[self.data == 0]
         return ColorImage(new_data, frame=self.frame)
@@ -1572,6 +1614,9 @@ class DepthImage(Image):
         :obj:`DepthImage`
             depth image with zero pixels filled in
         """
+        # get original shape
+        orig_shape = (self.height, self.width)
+
         # form inpaint kernel
         inpaint_kernel = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
 
@@ -1596,7 +1641,7 @@ class DepthImage(Image):
         # fill in zero pixels with inpainted and resized image
         inpainted_im = DepthImage(cur_data, frame=self.frame)
         filled_data = inpainted_im.resize(
-            1.0 / rescale_factor, interp='bilinear').data
+            orig_shape, interp='bilinear').data
         new_data = np.copy(self.data)
         new_data[self.data == 0] = filled_data[self.data == 0]
         return DepthImage(new_data, frame=self.frame)
@@ -1641,7 +1686,7 @@ class DepthImage(Image):
         data[ind[0], ind[1]] = 0.0
         return DepthImage(data, self._frame)
 
-    def pixels_farther_than(self, depth_im):
+    def pixels_farther_than(self, depth_im, filter_equal_depth=False):
         """
         Returns the pixels that are farther away
         than those in the corresponding depth image.
@@ -1650,6 +1695,8 @@ class DepthImage(Image):
         ----------
         depth_im : :obj:`DepthImage`
             depth image to query replacement with
+        filter_equal_depth : bool
+            whether or not to mark depth values that are equal
 
         Returns
         -------
@@ -1657,7 +1704,10 @@ class DepthImage(Image):
             the pixels
         """
         # take closest pixel
-        farther_px = np.where(self.data > depth_im.data)
+        if filter_equal_depth:
+            farther_px = np.where(self.data > depth_im.data)
+        else:
+            farther_px = np.where(self.data >= depth_im.data)
         farther_px = np.c_[farther_px[0], farther_px[1]]
         return farther_px
 
@@ -2288,6 +2338,68 @@ class BinaryImage(Image):
                      contour.boundary_pixels[:, 1].astype(np.uint8)] = np.iinfo(np.uint8).max
         return BinaryImage(new_data.astype(np.uint8), frame=self.frame)
 
+    def closest_pixel_to_set(self, start, pixel_set, direction, w=13, t=0.5):
+        """Starting at pixel, moves start by direction * t until there is a
+        pixel from pixel_set within a radius w of start. Then, returns start.
+
+        Parameters
+        ----------
+        start : :obj:`numpy.ndarray` of float
+            The initial pixel location at which to start.
+
+        pixel_set : set of 2-tuples of float
+            The set of pixels to check set intersection with
+
+        direction : :obj:`numpy.ndarray` of float
+            The 2D direction vector in which to move pixel.
+
+        w : int
+            A circular diameter in which to check for pixels.
+            As soon as the current pixel has some non-zero pixel with a diameter
+            w of it, this function returns the current pixel location.
+
+        t : float
+            The step size with which to move pixel along direction.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray` of float
+            The first pixel location along the direction vector at which there
+            exists some intersection with pixel_set within a radius w.
+        """
+
+        # create circular structure for checking clearance
+        y, x = np.meshgrid(np.arange(w) - w / 2, np.arange(w) - w / 2)
+        cur_px_y = np.ravel(y + start[0]).astype(np.uint16)
+        cur_px_x = np.ravel(x + start[1]).astype(np.uint16)
+        
+        # create comparison set, check set overlap
+        cur_px = set(zip(cur_px_y, cur_px_x))
+        includes = True
+        if np.all(
+            cur_px_y >= 0) and np.all(
+            cur_px_y < self.height) and np.all(
+            cur_px_x >= 0) and np.all(
+                cur_px_x < self.width):
+            includes = not cur_px.isdisjoint(pixel_set)
+
+        # Continue until out of bounds or sets overlap
+        while not includes:
+            start = start + t * direction
+            cur_px_y = np.ravel(y + start[0]).astype(np.uint16)
+            cur_px_x = np.ravel(x + start[1]).astype(np.uint16)
+            cur_px = set(zip(cur_px_y, cur_px_x))
+            if np.all(
+                cur_px_y >= 0) and np.all(
+                cur_px_y < self.height) and np.all(
+                cur_px_x >= 0) and np.all(
+                    cur_px_x < self.width):
+                includes = not cur_px.isdisjoint(pixel_set)
+            else:
+                includes = True
+        
+        return start
+
     def closest_nonzero_pixel(self, pixel, direction, w=13, t=0.5):
         """Starting at pixel, moves pixel by direction * t until there is a
         non-zero pixel within a radius w of pixel. Then, returns pixel.
@@ -2301,8 +2413,8 @@ class BinaryImage(Image):
             The 2D direction vector in which to move pixel.
 
         w : int
-            A circular radius in which to check for non-zero pixels.
-            As soon as the current pixel has some non-zero pixel with a raidus
+            A circular diameter in which to check for non-zero pixels.
+            As soon as the current pixel has some non-zero pixel with a diameter
             w of it, this function returns the current pixel location.
 
         t : float
@@ -2319,14 +2431,14 @@ class BinaryImage(Image):
 
         cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
         cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
-        occupied = True
+        occupied = False
         if np.all(
             cur_px_y >= 0) and np.all(
             cur_px_y < self.height) and np.all(
             cur_px_x >= 0) and np.all(
                 cur_px_x < self.width):
             occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
-        while occupied:
+        while not occupied:
             pixel = pixel + t * direction
             cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
             cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
@@ -2337,8 +2449,65 @@ class BinaryImage(Image):
                     cur_px_x < self.width):
                 occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
             else:
-                occupied = False
+                return None
+        return pixel
+    
+    def closest_allzero_pixel(self, pixel, direction, w=13, t=0.5):
+        """Starting at pixel, moves pixel by direction * t until all
+        zero pixels within a radius w of pixel. Then, returns pixel.
 
+        Parameters
+        ----------
+        pixel : :obj:`numpy.ndarray` of float
+            The initial pixel location at which to start.
+
+        direction : :obj:`numpy.ndarray` of float
+            The 2D direction vector in which to move pixel.
+
+        w : int
+            A circular diameter in which to check for zero pixels.
+            As soon as the current pixel has all zero pixels with a diameter
+            w of it, this function returns the current pixel location.
+
+        t : float
+            The step size with which to move pixel along direction.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray` of float
+            The first pixel location along the direction vector at which there
+            exists all zero pixels within a radius w.
+        """
+        # create circular structure for checking clearance
+        y, x = np.meshgrid(np.arange(w) - w / 2, np.arange(w) - w / 2)
+
+        cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
+        cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
+        
+        # Check if all pixels in radius are in bounds and zero-valued
+        empty = False
+        if np.all(
+            cur_px_y >= 0) and np.all(
+            cur_px_y < self.height) and np.all(
+            cur_px_x >= 0) and np.all(
+                cur_px_x < self.width):
+            empty = np.all(self[cur_px_y, cur_px_x] <= self._threshold)
+        
+        # If some nonzero pixels, continue incrementing along direction
+        # and checking for empty space
+        while not empty:
+            pixel = pixel + t * direction
+            cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
+            cur_px_x = np.ravel(x + pixel[1]).astype(np.uint16)
+            if np.all(
+                cur_px_y >= 0) and np.all(
+                cur_px_y < self.height) and np.all(
+                cur_px_x >= 0) and np.all(
+                    cur_px_x < self.width):
+                empty = np.all(self[cur_px_y, cur_px_x] <= self._threshold)
+            else:
+                return None
+                
         return pixel
 
     def add_frame(
@@ -2386,6 +2555,16 @@ class BinaryImage(Image):
         bordered_data[:, right_boundary:] = BINARY_IM_MAX_VAL
         return BinaryImage(bordered_data, frame=self._frame)
 
+    def to_distance_im(self):
+        """ Returns the distance-transformed image as a raw float array.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray`
+            HxW float array containing the distance transform of the binary image
+        """
+        return snm.distance_transform_edt(BINARY_IM_MAX_VAL - self.data)
+        
     def most_free_pixel(self):
         """ Find the black pixel with the largest distance from the white pixels.
 
@@ -2394,11 +2573,11 @@ class BinaryImage(Image):
         :obj:`numpy.ndarray`
             2-vector containing the most free pixel
         """
-        dist_tf = snm.distance_transform_edt(BINARY_IM_MAX_VAL - self.data)
+        dist_tf = self.to_distance_im()
         max_px = np.where(dist_tf == np.max(dist_tf))
         free_pixel = np.array([max_px[0][0], max_px[1][0]])
         return free_pixel
-
+    
     def diff_with_target(self, binary_im):
         """ Creates a color image to visualize the overlap between two images.
         Nonzero pixels that match in both images are green.
@@ -2944,9 +3123,9 @@ class SegmentationImage(Image):
 
     def _check_valid_data(self, data):
         """ Checks for uint8, single channel """
-        if data.dtype.type is not np.uint8:
+        if data.dtype.type is not np.uint8 and data.dtype.type is not np.uint16:
             raise ValueError(
-                'Illegal data type. Segmentation images only support 8-bit uint arrays')
+                'Illegal data type. Segmentation images only support 8-bit or 16-bit uint arrays')
 
         if len(data.shape) == 3 and data.shape[2] != 1:
             raise ValueError(
@@ -3013,9 +3192,30 @@ class SegmentationImage(Image):
              binary image data
         """
         binary_data = np.zeros(self.shape)
-        binary_data[self.data == segnum + 1] = BINARY_IM_MAX_VAL
+        binary_data[self.data == segnum] = BINARY_IM_MAX_VAL
         return BinaryImage(binary_data.astype(np.uint8), frame=self.frame)
 
+    def mask_binary(self, binary_im):
+        """Create a new image by zeroing out data at locations
+        where binary_im == 0.0.
+
+        Parameters
+        ----------
+        binary_im : :obj:`BinaryImage`
+            A BinaryImage of the same size as this image, with pixel values of either
+            zero or one. Wherever this image has zero pixels, we'll zero out the
+            pixels of the new image.
+
+        Returns
+        -------
+        :obj:`Image`
+            A new Image of the same type, masked by the given binary image.
+        """
+        data = np.copy(self._data)
+        ind = np.where(binary_im.data == 0)
+        data[ind[0], ind[1], :] = 0
+        return SegmentationImage(data, self._frame)
+    
     def resize(self, size, interp='nearest'):
         """Resize the image.
 
@@ -3097,7 +3297,7 @@ class PointCloudImage(Image):
         raise NotImplementedError(
             'Image conversion not supported for point cloud')
 
-    def resize(self, size, interp='bilinear'):
+    def resize(self, size, interp='nearest'):
         """Resize the image.
 
         Parameters
@@ -3116,9 +3316,88 @@ class PointCloudImage(Image):
         :obj:`PointCloudImage`
             The resized image.
         """
-        resized_data = sm.imresize(self._data, size, interp=interp)
+        resized_data_0 = sm.imresize(self._data[:,:,0], size, interp=interp, mode='F')
+        resized_data_1 = sm.imresize(self._data[:,:,1], size, interp=interp, mode='F')
+        resized_data_2 = sm.imresize(self._data[:,:,2], size, interp=interp, mode='F')
+        resized_data = np.zeros([resized_data_0.shape[0],
+                                 resized_data_0.shape[1],
+                                 self.channels])
+        resized_data[:,:,0] = resized_data_0
+        resized_data[:,:,1] = resized_data_1
+        resized_data[:,:,2] = resized_data_2
         return PointCloudImage(resized_data, self._frame)
 
+    def to_mesh(self, dist_thresh=0.025):
+        """ Convert the point cloud to a mesh.
+
+        Returns
+        -------
+        :obj:`trimesh.Trimesh`
+            mesh of the point cloud
+        """
+        # init vertex and triangle buffers
+        vertices = []
+        triangles = []
+        vertex_indices = -1 * np.ones([self.height, self.width]).astype(np.int32)
+        
+        for i in range(self.height-1):
+            for j in range(self.width-1):
+                # read corners of square
+                v0 = self.data[i,j,:]
+                v1 = self.data[i,j+1,:]
+                v2 = self.data[i+1,j,:]
+                v3 = self.data[i+1,j+1,:]
+
+                # check distances
+                d01 = np.abs(v0[2] - v1[2])
+                d02 = np.abs(v0[2] - v2[2])
+                d03 = np.abs(v0[2] - v3[2])
+                d13 = np.abs(v1[2] - v3[2])
+                d23 = np.abs(v2[2] - v3[2])
+
+                # add tri 1
+                if max(d01, d03, d13) < dist_thresh:
+                    # add vertices
+                    if vertex_indices[i,j] == -1:
+                        vertices.append(v0)
+                        vertex_indices[i,j] = len(vertices)-1
+                    if vertex_indices[i,j+1] == -1:
+                        vertices.append(v1)
+                        vertex_indices[i,j+1] = len(vertices)-1
+                    if vertex_indices[i+1,j+1] == -1:
+                        vertices.append(v3)
+                        vertex_indices[i+1,j+1] = len(vertices)-1
+                
+                    # add tri
+                    i0 = vertex_indices[i,j]
+                    i1 = vertex_indices[i,j+1]
+                    i3 = vertex_indices[i+1,j+1]
+                    triangles.append([i0, i1, i3])
+
+                # add tri 2
+                if max(d01, d03, d23) < dist_thresh:
+                    # add vertices
+                    if vertex_indices[i,j] == -1:
+                        vertices.append(v0)
+                        vertex_indices[i,j] = len(vertices)-1
+                    if vertex_indices[i+1,j] == -1:
+                        vertices.append(v2)
+                        vertex_indices[i+1,j] = len(vertices)-1
+                    if vertex_indices[i+1,j+1] == -1:
+                        vertices.append(v3)
+                        vertex_indices[i+1,j+1] = len(vertices)-1
+                
+                    # add tri
+                    i0 = vertex_indices[i,j]
+                    i2 = vertex_indices[i+1,j]
+                    i3 = vertex_indices[i+1,j+1]
+                    triangles.append([i0, i3, i2])
+
+        # return trimesh
+        import trimesh
+        mesh = trimesh.Trimesh(vertices, triangles)
+        return mesh
+        
     def to_point_cloud(self):
         """Convert the image to a PointCloud object.
 
@@ -3133,7 +3412,7 @@ class PointCloudImage(Image):
                 self.width,
                 3).T,
             frame=self._frame)
-
+    
     def normal_cloud_im(self):
         """Generate a NormalCloudImage from the PointCloudImage.
 
@@ -3147,8 +3426,8 @@ class PointCloudImage(Image):
         gy_data = gy.reshape(self.height * self.width, 3)
         pc_grads = np.cross(gx_data, gy_data)  # default to point toward camera
         pc_grad_norms = np.linalg.norm(pc_grads, axis=1)
-        normal_data = pc_grads / np.tile(pc_grad_norms[:, np.newaxis], [1, 3])
-        normal_im_data = normal_data.reshape(self.height, self.width, 3)
+        pc_grads[pc_grad_norms > 0] = pc_grads[pc_grad_norms > 0] / np.tile(pc_grad_norms[pc_grad_norms > 0, np.newaxis], [1, 3])
+        normal_im_data = pc_grads.reshape(self.height, self.width, 3)
         return NormalCloudImage(normal_im_data, frame=self.frame)
 
     @staticmethod

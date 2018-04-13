@@ -10,7 +10,7 @@ try:
     from std_srvs.srv import Empty
     from perception.srv import ConnectCamera, GetDeviceList, GetFrame, TriggerImage
 except ImportError:
-    logging.warning("Failed to import ROS in phoxi_sensory.py. PhoXiSensor functionality unavailable.")
+    logging.warning("Failed to import ROS in phoxi_sensor.py. PhoXiSensor functionality unavailable.")
 
 from . import CameraSensor, DepthImage, ColorImage, GrayscaleImage, CameraIntrinsics, Image
 
@@ -35,7 +35,7 @@ class PhoXiSensor(CameraSensor):
         """
 
         self._frame = frame
-        self._device_name = device_name
+        self._device_name = str(device_name)
         self._camera_intr = None
         self._running = False
         self._bridge = CvBridge()
@@ -49,8 +49,12 @@ class PhoXiSensor(CameraSensor):
         focal_x, focal_y = 2244., 2244.
         center_x, center_y = 1023., 768.
         if size == 'small':
-            width, height = 1032, 772
-            center_x, center_y = 1023./2., 768./2.
+            width = 1032
+            height = 772
+            focal_x = focal_x / 2
+            focal_y = focal_y / 2
+            center_x = center_x / 2
+            center_y = center_y / 2
 
         self._camera_intr = CameraIntrinsics(self._frame, focal_x, focal_y,
                                              center_x, center_y,
@@ -149,13 +153,18 @@ class PhoXiSensor(CameraSensor):
         """
         # Run a software trigger
         times = []
+
         rospy.ServiceProxy('phoxi_camera/start_acquisition', Empty)()
         rospy.ServiceProxy('phoxi_camera/trigger_image', TriggerImage)()
+
+        self._cur_color_im = None
+        self._cur_depth_im = None
+        self._cur_normal_map = None
+
         rospy.ServiceProxy('phoxi_camera/get_frame', GetFrame)(-1)
 
         while self._cur_color_im is None or self._cur_depth_im is None or self._cur_normal_map is None:
             time.sleep(0.05)
-
         return self._cur_color_im, self._cur_depth_im, None
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):

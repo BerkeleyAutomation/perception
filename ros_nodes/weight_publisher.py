@@ -36,11 +36,14 @@ class WeightPublisher(object):
         self._rate = rospy.Rate(rate)
         self._pub = rospy.Publisher('~weights', Float32MultiArray, queue_size=10)
 
+        rospy.loginfo('Connecting serial')
+
         self._serials = self._connect(id_mask)
         if len(self._serials) == 0:
             raise ValueError('Error -- No loadstar weight sensors connected to machine!')
 
         # Tare the sensor
+        rospy.loginfo('Tareing')
         self._tare()
 
         # Flush the sensor's communications
@@ -73,7 +76,9 @@ class WeightPublisher(object):
         sensors = []
         for device in all_devices:
             try:
-                ser = serial.Serial(port=device, timeout=0.5)
+                ser = serial.Serial(port=device,
+                                    timeout=0.5,
+                                    exclusive=True)
                 ser.write('ID\r')
                 ser.flush()
                 time.sleep(0.05)
@@ -149,6 +154,7 @@ if __name__ == '__main__':
         rospy.init_node('weight_sensor')
         id_mask = rospy.get_param('~id_mask', 'F1804')
         rate = rospy.get_param('~rate', 20.0)
+        rospy.loginfo('Starting')
         WeightPublisher(rate, id_mask)
     except rospy.ROSInterruptException:
         pass
