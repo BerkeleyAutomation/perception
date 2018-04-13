@@ -1,12 +1,12 @@
-output_dir: /nfs/diskstation/projects/dex-net/segmentation/datasets/pushing
+output_dir: /nfs/diskstation/projects/dex-net/bin_picking/datasets/images
 calib_dir: /nfs/diskstation/calib
 
 sensors:
-  primesense:
-    type: primesense_ros
-    frame: primesense_overhead
-    auto_white_balance: 0
-    num_images: 3
+#  primesense:
+#    type: primesense_ros
+#    frame: primesense_overhead
+#    auto_white_balance: 0
+#    num_images: 3
 #  ensenso:
 #    type: ensenso
 #    frame: ensenso

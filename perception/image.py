@@ -844,8 +844,15 @@ class Image(object):
         file_root, file_ext = os.path.splitext(filename)
         if file_ext in COLOR_IMAGE_EXTS:
             im_data = self._image_data()
-            pil_image = PImage.fromarray(im_data.squeeze())
-            pil_image.save(filename)
+            if im_data.dtype.type == np.uint8:
+                pil_image = PImage.fromarray(im_data.squeeze())
+                pil_image.save(filename)
+            else:
+                try:
+                    import png
+                except:
+                    raise ValueError('PyPNG not installed! Cannot save 16-bit images')
+                png.fromarray(im_data, 'L').save(filename)
         elif file_ext == '.npy':
             np.save(filename, self._data)
         elif file_ext == '.npz':
@@ -3116,9 +3123,9 @@ class SegmentationImage(Image):
 
     def _check_valid_data(self, data):
         """ Checks for uint8, single channel """
-        if data.dtype.type is not np.uint8:
+        if data.dtype.type is not np.uint8 and data.dtype.type is not np.uint16:
             raise ValueError(
-                'Illegal data type. Segmentation images only support 8-bit uint arrays')
+                'Illegal data type. Segmentation images only support 8-bit or 16-bit uint arrays')
 
         if len(data.shape) == 3 and data.shape[2] != 1:
             raise ValueError(
@@ -3188,6 +3195,27 @@ class SegmentationImage(Image):
         binary_data[self.data == segnum] = BINARY_IM_MAX_VAL
         return BinaryImage(binary_data.astype(np.uint8), frame=self.frame)
 
+    def mask_binary(self, binary_im):
+        """Create a new image by zeroing out data at locations
+        where binary_im == 0.0.
+
+        Parameters
+        ----------
+        binary_im : :obj:`BinaryImage`
+            A BinaryImage of the same size as this image, with pixel values of either
+            zero or one. Wherever this image has zero pixels, we'll zero out the
+            pixels of the new image.
+
+        Returns
+        -------
+        :obj:`Image`
+            A new Image of the same type, masked by the given binary image.
+        """
+        data = np.copy(self._data)
+        ind = np.where(binary_im.data == 0)
+        data[ind[0], ind[1], :] = 0
+        return SegmentationImage(data, self._frame)
+    
     def resize(self, size, interp='nearest'):
         """Resize the image.
 
@@ -3310,7 +3338,7 @@ class PointCloudImage(Image):
         # init vertex and triangle buffers
         vertices = []
         triangles = []
-        vertex_indices = -1 * np.ones([self.height, self.width]).astype(np.int16)
+        vertex_indices = -1 * np.ones([self.height, self.width]).astype(np.int32)
         
         for i in range(self.height-1):
             for j in range(self.width-1):
@@ -3367,8 +3395,9 @@ class PointCloudImage(Image):
 
         # return trimesh
         import trimesh
-        return trimesh.Trimesh(vertices, triangles)
-                    
+        mesh = trimesh.Trimesh(vertices, triangles)
+        return mesh
+        
     def to_point_cloud(self):
         """Convert the image to a PointCloud object.
 
