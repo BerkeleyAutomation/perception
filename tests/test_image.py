@@ -260,7 +260,6 @@ class TestImage(unittest.TestCase):
         i = int(height * np.random.rand())
         j = int(width * np.random.rand())
         k = int(3 * np.random.rand())
-        print
         logging.info('Indexing with i=%d, j=%d, k=%d' %(i, j, k))
         c_true = color_data[i,j,k]
         c_read = im[i,j,k]
@@ -284,7 +283,6 @@ class TestImage(unittest.TestCase):
         i_step = 1
         j_step = 1
         k_step = 1
-        print
         logging.info('Slicing with i_start=%d, i_stop=%d, i_step=%d, \
                                    j_start=%d, j_stop=%d, j_step=%d, \
                                    k_start=%d, k_stop=%d, k_step=%d' \
