@@ -193,7 +193,6 @@ class PhoXiSensor(CameraSensor):
             # Check if device is actively in list
             rospy.wait_for_service('phoxi_camera/get_device_list')
             device_list = rospy.ServiceProxy('phoxi_camera/get_device_list', GetDeviceList)().out
-            print device_list
             if not str(name) in device_list:
                 logging.error('PhoXi sensor {} not in list of active devices'.format(name))
                 return False
