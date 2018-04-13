@@ -135,7 +135,7 @@ class EnsensoSensor(CameraSensor):
         return True
 
     def frames(self):
-        """Retrieve a new frame from the Kinect and convert it to a ColorImage,
+        """Retrieve a new frame from the Ensenso and convert it to a ColorImage,
         a DepthImage, and an IrImage.
 
         Returns
@@ -146,7 +146,7 @@ class EnsensoSensor(CameraSensor):
         Raises
         ------
         RuntimeError
-            If the Kinect stream is not running.
+            If the Ensenso stream is not running.
         """
         # wait for a new image
         while self._cur_depth_im is None:

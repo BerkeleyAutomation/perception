@@ -1,0 +1,11 @@
+<launch>
+
+  <arg name="rate"              default="20.0" />
+  <arg name="id_mask"           default="F1804" />
+
+  <node name="weight_publisher" pkg="perception" type="weight_publisher.py" ns="weight_publisher" output="screen" >
+    <param name="rate"              value="$(arg rate)" />
+    <param name="id_mask"           value="$(arg id_mask)" />
+  </node>
+
+</launch>

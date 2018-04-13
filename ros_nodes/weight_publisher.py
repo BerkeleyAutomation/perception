@@ -37,6 +37,7 @@ class WeightPublisher(object):
         self._pub = rospy.Publisher('~weights', Float32MultiArray, queue_size=10)
 
         rospy.loginfo('Connecting serial')
+
         self._serials = self._connect(id_mask)
         if len(self._serials) == 0:
             raise ValueError('Error -- No loadstar weight sensors connected to machine!')
@@ -79,10 +80,11 @@ class WeightPublisher(object):
                                     timeout=0.5,
                                     exclusive=True)
                 ser.write('ID\r')
+                ser.flush()
                 time.sleep(0.05)
                 resp = ser.read(13)
                 ser.close()
-                
+
                 if len(resp) >= 10 and resp[:len(id_mask)] == id_mask:
                     sensors.append((device, resp.rstrip('\r\n')))
             except:
