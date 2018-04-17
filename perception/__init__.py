@@ -21,8 +21,9 @@ from .object_render import RenderMode, ObjectRender, QueryImageBundle
 from .chessboard_registration import ChessboardRegistrationResult, CameraChessboardRegistration
 from .point_registration import RegistrationResult, IterativeRegistrationSolver, PointToPlaneICPSolver
 from .detector import RgbdDetection, RgbdDetector, RgbdForegroundMaskDetector, RgbdForegroundMaskQueryImageDetector, PointCloudBoxDetector, RgbdDetectorFactory
-
 from .camera_sensor import CameraSensor, VirtualSensor, TensorDatasetVirtualSensor
+from .webcam_sensor import WebcamSensor
+
 try:
     from .kinect2_sensor import Kinect2PacketPipelineMode, Kinect2FrameMode, Kinect2RegistrationMode, Kinect2DepthMode, Kinect2BridgedQuality, Kinect2Sensor, KinectSensorBridged, VirtualKinect2Sensor, Kinect2SensorFactory, load_images
 except Exception:
@@ -39,9 +40,9 @@ try:
 except Exception:
     logging.warning('Unable to import Ensenso sensor modules!.')
 
-from .phoxi_sensor import PhoXiSensor
 try:
     from .phoxi_sensor import PhoXiSensor
+    from .colorized_phoxi_sensor import ColorizedPhoXiSensor
 except Exception as e:
     logging.warning('Unable to import PhoXi sensor modules!')
 

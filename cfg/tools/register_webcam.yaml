@@ -1,16 +1,18 @@
 # REGISTRATION PARAMS
 chessboard_registration:
-  corners_x: 6 # number of corners in the x direction
-  corners_y: 9 # number of corners in the y direction
-  width: 0.023
-  height: 0.024
-  x_off: 0.454
-  y_off: 0.0107
+  corners_x: 11 # number of corners in the x direction
+  corners_y: 8  # number of corners in the y direction
+  size_x: 0.02   # width of each square in meters
+  size_y: 0.02  # height of each square in meters
 
-calib_dir: /home/autolab/Public/alan/calib # directory for the output
+calib_dir: /nfs/diskstation/calib # directory for the output
+chessboard_tf: /nfs/diskstation/calib/chessboard/metal_chessboard_to_world_yumi1.tf
 
 # SENSOR CALIBRATION LIST
 sensors:
-   webcam_overhead:
-      use: True
-      device_num: 0
+    webcam:
+        sensor_config:
+            type: webcam
+            device_id: 0
+        registration_config:
+            color_image_rescale_factor: 0.6

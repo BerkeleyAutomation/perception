@@ -2,7 +2,7 @@
 RGBD Sensor factory
 Author: Jeff Mahler
 """
-from . import Kinect2Sensor, PrimesenseSensor, VirtualSensor, PrimesenseSensor_ROS, EnsensoSensor, PhoXiSensor, TensorDatasetVirtualSensor, KinectSensorBridged
+from . import Kinect2Sensor, PrimesenseSensor, VirtualSensor, PrimesenseSensor_ROS, EnsensoSensor, PhoXiSensor, TensorDatasetVirtualSensor, KinectSensorBridged, WebcamSensor, ColorizedPhoXiSensor
 
 class RgbdSensorFactory:
     """ Factory class for Rgbd camera sensors. """
@@ -46,6 +46,12 @@ class RgbdSensorFactory:
             s = PhoXiSensor(frame=cfg['frame'],
                             device_name=cfg['device_name'],
                             size=cfg['size'])
+        elif sensor_type == 'webcam':
+            s = WebcamSensor(frame=cfg['frame'],
+                             device_id=cfg['device_id'])
+        elif sensor_type == 'colorized_phoxi':
+            s = ColorizedPhoXiSensor(frame=cfg['frame'], phoxi_config=cfg['phoxi_config'],
+                                     webcam_config=cfg['webcam_config'], calib_dir=cfg['calib_dir'])
         else:
             raise ValueError('RGBD sensor type %s not supported' %(sensor_type))
         return s
