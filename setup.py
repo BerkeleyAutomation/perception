@@ -14,6 +14,7 @@ requirements = [
     'keras',
     'cycler',
     'Pillow',
+    'pyserial>=3.4',
     'ipython==5.5.0',
     'scikit-image',
     'scikit-learn',
