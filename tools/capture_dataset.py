@@ -157,6 +157,7 @@ if __name__ == '__main__':
 
     # set random variable for the number of objects
     mean_num_objects = config['mean_num_objects']
+    min_num_objects = config['min_num_objects']
     vis = config['vis']
     num_objs_rv = ss.poisson(mean_num_objects-1)
     im_rescale_factor = image_proc_config['im_rescale_factor']
@@ -243,7 +244,7 @@ if __name__ == '__main__':
         logging.info('Test case %d of %d' %(k, num_images))
 
         # set test case
-        num_objects = num_objs_rv.rvs(size=1)[0] + 1
+        num_objects = max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects)
         
         # get human consent
         message = 'Please place %d objects\n' %(num_objects)

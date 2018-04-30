@@ -1,5 +1,6 @@
 # general params
-mean_num_objects: 7.5
+mean_num_objects: 3
+min_num_objects: 2
 vis: 1
 
 # sensor params
@@ -55,7 +56,7 @@ workspace:
   min_pt:
     - 0.2
     - -0.275
-    - -0.0065
+    - -0.006
   max_pt:
     - 0.57
     - 0.275
@@ -68,4 +69,4 @@ workspace:
 
     plane:
       mesh_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/plane/plane.obj
-      pose_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/plane/pose.tf  
+      pose_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/plane/pose_below_world_frame.tf  
