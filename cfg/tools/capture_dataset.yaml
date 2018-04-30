@@ -1,0 +1,71 @@
+# general params
+mean_num_objects: 7.5
+vis: 1
+
+# sensor params
+sensors:
+  phoxi:
+    type: colorized_phoxi
+    frame: phoxi
+    calib_dir: /nfs/diskstation/calib/
+    phoxi_config:
+      device_name: 1703005
+      size: small
+    webcam_config:
+      device_id: 0
+
+# dataset params
+dataset:
+  datapoints_per_file: 10
+  fields:
+    raw_color_ims:
+      dtype: uint8
+      channels: 3
+    raw_depth_ims:
+      dtype: float32
+      channels: 1
+    color_ims:
+      dtype: uint8
+      channels: 3
+    depth_ims:
+      dtype: float32
+      channels: 1
+    segmasks:
+      dtype: uint8
+      channels: 1
+    camera_poses:
+      dtype: float32
+      height: 7
+    camera_intrs:
+      dtype: float32
+      height: 7
+    split:
+      dtype: uint8
+
+# image proc params
+image_proc:
+  im_rescale_factor: 0.25
+  inpaint_rescale_factor: 0.5
+  cluster_tolerance: 0.005
+  min_cluster_size: 100
+  max_cluster_size: 1000000
+
+# workspace params
+workspace:
+  min_pt:
+    - 0.2
+    - -0.275
+    - -0.0065
+  max_pt:
+    - 0.57
+    - 0.275
+    - 0.15
+
+  objects:
+    beveled_bin:
+      mesh_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/beveled_bin/mini_bin_extruded.obj
+      pose_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/beveled_bin/mini_bin_physical_pose_yumi1.tf
+
+    plane:
+      mesh_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/plane/plane.obj
+      pose_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/plane/pose.tf  

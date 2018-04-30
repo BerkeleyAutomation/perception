@@ -3327,7 +3327,7 @@ class PointCloudImage(Image):
         resized_data[:,:,2] = resized_data_2
         return PointCloudImage(resized_data, self._frame)
 
-    def to_mesh(self, dist_thresh=0.025):
+    def to_mesh(self, dist_thresh=0.01):
         """ Convert the point cloud to a mesh.
 
         Returns
