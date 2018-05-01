@@ -38,6 +38,7 @@ def preprocess_images(raw_color_im,
     """ Preprocess a set of color and depth images. """
     # read params
     inpaint_rescale_factor = image_proc_config['inpaint_rescale_factor']
+    cluster = image_proc_config['cluster']
     cluster_tolerance = image_proc_config['cluster_tolerance']
     min_cluster_size = image_proc_config['min_cluster_size']
     max_cluster_size = image_proc_config['max_cluster_size']
@@ -70,36 +71,39 @@ def preprocess_images(raw_color_im,
     invalid_indices = np.setdiff1d(np.arange(point_cloud_world.num_points),
                                    valid_indices)
 
-    # create new cloud
-    pcl_cloud = pcl.PointCloud(workspace_point_cloud_world.data.T.astype(np.float32))
-    tree = pcl_cloud.make_kdtree()
+    if cluster:
+        # create new cloud
+        pcl_cloud = pcl.PointCloud(workspace_point_cloud_world.data.T.astype(np.float32))
+        tree = pcl_cloud.make_kdtree()
     
-    # find large clusters (likely to be real objects instead of noise)
-    ec = pcl_cloud.make_EuclideanClusterExtraction()
-    ec.set_ClusterTolerance(cluster_tolerance)
-    ec.set_MinClusterSize(min_cluster_size)
-    ec.set_MaxClusterSize(max_cluster_size)
-    ec.set_SearchMethod(tree)
-    cluster_indices = ec.Extract()
-    num_clusters = len(cluster_indices)
+        # find large clusters (likely to be real objects instead of noise)
+        ec = pcl_cloud.make_EuclideanClusterExtraction()
+        ec.set_ClusterTolerance(cluster_tolerance)
+        ec.set_MinClusterSize(min_cluster_size)
+        ec.set_MaxClusterSize(max_cluster_size)
+        ec.set_SearchMethod(tree)
+        cluster_indices = ec.Extract()
+        num_clusters = len(cluster_indices)
 
-    # read out all points in large clusters
-    filtered_points = np.zeros([3,workspace_point_cloud_world.num_points])
-    cur_i = 0
-    for j, indices in enumerate(cluster_indices):
-        num_points = len(indices)
-        points = np.zeros([3,num_points])
+        # read out all points in large clusters
+        filtered_points = np.zeros([3,workspace_point_cloud_world.num_points])
+        cur_i = 0
+        for j, indices in enumerate(cluster_indices):
+            num_points = len(indices)
+            points = np.zeros([3,num_points])
     
-        for i, index in enumerate(indices):
-            points[0,i] = pcl_cloud[index][0]
-            points[1,i] = pcl_cloud[index][1]
-            points[2,i] = pcl_cloud[index][2]
+            for i, index in enumerate(indices):
+                points[0,i] = pcl_cloud[index][0]
+                points[1,i] = pcl_cloud[index][1]
+                points[2,i] = pcl_cloud[index][2]
 
-        filtered_points[:,cur_i:cur_i+num_points] = points.copy()
-        cur_i = cur_i + num_points
+            filtered_points[:,cur_i:cur_i+num_points] = points.copy()
+            cur_i = cur_i + num_points
 
-    # reconstruct the point cloud
-    all_points = np.c_[filtered_points[:,:cur_i], point_cloud_world.data[:,invalid_indices]]
+        # reconstruct the point cloud
+        all_points = np.c_[filtered_points[:,:cur_i], point_cloud_world.data[:,invalid_indices]]
+    else:
+        all_points = point_cloud_world.data
     filtered_point_cloud_world = PointCloud(all_points,
                                             frame='world')  
 
@@ -158,10 +162,13 @@ if __name__ == '__main__':
     # set random variable for the number of objects
     mean_num_objects = config['mean_num_objects']
     min_num_objects = config['min_num_objects']
-    vis = config['vis']
+    max_num_objects = config['min_num_objects']
     num_objs_rv = ss.poisson(mean_num_objects-1)
     im_rescale_factor = image_proc_config['im_rescale_factor']
 
+    save_raw = config['save_raw']
+    vis = config['vis']
+    
     # open gui
     gui = plt.figure(0, figsize=(8,8))
     plt.ion()
@@ -213,8 +220,8 @@ if __name__ == '__main__':
         sensor.start()
         camera_intr = sensor.ir_intrinsics
         camera_intr = camera_intr.resize(im_rescale_factor)
-        camera_intrs[sensor_name] = camera_intr
-
+        camera_intrs[sensor_name] = camera_intr        
+        
         # render image of static workspace
         scene = Scene()
         camera = VirtualCamera(camera_intr, T_camera_world)
@@ -239,12 +246,25 @@ if __name__ == '__main__':
         sensor_dataset_filename = os.path.join(output_dir, sensor_name)
         datasets[sensor_name] = TensorDataset(sensor_dataset_filename,
                                               dataset_config)        
+
+        # save raw
+        if save_raw:
+            sensor_dir = os.path.join(output_dir, sensor_name)
+            raw_dir = os.path.join(sensor_dir, 'raw')
+            if not os.path.exists(raw_dir):
+                os.mkdir(raw_dir)
+
+            camera_intr_filename = os.path.join(raw_dir, 'camera_intr.intr')
+            camera_intr.save(camera_intr_filename)
+            camera_pose_filename = os.path.join(raw_dir, 'T_camera_world.tf')
+            T_camera_world.save(camera_pose_filename)
+
     # collect K images
     for k in range(num_images):
         logging.info('Test case %d of %d' %(k, num_images))
 
         # set test case
-        num_objects = max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects)
+        num_objects = min(max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects), max_num_objects)
         
         # get human consent
         message = 'Please place %d objects\n' %(num_objects)
@@ -311,7 +331,25 @@ if __name__ == '__main__':
             datapoint['depth_ims'] = depth_im.raw_data
             datapoint['segmasks'] = segmask.raw_data
             dataset.add(datapoint)
-            
+
+            # save raw data
+            if save_raw:
+                sensor_dir = os.path.join(output_dir, sensor_name)
+                raw_dir = os.path.join(sensor_dir, 'raw')
+
+                raw_color_im_filename = os.path.join(raw_dir, 'raw_color_%d.png' %(k))
+                raw_color_im.save(raw_color_im_filename)
+                color_im_filename = os.path.join(raw_dir, 'color_%d.png' %(k))
+                color_im.save(color_im_filename)
+                
+                raw_depth_im_filename = os.path.join(raw_dir, 'raw_depth_%d.npy' %(k))
+                raw_depth_im.save(raw_depth_im_filename)
+                depth_im_filename = os.path.join(raw_dir, 'depth_%d.npy' %(k))
+                depth_im.save(depth_im_filename)
+
+                segmask_filename = os.path.join(raw_dir, 'segmask_%d.png' %(k))
+                segmask.save(segmask_filename)
+                
     # stop all sensors
     for sensor_name, sensor in sensors.iteritems():
         datasets[sensor_name].flush()

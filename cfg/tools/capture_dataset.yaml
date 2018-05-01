@@ -1,6 +1,9 @@
 # general params
 mean_num_objects: 3
 min_num_objects: 2
+max_num_objects: 10
+
+save_raw: 0
 vis: 1
 
 # sensor params
