@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import os
 
-from constants import MM_TO_METERS, INTR_EXTENSION
+from .constants import MM_TO_METERS, INTR_EXTENSION
 try:
     from primesense import openni2
 except:

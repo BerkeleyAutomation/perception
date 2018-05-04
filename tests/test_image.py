@@ -6,7 +6,7 @@ import logging
 import numpy as np
 import unittest
 
-from constants import *
+from .constants import *
 from perception import Image, ColorImage, DepthImage, BinaryImage, SegmentationImage, GrayscaleImage, IrImage, PointCloudImage, NormalCloudImage
 
 class TestImage(unittest.TestCase):
