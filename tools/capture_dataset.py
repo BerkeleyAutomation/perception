@@ -159,10 +159,26 @@ if __name__ == '__main__':
     workspace_config = config['workspace']
     image_proc_config = config['image_proc']
 
+    # read objects
+    train_pct = config['train_pct']
+    objects = config['objects']
+    num_objects = len(objects)
+    num_train = int(np.ceil(train_pct * num_objects))
+    num_test = num_objects - num_train
+    all_indices = np.arange(num_objects)
+    np.random.shuffle(all_indices)
+    train_indices = all_indices[:num_train]
+    test_indices = all_indices[num_train:]
+
+    num_train_images = int(np.ceil(train_pct * num_images))
+    all_image_indices = np.arange(num_images)
+    np.random.shuffle(all_image_indices)
+    train_image_indices = all_image_indices[:num_train_images]
+
     # set random variable for the number of objects
     mean_num_objects = config['mean_num_objects']
     min_num_objects = config['min_num_objects']
-    max_num_objects = config['min_num_objects']
+    max_num_objects = config['max_num_objects']
     num_objs_rv = ss.poisson(mean_num_objects-1)
     im_rescale_factor = image_proc_config['im_rescale_factor']
 
@@ -264,10 +280,22 @@ if __name__ == '__main__':
         logging.info('Test case %d of %d' %(k, num_images))
 
         # set test case
-        num_objects = min(max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects), max_num_objects)
-        
+        train = 0
+        split = TEST_ID
+        if k in train_image_indices:
+            train = 1
+            split = TRAIN_ID
+        if train:
+            num_objects = min(max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects), num_train)
+            obj_names = [objects[i] for i in np.random.choice(train_indices, size=num_objects, replace=False)]
+        else:
+            num_objects = min(max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects), num_test)
+            obj_names = [objects[i] for i in np.random.choice(test_indices, size=num_objects, replace=False)]
+            
         # get human consent
-        message = 'Please place %d objects\n' %(num_objects)
+        message = 'Please place %d objects:\n' %(num_objects)
+        for name in obj_names:
+            message += '\t{}\n'.format(name)
         message += 'Hit ENTER when finished.'
         utils.keyboard_input(message=message)
 
@@ -280,6 +308,7 @@ if __name__ == '__main__':
             camera_intr = camera_intrs[sensor_name]
             workspace_im = workspace_ims[sensor_name]
             dataset = datasets[sensor_name]
+            T_camera_world = sensor_pose
             datapoint = dataset.datapoint_template
             
             # read raw images
@@ -322,7 +351,7 @@ if __name__ == '__main__':
                 plt.pause(GUI_PAUSE)
             
             # save data
-            datapoint['split'] = TEST_ID
+            datapoint['split'] = split
             datapoint['camera_intrs'] = camera_intr.vec
             datapoint['camera_poses'] = sensor_pose.vec
             datapoint['raw_color_ims'] = raw_color_im.raw_data
