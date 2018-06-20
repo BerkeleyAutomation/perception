@@ -2,6 +2,9 @@ import cv2
 import logging
 import numpy as np
 import time
+import subprocess
+import v4l2capture
+import select
 
 from . import CameraSensor, ColorImage, CameraIntrinsics
 
@@ -66,7 +69,7 @@ class WebcamSensor(CameraSensor):
     def start(self):
         """Start the sensor.
         """
-        self._cap = cv2.VideoCapture(self._device_id)
+        self._cap = cv2.VideoCapture(self._device_id + cv2.CAP_V4L)
         if not self._cap.isOpened():
             self._running = False
             self._cap.release()
@@ -103,7 +106,11 @@ class WebcamSensor(CameraSensor):
         :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
             The ColorImage, DepthImage, and IrImage of the current frame.
         """
-        ret, frame = self._cap.read()
+        for i in range(5):
+            command = 'v4l2-ctl -d /dev/video{} -c exposure_auto=1 -c exposure_auto_priority=0 -c exposure_absolute=100 -c saturation=60 -c gain=140'.format(self._device_id)
+            subprocess.call(command, shell=True)
+            ret, frame = self._cap.read()
         rgb_data = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
         return ColorImage(rgb_data, frame=self._frame), None, None
+
+
