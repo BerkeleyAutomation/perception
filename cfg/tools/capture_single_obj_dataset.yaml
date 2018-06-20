@@ -1,0 +1,60 @@
+# general params
+n_samples_per_object: 10
+
+save_raw: 0
+vis: 1
+
+# sensor params
+sensors:
+  phoxi:
+    type: colorized_phoxi
+    frame: phoxi
+    calib_dir: /nfs/diskstation/calib/
+    phoxi_config:
+      device_name: 1703005
+      size: small
+    webcam_config:
+      device_id: 0
+
+# image proc params
+image_proc:
+  im_rescale_factor: 1.0
+  inpaint_rescale_factor: 0.5
+  cluster_tolerance: 0.005
+  min_cluster_size: 400
+  max_cluster_size: 1000000
+  cluster: 1
+
+# object parameters
+objects:
+  - toothbrushes
+  - zoink
+  - clip
+  - toothpaste
+  - spray_bottle
+  - glue
+  - wipes
+  - climbing_hold
+  - dasani
+  - watermelon
+
+# workspace params
+workspace:
+  min_pt:
+    - 0.2
+    - -0.275
+    - -0.006
+  max_pt:
+    - 0.57
+    - 0.275
+    - 0.15
+
+  objects:
+    beveled_bin:
+      mesh_filename: /nfs/diskstation/projects/dex-net/objects/meshes/beveled_bin/mini_bin_extruded.obj
+      pose_filename: /nfs/diskstation/projects/dex-net/objects/meshes/beveled_bin/mini_bin_physical_pose_yumi1.tf
+
+    plane:
+      mesh_filename: /nfs/diskstation/projects/dex-net/objects/meshes/plane/plane.obj
+      pose_filename: /nfs/diskstation/projects/dex-net/objects/meshes/plane/pose.tf
+
