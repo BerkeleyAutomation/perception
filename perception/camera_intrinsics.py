@@ -47,11 +47,11 @@ class CameraIntrinsics(object):
             The width of the camera image in pixels
         """
         self._frame = frame
-        self._fx = fx
-        self._fy = fy
-        self._cx = cx
-        self._cy = cy
-        self._skew = skew
+        self._fx = float(fx)
+        self._fy = float(fy)
+        self._cx = float(cx)
+        self._cy = float(cy)
+        self._skew = float(skew)
         self._height = int(height)
         self._width = int(width)
 
