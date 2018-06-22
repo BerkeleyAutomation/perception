@@ -1,10 +1,7 @@
 import cv2
 import logging
 import numpy as np
-import time
 import subprocess
-import v4l2capture
-import select
 
 from . import CameraSensor, ColorImage, CameraIntrinsics
 
