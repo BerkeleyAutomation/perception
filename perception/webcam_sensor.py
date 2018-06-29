@@ -1,10 +1,7 @@
 import cv2
 import logging
 import numpy as np
-import time
 import subprocess
-import v4l2capture
-import select
 
 from . import CameraSensor, ColorImage, CameraIntrinsics
 
@@ -112,5 +109,3 @@ class WebcamSensor(CameraSensor):
             ret, frame = self._cap.read()
         rgb_data = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         return ColorImage(rgb_data, frame=self._frame), None, None
-
-
