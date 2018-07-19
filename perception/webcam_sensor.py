@@ -66,7 +66,7 @@ class WebcamSensor(CameraSensor):
     def start(self):
         """Start the sensor.
         """
-        self._cap = cv2.VideoCapture(self._device_id + cv2.CAP_V4L)
+        self._cap = cv2.VideoCapture(self._device_id + cv2.CAP_V4L2)
         if not self._cap.isOpened():
             self._running = False
             self._cap.release()

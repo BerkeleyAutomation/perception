@@ -51,3 +51,4 @@ vis_cb_corners: 0
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
 gripper_offset_z: 0.0075
+reset_bin: 1

@@ -6,6 +6,7 @@ import logging
 
 from .version import __version__
 from .camera_intrinsics import CameraIntrinsics
+from .exceptions import SensorUnresponsiveException
 
 try:
     from .cnn import AlexNet, AlexNetWeights, conv
@@ -58,7 +59,6 @@ except:
     logging.warning('Unable to import weight sensor modules!')
 
 from .video_recorder import VideoRecorder
-from .exceptions import SensorUnresponsiveException
 
 __all__ = [
     'CameraIntrinsics',
