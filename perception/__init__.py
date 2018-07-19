@@ -58,6 +58,7 @@ except:
     logging.warning('Unable to import weight sensor modules!')
 
 from .video_recorder import VideoRecorder
+from .exceptions import SensorUnresponsiveException
 
 __all__ = [
     'CameraIntrinsics',

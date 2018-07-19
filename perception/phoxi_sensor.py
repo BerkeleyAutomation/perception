@@ -12,7 +12,7 @@ try:
 except ImportError:
     logging.warning("Failed to import ROS in phoxi_sensor.py. PhoXiSensor functionality unavailable.")
 
-from . import CameraSensor, DepthImage, ColorImage, GrayscaleImage, CameraIntrinsics, Image
+from . import CameraSensor, DepthImage, ColorImage, GrayscaleImage, CameraIntrinsics, Image, SensorUnresponsiveException
 
 class PhoXiSensor(CameraSensor):
     """Class for interfacing with a PhoXi Structured Light Sensor.
@@ -163,8 +163,13 @@ class PhoXiSensor(CameraSensor):
 
         rospy.ServiceProxy('phoxi_camera/get_frame', GetFrame)(-1)
 
+        max_time = 5.0
+        time_waiting = 0.0
         while self._cur_color_im is None or self._cur_depth_im is None or self._cur_normal_map is None:
             time.sleep(0.05)
+            time_waiting += 0.05
+            if time_waiting > max_time:
+                raise SensorUnresponsiveException('PhoXi sensor seems to be non-responsive')
         return self._cur_color_im, self._cur_depth_im, None
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):
@@ -217,19 +222,28 @@ class PhoXiSensor(CameraSensor):
     def _color_im_callback(self, msg):
         """Callback for handling textures (greyscale images).
         """
-        data = self._bridge.imgmsg_to_cv2(msg)
-        if np.max(data) > 255.0:
-            data = 255.0 * data / 1200.0 # Experimentally set value for white
-        data = np.clip(data, 0., 255.0).astype(np.uint8)
-        gsimage = GrayscaleImage(data, frame=self._frame)
-        self._cur_color_im = gsimage.to_color()
+        try:
+            data = self._bridge.imgmsg_to_cv2(msg)
+            if np.max(data) > 255.0:
+                data = 255.0 * data / 1200.0 # Experimentally set value for white
+            data = np.clip(data, 0., 255.0).astype(np.uint8)
+            gsimage = GrayscaleImage(data, frame=self._frame)
+            self._cur_color_im = gsimage.to_color()
+        except:
+            self._cur_color_im = None
 
     def _depth_im_callback(self, msg):
         """Callback for handling depth images.
         """
-        self._cur_depth_im = DepthImage(self._bridge.imgmsg_to_cv2(msg) / 1000.0, frame=self._frame)
+        try:
+            self._cur_depth_im = DepthImage(self._bridge.imgmsg_to_cv2(msg) / 1000.0, frame=self._frame)
+        except:
+            self._cur_depth_im = None
 
     def _normal_map_callback(self, msg):
         """Callback for handling normal maps.
         """
-        self._cur_normal_map = self._bridge.imgmsg_to_cv2(msg)
+        try:
+            self._cur_normal_map = self._bridge.imgmsg_to_cv2(msg)
+        except:
+            self._cur_normal_map = None
