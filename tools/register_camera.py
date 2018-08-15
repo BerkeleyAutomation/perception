@@ -373,6 +373,8 @@ if __name__ == '__main__':
             
             # stop robot
             y.reset_home()
+            if 'reset_bin' in config.keys() and config['reset_bin']:
+                y.reset_bin()
             y.stop()
 
         sensor.stop()
