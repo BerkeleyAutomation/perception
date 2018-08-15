@@ -1500,8 +1500,11 @@ class DepthImage(Image):
             depth_data = (self._data - min_depth) / (max_depth - min_depth)
             depth_data = float(BINARY_IM_MAX_VAL) * depth_data.squeeze()
         else:
+            zero_px = np.where(self._data == 0)
+            zero_px = np.c_[zero_px[0], zero_px[1], zero_px[2]]
             depth_data = ((self._data - min_depth) * \
                           (float(BINARY_IM_MAX_VAL) / (max_depth - min_depth))).squeeze()
+            depth_data[zero_px[:,0], zero_px[:,1]] = 0
         im_data = np.zeros([self.height, self.width, 3])
         im_data[:, :, 0] = depth_data
         im_data[:, :, 1] = depth_data
