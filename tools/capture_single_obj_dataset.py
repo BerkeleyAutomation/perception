@@ -15,6 +15,7 @@ import rosgraph.roslogging as rl
 import rospy
 from scipy import ndimage
 import scipy.stats as ss
+from skimage import measure
 import sys
 import trimesh
 
@@ -118,10 +119,19 @@ def preprocess_images(raw_color_im,
     valid_px_segmask = depth_im.invalid_pixel_mask().inverse()
     segmask = segmask.mask_binary(valid_px_segmask)
     segdata = segmask.data
-    segdata = cv2.erode(segdata, np.ones((10,10), np.uint8), iterations=1)
-    segdata = cv2.dilate(segdata, np.ones((10,10), np.uint8), iterations=1)
+
+    # Remove any tiny cc's
+    cc_labels = measure.label(segdata)
+    num_ccs = np.max(cc_labels)
+    for i in range(1, num_ccs + 1):
+        cc_mask = (cc_labels == i)
+        cc_size = np.count_nonzero(cc_mask)
+        if cc_size < 30:
+            segdata[np.where(cc_mask)] = 0
+
+    #segdata = cv2.erode(segdata, np.ones((10,10), np.uint8), iterations=1)
+    #segdata = cv2.dilate(segdata, np.ones((10,10), np.uint8), iterations=1)
     segmask = BinaryImage(ndimage.binary_fill_holes(segdata).astype(np.uint8) * 255)
-    segmask = BinaryImage(segdata)
 
     # inpaint
     color_im = raw_color_im.inpaint(rescale_factor=inpaint_rescale_factor)
@@ -320,13 +330,19 @@ if __name__ == '__main__':
 
 
                 sensor_dir = os.path.join(output_dir, sensor_name)
-                img_dir = os.path.join(sensor_dir, 'images')
+
+                img_dir = os.path.join(sensor_dir, 'color_images')
                 if not os.path.exists(img_dir):
                     os.makedirs(img_dir)
                 color_im = color_im.mask_binary(segmask)
                 color_im.save(os.path.join(img_dir, '{}_{:06d}.png'.format(obj_name, j)))
 
+                img_dir = os.path.join(sensor_dir, 'depth_images')
+                if not os.path.exists(img_dir):
+                    os.makedirs(img_dir)
+                depth_im = depth_im.mask_binary(segmask)
+                np.save(os.path.join(img_dir, '{}_{:06d}.npy'.format(obj_name, j)), depth_im.data)
+
     # stop all sensors
     for sensor_name, sensor in sensors.iteritems():
         sensor.stop()
-

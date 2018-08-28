@@ -80,10 +80,6 @@ class WebcamSensor(CameraSensor):
         self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._camera_intr.height)
         self._running = True
 
-        # Capture 5 frames to flush webcam sensor
-        for _ in range(5):
-            _ = self.frames()
-
         return True
 
     def stop(self):
@@ -110,7 +106,7 @@ class WebcamSensor(CameraSensor):
         :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
             The ColorImage, DepthImage, and IrImage of the current frame.
         """
-        for i in range(1):
+        for i in range(5):
             if self._adjust_exposure:
                 try:
                     command = 'v4l2-ctl -d /dev/video{} -c exposure_auto=1 -c exposure_auto_priority=0 -c exposure_absolute=100 -c saturation=60 -c gain=140'.format(self._device_id)
