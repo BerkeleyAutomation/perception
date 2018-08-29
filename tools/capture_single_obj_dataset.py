@@ -132,6 +132,9 @@ def preprocess_images(raw_color_im,
     #segdata = cv2.erode(segdata, np.ones((10,10), np.uint8), iterations=1)
     #segdata = cv2.dilate(segdata, np.ones((10,10), np.uint8), iterations=1)
     segmask = BinaryImage(ndimage.binary_fill_holes(segdata).astype(np.uint8) * 255)
+    region_segdata = np.zeros(segmask.data.shape, dtype=np.uint8)
+    region_segdata[150:segmask.data.shape[0]-150,150:segmask.data.shape[1]-150] = 255
+    segmask = segmask.mask_binary(BinaryImage(region_segdata))
 
     # inpaint
     color_im = raw_color_im.inpaint(rescale_factor=inpaint_rescale_factor)
