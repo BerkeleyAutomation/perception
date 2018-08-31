@@ -149,6 +149,7 @@ if __name__ == '__main__':
 
     train_dir = os.path.join(output_dataset_dir, 'train')
     validation_dir = os.path.join(output_dataset_dir, 'validation')
+    orig_dir = os.path.join(output_dataset_dir, 'originals')
 
     if not os.path.exists(output_dataset_dir):
         os.makedirs(output_dataset_dir)
@@ -183,18 +184,28 @@ if __name__ == '__main__':
             os.makedirs(validation_output_dir)
 
         image_names = object_images[objname]
-        samples = []
-        for fn in image_names:
+        for i, fn in enumerate(image_names):
             path, base = os.path.split(fn)
             image = ColorImage.open(fn)
-            samples.extend(augment(image, 10))
+            samples = augment(image, 10)
 
-        random.shuffle(samples)
-        cutoff = int(per_obj_train_split * len(samples))
 
-        for i, sample in enumerate(samples):
-            sample_name = uuid.uuid4().hex
-            output_dir = train_output_dir
-            if i >= cutoff:
-                output_dir = validation_output_dir
-            sample.save(os.path.join(output_dir, '{}.png'.format(sample_name)))
+            # Save original, which is always first sample
+            orig_output_dir = os.path.join(orig_dir, objname)
+            if not os.path.exists(orig_output_dir):
+                os.makedirs(orig_output_dir)
+            orig = samples[0]
+            orig.save(os.path.join(orig_output_dir, 'view_{:06d}.png'.format(i)))
+
+            # Save samples
+            cutoff = int(per_obj_train_split * len(samples))
+            random.shuffle(samples)
+            for j, sample in enumerate(samples):
+                sample_name = uuid.uuid4().hex
+                output_dir = train_output_dir
+                if j >= cutoff:
+                    output_dir = validation_output_dir
+                output_dir = os.path.join(output_dir, 'view_{:06d}'.format(i))
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+                sample.save(os.path.join(output_dir, '{}.png'.format(sample_name)))
