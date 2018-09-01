@@ -56,6 +56,9 @@ class PhoXiSensor(CameraSensor):
             center_x = center_x / 2
             center_y = center_y / 2
 
+            if str(device_name) == '1703005':
+                focal_x = focal_y = 1105.
+
         self._camera_intr = CameraIntrinsics(self._frame, focal_x, focal_y,
                                              center_x, center_y,
                                              height=height, width=width)
