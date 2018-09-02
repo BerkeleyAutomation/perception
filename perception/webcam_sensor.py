@@ -80,6 +80,10 @@ class WebcamSensor(CameraSensor):
         self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._camera_intr.height)
         self._running = True
 
+        # Capture 5 frames to flush webcam sensor
+        for _ in range(5):
+            _ = self.frame()
+
         return True
 
     def stop(self):
