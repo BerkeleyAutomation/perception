@@ -113,7 +113,7 @@ class ColorizedPhoXiSensor(CameraSensor):
             The ColorImage, DepthImage, and IrImage of the current frame.
         """
         _, phoxi_depth_im, _ = self._phoxi.frames()
-        webcam_color_im, _, _ = self._webcam.frames()
+        webcam_color_im, _, _ = self._webcam.frames(most_recent=True)
 
         # Colorize PhoXi Image
         phoxi_color_im = self._colorize(phoxi_depth_im, webcam_color_im)

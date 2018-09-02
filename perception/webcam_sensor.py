@@ -101,15 +101,23 @@ class WebcamSensor(CameraSensor):
 
         return True
 
-    def frames(self):
+    def frames(self, most_recent=False):
         """Retrieve a new frame from the PhoXi and convert it to a ColorImage,
         a DepthImage, and an IrImage.
+
+        Parameters
+        ----------
+        most_recent: bool
+            If true, the OpenCV buffer is emptied for the webcam before reading the most recent frame.
 
         Returns
         -------
         :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
             The ColorImage, DepthImage, and IrImage of the current frame.
         """
+        if most_recent:
+            for i in xrange(4):
+                self._cap.grab()
         for i in range(1):
             if self._adjust_exposure:
                 try:
