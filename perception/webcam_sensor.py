@@ -82,7 +82,7 @@ class WebcamSensor(CameraSensor):
 
         # Capture 5 frames to flush webcam sensor
         for _ in range(5):
-            _ = self.frame()
+            _ = self.frames()
 
         return True
 
