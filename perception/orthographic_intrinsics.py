@@ -19,50 +19,43 @@ try:
 except Exception:
     logging.warning('autolab_perception is not installed as a catkin package - ROS msg conversions will not be available for image wrappers')
 
-class CameraIntrinsics(object):
-    """A set of intrinsic parameters for a camera. This class is used to project
-    and deproject points.
+class OrthographicIntrinsics(object):
+    """A set of intrinsic parameters for orthographic point cloud projections
     """
 
-    def __init__(self, frame, fx, fy=None, cx=0.0, cy=0.0, skew=0.0, height=None, width=None):
+    def __init__(self, frame,
+                 vol_width,
+                 vol_height,
+                 vol_depth,
+                 plane_height,
+                 plane_width,
+                 depth_scale=1.0):
         """Initialize a CameraIntrinsics model.
 
         Parameters
         ----------
         frame : :obj:`str`
             The frame of reference for the point cloud.
-        fx : float
-            The x-axis focal length of the camera in pixels.
-        fy : float
-            The y-axis focal length of the camera in pixels.
-        cx : float
-            The x-axis optical center of the camera in pixels.
-        cy : float
-            The y-axis optical center of the camera in pixels.
-        skew : float
-            The skew of the camera in pixels.
-        height : float
-            The height of the camera image in pixels.
-        width : float
-            The width of the camera image in pixels
+        vol_height : float
+            The height of the 3D projection volume in meters.
+        vol_width : float
+            The width of the 3D projection volume in meters.
+        vol_depth : float
+            The depth of the 3D projection volume in meters.
+        plane_height : float
+            The height of the projection plane in pixels.
+        plane_width : float
+            The width of the projection plane in pixels.
+        depth_scale : float
+            The scale of the depth values.
         """
         self._frame = frame
-        self._fx = float(fx)
-        self._fy = float(fy)
-        self._cx = float(cx)
-        self._cy = float(cy)
-        self._skew = float(skew)
-        self._height = int(height)
-        self._width = int(width)
-
-        # set focal, camera center automatically if under specified
-        if fy is None:
-            self._fy = fx
-
-        # set camera projection matrix
-        self._K = np.array([[self._fx, self._skew, self._cx],
-                            [       0,   self._fy, self._cy],
-                            [       0,          0,        1]])
+        self._vol_height = float(vol_height)
+        self._vol_width = float(vol_width)
+        self._vol_depth = float(vol_depth)
+        self._plane_height = float(plane_height)
+        self._plane_width = float(plane_width)
+        self._depth_scale = float(depth_scale)
 
     @property
     def frame(self):
@@ -71,182 +64,50 @@ class CameraIntrinsics(object):
         return self._frame
 
     @property
-    def fx(self):
-        """float : The x-axis focal length of the camera in pixels.
-        """
-        return self._fx
-
-    @property
-    def fy(self):
-        """float : The y-axis focal length of the camera in pixels.
-        """
-        return self._fy
-
-    @property
-    def cx(self):
-        """float : The x-axis optical center of the camera in pixels.
-        """
-        return self._cx
-
-    @cx.setter
-    def cx(self, z):
-        self._cx = z
-        self._K = np.array([[self._fx, self._skew, self._cx],
-                            [       0,   self._fy, self._cy],
-                            [       0,          0,        1]])
-
-    @property
-    def cy(self):
-        """float : The y-axis optical center of the camera in pixels.
-        """
-        return self._cy
-
-    @cy.setter
-    def cy(self, z):
-        self._cy = z
-        self._K = np.array([[self._fx, self._skew, self._cx],
-                            [       0,   self._fy, self._cy],
-                            [       0,          0,        1]])
-
-    @property
-    def skew(self):
-        """float : The skew of the camera in pixels.
-        """
-        return self._skew
-
-    @property
-    def height(self):
-        """float : The height of the camera image in pixels.
+    def plane_height(self):
+        """float : The height of the projection plane in pixels.
         """
         return self._height
 
     @property
-    def width(self):
-        """float : The width of the camera image in pixels
+    def plane_width(self):
+        """float : The width of the projection plane in pixels.
         """
-        return self._width
+        return self._plane_width
 
+    @property
+    def S(self):
+        """:obj:`numpy.ndarray` : The 3x3 scaling matrix for this projection
+        """
+        S = np.array([[self._plane_width / self._vol_width, 0, 0],
+                      [0, self._plane_height / self._vol_height, 0],
+                      [0, 0, self._depth_scale / self._vol_depth]])
+        return S
+
+    @property
+    def t(self):
+        """:obj:`numpy.ndarray` : The 3x1 translation matrix for this projection
+        """
+        t = np.array([self._plane_width / 2,
+                      self._plane_height / 2,
+                      self._depth_scale / 2])
+        return t
+    
     @property
     def proj_matrix(self):
-        """:obj:`numpy.ndarray` : The 3x3 projection matrix for this camera.
+        """:obj:`numpy.ndarray` : The 4x4 projection matrix for this camera.
         """
-        return self._K
+        return self.P
 
     @property
-    def K(self):
-        """:obj:`numpy.ndarray` : The 3x3 projection matrix for this camera.
+    def P(self):
+        """:obj:`numpy.ndarray` : The 4x4 projection matrix for this camera.
         """
-        return self._K
-
-    @property
-    def vec(self):
-        """:obj:`numpy.ndarray` : Vector representation for this camera.
-        """
-        return np.r_[self.fx, self.fy, self.cx, self.cy, self.skew, self.height, self.width]
-    
-    @property
-    def rosmsg(self):
-        """:obj:`sensor_msgs.CamerInfo` : Returns ROS CamerInfo msg 
-        """
-        msg_header = Header()
-        msg_header.frame_id = self._frame
-
-        msg_roi = RegionOfInterest()
-        msg_roi.x_offset = 0
-        msg_roi.y_offset = 0
-        msg_roi.height = 0
-        msg_roi.width = 0
-        msg_roi.do_rectify = 0
-
-        msg = CameraInfo()
-        msg.header = msg_header
-        msg.height = self._height
-        msg.width = self._width
-        msg.distortion_model = 'plumb_bob'
-        msg.D = [0.0, 0.0, 0.0, 0.0, 0.0]
-        msg.K = [self._fx, 0.0, self._cx, 0.0, self._fy, self._cy, 0.0, 0.0, 1.0]
-        msg.R = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-        msg.P = [self._fx, 0.0, self._cx, 0.0, 0.0, self._fx, self._cy, 0.0, 0.0, 0.0, 1.0, 0.0]
-        msg.binning_x = 0
-        msg.binning_y = 0
-        msg.roi = msg_roi
-
-        return msg
-
-    @staticmethod
-    def from_vec(vec, frame='unassigned'):
-        return CameraIntrinsics(frame,
-                                fx=vec[0],
-                                fy=vec[1],
-                                cx=vec[2],
-                                cy=vec[3],
-                                skew=vec[4],
-                                height=vec[5],
-                                width=vec[6])
-    
-    def crop(self, height, width, crop_ci, crop_cj):
-        """ Convert to new camera intrinsics for crop of image from original camera.
-
-        Parameters
-        ----------
-        height : int
-            height of crop window
-        width : int
-            width of crop window
-        crop_ci : int
-            row of crop window center
-        crop_cj : int
-            col of crop window center
-
-        Returns
-        -------
-        :obj:`CameraIntrinsics`
-            camera intrinsics for cropped window
-        """
-        cx = self.cx + float(width-1)/2 - crop_cj
-        cy = self.cy + float(height-1)/2 - crop_ci
-        cropped_intrinsics = CameraIntrinsics(frame=self.frame,
-                                              fx=self.fx,
-                                              fy=self.fy,
-                                              skew=self.skew,
-                                              cx=cx, cy=cy,
-                                              height=height,
-                                              width=width)
-        return cropped_intrinsics
-
-    def resize(self, scale):
-        """ Convert to new camera intrinsics with parameters for resized image.
-        
-        Parameters
-        ----------
-        scale : float
-            the amount to rescale the intrinsics
-        
-        Returns
-        -------
-        :obj:`CameraIntrinsics`
-            camera intrinsics for resized image        
-        """
-        center_x = float(self.width-1) / 2
-        center_y = float(self.height-1) / 2
-        orig_cx_diff = self.cx - center_x
-        orig_cy_diff = self.cy - center_y
-        height = scale * self.height
-        width = scale * self.width
-        scaled_center_x = float(width-1) / 2
-        scaled_center_y = float(height-1) / 2
-        fx = scale * self.fx
-        fy = scale * self.fy
-        skew = scale * self.skew
-        cx = scaled_center_x + scale * orig_cx_diff
-        cy = scaled_center_y + scale * orig_cy_diff
-        scaled_intrinsics = CameraIntrinsics(frame=self.frame,
-                                              fx=fx, fy=fy, skew=skew, cx=cx, cy=cy,
-                                              height=height, width=width)
-        return scaled_intrinsics
+        P = np.r_[np.c_[self.S, self.t], np.array([0,0,0,1])]
+        return P
 
     def project(self, point_cloud, round_px=True):
-        """Projects a point cloud onto the camera image plane.
+        """Projects a point cloud onto the projection plane.
 
         Parameters
         ----------
@@ -274,7 +135,7 @@ class CameraIntrinsics(object):
         if point_cloud.frame != self._frame:
             raise ValueError('Cannot project points in frame %s into camera with frame %s' %(point_cloud.frame, self._frame))
 
-        points_proj = self._K.dot(point_cloud.data)
+        points_proj = self.S.dot(point_cloud.data) + self.t
         if len(points_proj.shape) == 1:
             points_proj = points_proj[:, np.newaxis]
         point_depths = np.tile(points_proj[2,:], [3, 1])
@@ -316,7 +177,7 @@ class CameraIntrinsics(object):
         if point_cloud.frame != self._frame:
             raise ValueError('Cannot project points in frame %s into camera with frame %s' %(point_cloud.frame, self._frame))
 
-        points_proj = self._K.dot(point_cloud.data)
+        points_proj = self.S.dot(point_cloud.data) + self.t
         if len(points_proj.shape) == 1:
             points_proj = points_proj[:, np.newaxis]
         point_depths = points_proj[2,:]
@@ -365,11 +226,11 @@ class CameraIntrinsics(object):
         col_indices = np.arange(depth_image.width)
         pixel_grid = np.meshgrid(col_indices, row_indices)
         pixels = np.c_[pixel_grid[0].flatten(), pixel_grid[1].flatten()].T
-        pixels_homog = np.r_[pixels, np.ones([1, pixels.shape[1]])]
-        depth_arr = np.tile(depth_image.data.flatten(), [3,1])
+        depth_data = depth_image.data.flatten()
+        pixels_homog = np.r_[pixels, depth_data.reshape(1, depth_data.shape[0])]
 
         # deproject
-        points_3d = depth_arr * np.linalg.inv(self._K).dot(pixels_homog)
+        points_3d = np.linalg.inv(self.S).dot(pixels_homog - np.tile(self.t.reshape(3,1), [1, pixels_homog.shape[1]]))
         return PointCloud(data=points_3d, frame=self._frame)
 
     def deproject_to_image(self, depth_image):
@@ -423,7 +284,8 @@ class CameraIntrinsics(object):
         if pixel.frame != self._frame:
             raise ValueError('Cannot deproject pixel in frame %s from camera with frame %s' %(pixel.frame, self._frame))
 
-        point_3d = depth * np.linalg.inv(self._K).dot(np.r_[pixel.data, 1.0])
+        point = np.r_[pixel.data, depth]
+        point_3d = np.linalg.inv(self.S).dot(point - self.t)
         return Point(data=point_3d, frame=self._frame)
 
     def save(self, filename):
@@ -441,10 +303,9 @@ class CameraIntrinsics(object):
         """
         file_root, file_ext = os.path.splitext(filename)
         if file_ext.lower() != INTR_EXTENSION:
-            raise ValueError('Extension %s not supported for CameraIntrinsics. Must be stored with extension %s' %(file_ext, INTR_EXTENSION))
+            raise ValueError('Extension %s not supported for OrhtographicIntrinsics. Must be stored with extension %s' %(file_ext, INTR_EXTENSION))
 
         camera_intr_dict = copy.deepcopy(self.__dict__)
-        camera_intr_dict['_K'] = 0 # can't save matrix
         f = open(filename, 'w')
         json.dump(camera_intr_dict, f)
         f.close()
@@ -475,11 +336,10 @@ class CameraIntrinsics(object):
         f = open(filename, 'r')
         ci = json.load(f)
         f.close()
-        return CameraIntrinsics(frame=ci['_frame'],
-                                fx=ci['_fx'],
-                                fy=ci['_fy'],
-                                cx=ci['_cx'],
-                                cy=ci['_cy'],
-                                skew=ci['_skew'],
-                                height=ci['_height'],
-                                width=ci['_width'])
+        return OrthographicIntrinsics(frame=ci['_frame'],
+                                      vol_height=ci['_vol_height'],
+                                      vol_width=ci['_vol_width'],
+                                      vol_depth=ci['_vol_depth'],
+                                      plane_height=ci['_plane_height'],
+                                      plane_width=ci['_plane_width'],
+                                      depth_scale=ci['_depth_scale'])

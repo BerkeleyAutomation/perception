@@ -6,6 +6,8 @@ import logging
 
 from .version import __version__
 from .camera_intrinsics import CameraIntrinsics
+from .orthographic_intrinsics import OrthographicIntrinsics
+from .exceptions import SensorUnresponsiveException
 
 try:
     from .cnn import AlexNet, AlexNetWeights, conv

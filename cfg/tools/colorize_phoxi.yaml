@@ -1,0 +1,10 @@
+sensors:
+    phoxi:
+        type: colorized_phoxi
+        phoxi_config:
+            device_name: 1703005
+            size: small
+        webcam_config:
+            device_id: 0
+        calib_dir: /nfs/diskstation/calib/
+

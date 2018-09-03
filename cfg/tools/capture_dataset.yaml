@@ -1,0 +1,136 @@
+# general params
+mean_num_objects: 5
+min_num_objects: 2
+max_num_objects: 10
+
+save_raw: 0
+train_pct: 0.5
+vis: 1
+
+# sensor params
+sensors:
+  phoxi:
+    type: colorized_phoxi
+    frame: phoxi
+    calib_dir: /nfs/diskstation/calib/
+    phoxi_config:
+      device_name: 1703005
+      size: small
+    webcam_config:
+      device_id: 0
+  primesense_overhead:
+    frame: primesense_overhead
+    type: primesense_ros
+    auto_white_balance: 0
+    calib_dir: /nfs/diskstation/calib/
+    flip_images: 1
+
+# dataset params
+dataset:
+  datapoints_per_file: 10
+  fields:
+    raw_color_ims:
+      dtype: uint8
+      channels: 3
+    raw_depth_ims:
+      dtype: float32
+      channels: 1
+    color_ims:
+      dtype: uint8
+      channels: 3
+    depth_ims:
+      dtype: float32
+      channels: 1
+    segmasks:
+      dtype: uint8
+      channels: 1
+    camera_poses:
+      dtype: float32
+      height: 7
+    camera_intrs:
+      dtype: float32
+      height: 7
+    split:
+      dtype: uint8
+
+# image proc params
+image_proc:
+  im_rescale_factor: 1.0
+  inpaint_rescale_factor: 0.5
+  cluster_tolerance: 0.005
+  min_cluster_size: 100
+  max_cluster_size: 1000000
+  cluster: 1
+
+# object parameters
+objects:
+  - crayons
+  - dasani
+  - glue
+  - pipe_clamp
+  - pencil_sharpeners
+  - chili_powder
+  - hammer
+  - watermelon
+  - peach
+  - pear
+  - spray_bottle
+  - lime
+  - banana
+  - sharpie
+  - zoink
+  - neutrogena
+  - dice
+  - cards
+  - phillipines_pouch
+  - saline_soothers
+  - large_bag_clip
+  - small_bag_clip
+  - clamp
+  - flashlight
+  - red_climbing_hold
+  - campbells_soup
+  - mayonnaise
+  - vaseline
+  - elmers_glue
+  - kind_bar
+  - arm_and_hammer_deodorant
+  - toothpaste
+  - mango
+  - sardines
+  - mushroom
+  - egg
+  - starfruit
+  - mouse_traps
+  - white_board_cleaner
+  - bialetti
+  - lighter
+  - can_of_corn
+  - cigar
+  - stamp
+  - toothbrushes
+  - blue_tape
+  - italian_seasoning
+  - clean_and_clear
+  - rock
+  - whale_tail
+
+# workspace params
+workspace:
+  min_pt:
+    - 0.2
+    - -0.275
+    - -0.006
+  max_pt:
+    - 0.57
+    - 0.275
+    - 0.15
+
+  objects:
+    beveled_bin:
+      mesh_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/beveled_bin/mini_bin_extruded.obj
+      pose_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/beveled_bin/mini_bin_physical_pose_yumi1.tf
+
+    plane:
+      mesh_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/plane/plane.obj
+      pose_filename: /home/jmahler/Workspace/jeff_working/dex-net/data/objects/plane/pose.tf  

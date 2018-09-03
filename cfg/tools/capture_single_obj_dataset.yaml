@@ -1,5 +1,5 @@
 # general params
-n_samples_per_object: 10
+n_samples_per_object: 5
 
 save_raw: 0
 vis: 1
@@ -27,16 +27,95 @@ image_proc:
 
 # object parameters
 objects:
-  - toothbrushes
-  - zoink
-  - clip
-  - toothpaste
+  - antacid_tablets
+  - arm_and_hammer_deoderant
+  - bananas
+  - bar_clamp
+  - bar_connector
+  - bialetti
+  - bread
+  - brown_climbing_hold
+  - campbells_soup
+  - can_of_corn
+  - candle_lighter
+  - carmex_balm
+  - castle_rexor
+  - chapstick
+  - chili_powder
+  - chubby_slider
+  - clamp
+  - command_hook
+  - contact_holders
+  - crayons
+  - degree_deodorant
+  - demon_helmet
+  - dice
+  - dowel_jig
+  - dr_one
+  - drumstick
+  - egg
+  - elmers_glue
+  - engine_part
+  - fan_extruder
+  - fim_soup
+  - frenchs_mustard
+  - glue_sticks
+  - gorilla_glue
+  - green_scotch_roll
+  - hammer
+  - idler_bearing
+  - italian_seasoning
+  - janek
+  - jergens_ultra
+  - ketchup_bottle
+  - kind_bar
+  - kool_aid_liquid
+  - lemon
+  - lighters
+  - mango
+  - mayonnaise
+  - mouse_traps
+  - mushroom
+  - neutrogena
+  - orange
+  - orange_juice
+  - palm_brush
+  - pancake
+  - pawn
+  - peach
+  - pear
+  - pencils
+  - pepper
+  - pipe_connector
+  - playing_cards
+  - pomegranate
+  - red_climbing_hold
+  - saline_wipes
+  - sardines_can
+  - scissors
+  - scotch_tape
+  - shark
+  - sharpie_pens
+  - simple_wipes
+  - sippy_cups
+  - small_watermelon
   - spray_bottle
-  - glue
-  - wipes
-  - climbing_hold
-  - dasani
+  - stamp
+  - starfruit
+  - strawberry
+  - sulfur_neutron
+  - sunscreen
+  - take_and_toss
+  - toothbrushes
+  - toothpaste
+  - uncracked_egg
+  - utility_knife
+  - vaseline
   - watermelon
+  - white_board_cleaner
+  - worcestershire_sauce
+  - yoda
+  - zoink
 
 # workspace params
 workspace:

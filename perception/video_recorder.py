@@ -111,7 +111,8 @@ class VideoRecorder:
     def start(self):
         """ Starts the camera recording process. """
         self._started = True
-        self._actual_camera.start()
+        if not self._actual_camera.is_running:
+            self._actual_camera.start()
         self._camera = _Camera(self._actual_camera, self._cmd_q, self._res, self._codec, self._fps, self._rate)
         self._camera.start()
 
