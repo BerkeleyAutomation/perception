@@ -52,6 +52,44 @@ def normalize(color_im, crop_size=(512, 512)):
 
     return color_im
 
+def normalize_fill(color_im, crop_size=(512, 512)):
+
+    # Crop image to bounds of object
+    nzp = color_im.nonzero_pixels()
+    ymin, xmin = np.min(nzp, axis=0)
+    ymax, xmax = np.max(nzp, axis=0)
+    color_data = color_im.data[ymin:ymax, xmin:xmax, :]
+
+    # Rotate via PCA so that the principal axis is vertical
+    nzp = nzp.astype(np.int32)
+    nzp = nzp - np.mean(nzp, axis=0)
+    pca = PCA(n_components=2)
+    pca.fit(nzp)
+    axis = pca.components_[0]
+    if axis[0] != 0:
+        angle = np.rad2deg(np.arctan(axis[1]/axis[0]))
+    else:
+        angle = 90.0
+    color_data = imutils.rotate_bound(color_data, angle)
+
+    # Resize to square by padding out the smaller dimension
+    xlen, ylen = color_data.shape[1], color_data.shape[0]
+    padding = xlen - ylen
+    padding_l = abs(padding) / 2
+    padding_r = abs(padding) - padding_l
+    if padding > 0:
+        color_data = np.pad(color_data,
+                            ((padding_l, padding_r), (0,0), (0,0)),
+                            mode='constant')
+    elif padding < 0:
+        color_data = np.pad(color_data,
+                            ((0,0), (padding_l, padding_r), (0,0)),
+                            mode='constant')
+
+    color_data = resize(color_data, (crop_size[1], crop_size[0], 3), clip=False, preserve_range=True).astype(np.uint8)
+
+    return ColorImage(color_data, color_im.frame)
+
 def get_key_function(central_point):
 
     def key_function(point):
@@ -61,11 +99,14 @@ def get_key_function(central_point):
 
     return key_function
 
-def augment(image, n_samples):
+def augment(image, n_samples, crop_size, preserve_scale):
     """Create data augmentations of an image crop by randomly occluding it with a line.
     """
-
-    samples = [normalize(image)]
+    samples = []
+    if preserve_scale:
+        samples.append(normalize(image))
+    else:
+        samples.append(normalize_fill(image, crop_size=crop_size))
     orig_mask = image.to_binary()
     nzp = orig_mask.nonzero_pixels()
     min_number_points = 0.35*np.count_nonzero(orig_mask.data)
@@ -131,12 +172,18 @@ def augment(image, n_samples):
 
         if np.count_nonzero(lower_mask) > min_number_points:
             mask = BinaryImage(lower_mask)
-            img = normalize(image.mask_binary(mask))
+            if preserve_scale:
+                img = normalize(image.mask_binary(mask), crop_size=crop_size)
+            else:
+                img = normalize_fill(image.mask_binary(mask), crop_size=crop_size)
             samples.append(img)
 
         if np.count_nonzero(upper_mask) > min_number_points:
             mask = BinaryImage(upper_mask)
-            img = normalize(image.mask_binary(mask))
+            if preserve_scale:
+                img = normalize(image.mask_binary(mask), crop_size=crop_size)
+            else:
+                img = normalize_fill(image.mask_binary(mask), crop_size=crop_size)
             samples.append(img)
 
     return samples[:n_samples]
@@ -144,8 +191,12 @@ def augment(image, n_samples):
 
 if __name__ == '__main__':
     object_images_dir = '/nfs/diskstation/projects/mech_search/siamese_net_training/single_obj_dataset/phoxi/color_images'
-    output_dataset_dir = '/nfs/diskstation/projects/mech_search/siamese_net_training/phoxi_training_dataset'
+    output_dataset_dir = '/nfs/diskstation/projects/mech_search/siamese_net_training/phoxi_training_dataset_224x224_fill'
     per_obj_train_split = 0.8
+    num_images_per_view = 10
+    preserve_scale = False
+    crop_size = (224, 224)
+
 
     train_dir = os.path.join(output_dataset_dir, 'train')
     validation_dir = os.path.join(output_dataset_dir, 'validation')
@@ -185,9 +236,10 @@ if __name__ == '__main__':
 
         image_names = object_images[objname]
         for i, fn in enumerate(image_names):
+            print(fn)
             path, base = os.path.split(fn)
             image = ColorImage.open(fn)
-            samples = augment(image, 10)
+            samples = augment(image, num_images_per_view, crop_size, preserve_scale)
 
 
             # Save original, which is always first sample
