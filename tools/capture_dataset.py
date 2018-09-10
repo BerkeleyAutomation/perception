@@ -13,6 +13,7 @@ import pcl
 import rosgraph.roslogging as rl
 import rospy
 import scipy.stats as ss
+from scipy import ndimage
 import sys
 import trimesh
 
@@ -22,7 +23,7 @@ import autolab_core.utils as utils
 from autolab_core import Box, PointCloud, RigidTransform, TensorDataset, YamlConfig
 from autolab_core.constants import *
 from meshrender import Scene, SceneObject, VirtualCamera, MaterialProperties
-from perception import RgbdSensorFactory, Image, RenderMode
+from perception import RgbdSensorFactory, Image, RenderMode, BinaryImage
 from visualization import Visualizer2D as vis2d
 from visualization import Visualizer3D as vis3d
 
@@ -115,7 +116,10 @@ def preprocess_images(raw_color_im,
     segmask = depth_im_seg.to_binary()
     valid_px_segmask = depth_im.invalid_pixel_mask().inverse()
     segmask = segmask.mask_binary(valid_px_segmask)
-    
+
+    # fill in segmask
+    segmask = BinaryImage(ndimage.binary_fill_holes(segmask.data).astype(np.uint8)*255)
+
     # inpaint
     color_im = raw_color_im.inpaint(rescale_factor=inpaint_rescale_factor)
     depth_im = depth_im.inpaint(rescale_factor=inpaint_rescale_factor)    
@@ -159,21 +163,17 @@ if __name__ == '__main__':
     workspace_config = config['workspace']
     image_proc_config = config['image_proc']
 
-    # read objects
+    # read objects -- first portion are train, remainder are test
+    train_objects = config['train_objects']
+    test_objects = config['test_objects']
     train_pct = config['train_pct']
-    objects = config['objects']
-    num_objects = len(objects)
-    num_train = int(np.ceil(train_pct * num_objects))
-    num_test = num_objects - num_train
-    all_indices = np.arange(num_objects)
-    np.random.shuffle(all_indices)
-    train_indices = all_indices[:num_train]
-    test_indices = all_indices[num_train:]
 
+    num_train_objects = len(train_objects)
+    num_test_objects = len(test_objects)
     num_train_images = int(np.ceil(train_pct * num_images))
-    all_image_indices = np.arange(num_images)
-    np.random.shuffle(all_image_indices)
-    train_image_indices = all_image_indices[:num_train_images]
+    num_test_images = num_images - num_train_images
+    train_indices = np.arange(0, num_train_images)
+    test_indices = np.arange(num_train_images, num_images)
 
     # set random variable for the number of objects
     mean_num_objects = config['mean_num_objects']
@@ -183,8 +183,9 @@ if __name__ == '__main__':
     im_rescale_factor = image_proc_config['im_rescale_factor']
 
     save_raw = config['save_raw']
+    save_tensor_dataset = config['save_tensor_dataset']
     vis = config['vis']
-    
+
     # open gui
     gui = plt.figure(0, figsize=(8,8))
     plt.ion()
@@ -194,12 +195,12 @@ if __name__ == '__main__':
     plt.axis('off')
     plt.draw()
     plt.pause(GUI_PAUSE)
-    
+
     # read workspace bounds
     workspace_box = Box(np.array(workspace_config['min_pt']),
                         np.array(workspace_config['max_pt']),
                         frame='world')
-    
+
     # read workspace objects
     workspace_objects = {}
     for obj_key, obj_config in workspace_config['objects'].iteritems():
@@ -211,7 +212,7 @@ if __name__ == '__main__':
                                            wireframe=False)
         scene_obj = SceneObject(obj_mesh, obj_pose, obj_mat_props)
         workspace_objects[obj_key] = scene_obj
-        
+
     # setup each sensor
     datasets = {}
     sensors = {}
@@ -222,22 +223,22 @@ if __name__ == '__main__':
         # read params
         sensor_type = sensor_config['type']
         sensor_frame = sensor_config['frame']
-        
+
         # read camera calib
         tf_filename = '%s_to_world.tf' %(sensor_frame)
         T_camera_world = RigidTransform.load(os.path.join(sensor_config['calib_dir'], sensor_frame, tf_filename))
         sensor_poses[sensor_name] = T_camera_world
-        
+
         # setup sensor
         sensor = RgbdSensorFactory.sensor(sensor_type, sensor_config)
         sensors[sensor_name] = sensor
-        
+
         # start the sensor
         sensor.start()
         camera_intr = sensor.ir_intrinsics
         camera_intr = camera_intr.resize(im_rescale_factor)
         camera_intrs[sensor_name] = camera_intr        
-        
+
         # render image of static workspace
         scene = Scene()
         camera = VirtualCamera(camera_intr, T_camera_world)
@@ -247,33 +248,37 @@ if __name__ == '__main__':
         workspace_ims[sensor_name] = scene.wrapped_render([RenderMode.DEPTH])[0]
 
         # fix dataset config
-        dataset_config['fields']['raw_color_ims']['height'] = camera_intr.height
-        dataset_config['fields']['raw_color_ims']['width'] = camera_intr.width
-        dataset_config['fields']['raw_depth_ims']['height'] = camera_intr.height
-        dataset_config['fields']['raw_depth_ims']['width'] = camera_intr.width 
-        dataset_config['fields']['color_ims']['height'] = camera_intr.height
-        dataset_config['fields']['color_ims']['width'] = camera_intr.width 
-        dataset_config['fields']['depth_ims']['height'] = camera_intr.height
-        dataset_config['fields']['depth_ims']['width'] = camera_intr.width 
-        dataset_config['fields']['segmasks']['height'] = camera_intr.height
-        dataset_config['fields']['segmasks']['width'] = camera_intr.width 
-       
-        # open dataset
-        sensor_dataset_filename = os.path.join(output_dir, sensor_name)
-        datasets[sensor_name] = TensorDataset(sensor_dataset_filename,
-                                              dataset_config)        
+        if save_tensor_dataset:
+            dataset_config['fields']['raw_color_ims']['height'] = camera_intr.height
+            dataset_config['fields']['raw_color_ims']['width'] = camera_intr.width
+            dataset_config['fields']['raw_depth_ims']['height'] = camera_intr.height
+            dataset_config['fields']['raw_depth_ims']['width'] = camera_intr.width 
+            dataset_config['fields']['color_ims']['height'] = camera_intr.height
+            dataset_config['fields']['color_ims']['width'] = camera_intr.width 
+            dataset_config['fields']['depth_ims']['height'] = camera_intr.height
+            dataset_config['fields']['depth_ims']['width'] = camera_intr.width 
+            dataset_config['fields']['segmasks']['height'] = camera_intr.height
+            dataset_config['fields']['segmasks']['width'] = camera_intr.width 
+
+            # open dataset
+            sensor_dataset_filename = os.path.join(output_dir, sensor_name)
+            datasets[sensor_name] = TensorDataset(sensor_dataset_filename,
+                                                dataset_config)
 
         # save raw
         if save_raw:
             sensor_dir = os.path.join(output_dir, sensor_name)
-            raw_dir = os.path.join(sensor_dir, 'raw')
+            raw_dir = sensor_dir #os.path.join(sensor_dir, 'raw')
             if not os.path.exists(raw_dir):
                 os.mkdir(raw_dir)
 
+            # save camera intrinsics and pose
             camera_intr_filename = os.path.join(raw_dir, 'camera_intr.intr')
             camera_intr.save(camera_intr_filename)
             camera_pose_filename = os.path.join(raw_dir, 'T_camera_world.tf')
             T_camera_world.save(camera_pose_filename)
+            np.save(os.path.join(raw_dir, 'train_indices.npy'), train_indices)
+            np.save(os.path.join(raw_dir, 'test_indices.npy'), test_indices)
 
     # collect K images
     for k in range(num_images):
@@ -282,19 +287,19 @@ if __name__ == '__main__':
         # set test case
         train = 0
         split = TEST_ID
-        if k in train_image_indices:
+        if k < num_train_images:
             train = 1
             split = TRAIN_ID
         if train:
-            num_objects = min(max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects), num_train)
-            obj_names = [objects[i] for i in np.random.choice(train_indices, size=num_objects, replace=False)]
+            num_objects = min(max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects), num_train_objects)
+            obj_names = list(np.random.choice(train_objects, size=num_objects, replace=False))
         else:
-            num_objects = min(max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects), num_test)
-            obj_names = [objects[i] for i in np.random.choice(test_indices, size=num_objects, replace=False)]
-            
+            num_objects = min(max(num_objs_rv.rvs(size=1)[0] + 1, min_num_objects), num_test_objects)
+            obj_names = list(np.random.choice(test_objects, size=num_objects, replace=False))
+
         # get human consent
         message = 'Please place %d objects:\n' %(num_objects)
-        for name in obj_names:
+        for name in sorted(obj_names):
             message += '\t{}\n'.format(name)
         message += 'Hit ENTER when finished.'
         utils.keyboard_input(message=message)
@@ -307,10 +312,11 @@ if __name__ == '__main__':
             sensor_pose = sensor_poses[sensor_name]
             camera_intr = camera_intrs[sensor_name]
             workspace_im = workspace_ims[sensor_name]
-            dataset = datasets[sensor_name]
+            if save_tensor_dataset:
+                dataset = datasets[sensor_name]
+                datapoint = dataset.datapoint_template
             T_camera_world = sensor_pose
-            datapoint = dataset.datapoint_template
-            
+
             # read raw images
             raw_color_im, raw_depth_im, _ = sensor.frames()
 
@@ -327,7 +333,7 @@ if __name__ == '__main__':
                                                             workspace_box,
                                                             workspace_im,
                                                             image_proc_config)
-            
+
             # visualize
             if vis:
                 gui = plt.figure(0)
@@ -349,37 +355,53 @@ if __name__ == '__main__':
                 vis2d.title('SEGMASK')
                 plt.draw()
                 plt.pause(GUI_PAUSE)
-            
+
             # save data
-            datapoint['split'] = split
-            datapoint['camera_intrs'] = camera_intr.vec
-            datapoint['camera_poses'] = sensor_pose.vec
-            datapoint['raw_color_ims'] = raw_color_im.raw_data
-            datapoint['raw_depth_ims'] = raw_depth_im.raw_data
-            datapoint['color_ims'] = color_im.raw_data
-            datapoint['depth_ims'] = depth_im.raw_data
-            datapoint['segmasks'] = segmask.raw_data
-            dataset.add(datapoint)
+            if save_tensor_dataset:
+                datapoint['split'] = split
+                datapoint['camera_intrs'] = camera_intr.vec
+                datapoint['camera_poses'] = sensor_pose.vec
+                datapoint['raw_color_ims'] = raw_color_im.raw_data
+                datapoint['raw_depth_ims'] = raw_depth_im.raw_data
+                datapoint['color_ims'] = color_im.raw_data
+                datapoint['depth_ims'] = depth_im.raw_data
+                datapoint['segmasks'] = segmask.raw_data
+                dataset.add(datapoint)
 
             # save raw data
             if save_raw:
                 sensor_dir = os.path.join(output_dir, sensor_name)
-                raw_dir = os.path.join(sensor_dir, 'raw')
+                raw_dir = sensor_dir #os.path.join(sensor_dir, 'raw')
+                color_dir = os.path.join(raw_dir, 'color_ims')
+                depth_dir = os.path.join(raw_dir, 'depth_ims')
+                depth_npy_dir = os.path.join(raw_dir, 'depth_ims_numpy')
+                segmasks_dir = os.path.join(raw_dir, 'segmasks_filled')
+                if not os.path.exists(color_dir):
+                    os.makedirs(color_dir)
+                if not os.path.exists(depth_dir):
+                    os.makedirs(depth_dir)
+                if not os.path.exists(depth_npy_dir):
+                    os.makedirs(depth_npy_dir)
+                if not os.path.exists(segmasks_dir):
+                    os.makedirs(segmasks_dir)
 
-                raw_color_im_filename = os.path.join(raw_dir, 'raw_color_%d.png' %(k))
-                raw_color_im.save(raw_color_im_filename)
-                color_im_filename = os.path.join(raw_dir, 'color_%d.png' %(k))
+                #raw_color_im_filename = os.path.join(raw_dir, 'raw_color_%d.png' %(k))
+                #raw_color_im.save(raw_color_im_filename)
+                color_im_filename = os.path.join(color_dir, 'image_{:06d}.png'.format(k))
                 color_im.save(color_im_filename)
-                
-                raw_depth_im_filename = os.path.join(raw_dir, 'raw_depth_%d.npy' %(k))
-                raw_depth_im.save(raw_depth_im_filename)
-                depth_im_filename = os.path.join(raw_dir, 'depth_%d.npy' %(k))
-                depth_im.save(depth_im_filename)
 
-                segmask_filename = os.path.join(raw_dir, 'segmask_%d.png' %(k))
+                #raw_depth_im_filename = os.path.join(depth_npy_dir, 'raw_depth_%d.npy' %(k))
+                #raw_depth_im.save(raw_depth_im_filename)
+                depth_im_filename = os.path.join(depth_dir, 'image_{:06d}.png'.format(k))
+                depth_im.save(depth_im_filename)
+                depth_im_npy_filename = os.path.join(depth_npy_dir, 'image_{:06d}.npy'.format(k))
+                np.save(depth_im_npy_filename, depth_im.data)
+
+                segmask_filename = os.path.join(segmasks_dir, 'image_{:06d}.png'.format(k))
                 segmask.save(segmask_filename)
-                
+
     # stop all sensors
     for sensor_name, sensor in sensors.iteritems():
-        datasets[sensor_name].flush()
+        if save_tensor_dataset:
+            datasets[sensor_name].flush()
         sensor.stop()

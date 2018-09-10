@@ -284,7 +284,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
     the current ROS namespace).
     """
     def __init__(self, depth_image_buffer= None, depth_absolute=False, color_image_buffer=None, color_absolute=False,
-                 flip_images=True, frame=None, staleness_limit=10., timeout=10):  
+                 flip_images=True, frame=None, staleness_limit=None, timeout=10):  
         self._flip_images = flip_images
         self._frame = frame
         
