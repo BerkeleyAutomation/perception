@@ -130,7 +130,7 @@ if __name__ == '__main__':
     # parse args
     parser = argparse.ArgumentParser(description='Capture a dataset of RGB-D images from a set of sensors')
     parser.add_argument('output_dir', type=str, help='directory to save output')
-    parser.add_argument('--num_images', type=int, help='number of images to capture')
+    parser.add_argument('num_images', type=int, help='number of images to capture')
     parser.add_argument('--config_filename', type=str, default=None, help='path to configuration file to use')
     args = parser.parse_args()
     output_dir = args.output_dir

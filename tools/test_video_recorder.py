@@ -11,12 +11,11 @@ import time
 
 import skvideo.io as si
 
-from perception import OpenCVCameraSensor, PrimesenseSensor_ROS, VideoRecorder
+from perception import WebcamSensor, PrimesenseSensor_ROS, VideoRecorder
 from visualization import Visualizer2D as vis
 
 if __name__ == '__main__':
-    sensor = OpenCVCameraSensor(device_id=0)
-    sensor.start()
+    sensor = WebcamSensor(device_id=0)
 
     recorder = VideoRecorder(sensor)
     print 'recording'
