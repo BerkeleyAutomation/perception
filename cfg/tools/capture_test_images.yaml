@@ -4,5 +4,6 @@ calib_dir: /nfs/diskstation/calib
 sensor:
   type: phoxi
   frame: phoxi
+  device_name: 1703005
   auto_white_balance: 0
   size: small

@@ -1475,7 +1475,8 @@ class DepthImage(Image):
 
     def _image_data(self, normalize=False,
                     min_depth=MIN_DEPTH,
-                    max_depth=MAX_DEPTH):
+                    max_depth=MAX_DEPTH,
+                    twobyte=False):
         """Returns the data in image format, with scaling and conversion to uint8 types.
 
         Parameters
@@ -1486,6 +1487,8 @@ class DepthImage(Image):
             minimum depth value for the normalization
         max_depth : float
             maximum depth value for the normalization
+        twobyte: bool
+            whether or not to use 16-bit encoding
 
         Returns
         -------
@@ -1494,21 +1497,27 @@ class DepthImage(Image):
             second is columns, and the third is a set of 3 RGB values, each of
             which is simply the depth entry scaled to between 0 and BINARY_IM_MAX_VAL.
         """
+        max_val = BINARY_IM_MAX_VAL
+        if twobyte:
+            max_val = np.iinfo(np.uint16).max
+        
         if normalize:
             min_depth = np.min(self._data)
             max_depth = np.max(self._data)
             depth_data = (self._data - min_depth) / (max_depth - min_depth)
-            depth_data = float(BINARY_IM_MAX_VAL) * depth_data.squeeze()
+            depth_data = float(max_val) * depth_data.squeeze()
         else:
             zero_px = np.where(self._data == 0)
             zero_px = np.c_[zero_px[0], zero_px[1], zero_px[2]]
             depth_data = ((self._data - min_depth) * \
-                          (float(BINARY_IM_MAX_VAL) / (max_depth - min_depth))).squeeze()
+                          (float(max_val) / (max_depth - min_depth))).squeeze()
             depth_data[zero_px[:,0], zero_px[:,1]] = 0
         im_data = np.zeros([self.height, self.width, 3])
         im_data[:, :, 0] = depth_data
         im_data[:, :, 1] = depth_data
         im_data[:, :, 2] = depth_data
+        if twobyte:
+            return im_data.astype(np.uint16)
         return im_data.astype(np.uint8)
 
     def resize(self, size, interp='bilinear'):
