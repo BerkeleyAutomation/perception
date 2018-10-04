@@ -46,10 +46,6 @@ if __name__ == '__main__':
     
     # get known tf from chessboard to world
     T_cb_world = RigidTransform.load(config['chessboard_tf'])
-    #T_cb_world.rotation = RigidTransform.x_axis_rotation(np.pi/256).dot(T_cb_world.rotation)
-    #T_cb_world.rotation = RigidTransform.y_axis_rotation(np.pi/512).dot(T_cb_world.rotation)
-    #T_cb_world.save(config['chessboard_tf'])
-    #print T_cb_world.rotation
     
     # initialize node
     rospy.init_node('register_camera', anonymous=True)
