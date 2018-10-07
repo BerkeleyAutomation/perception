@@ -8,8 +8,6 @@ from skimage.transform import resize
 from sklearn.decomposition import PCA
 from perception import ColorImage, BinaryImage
 
-from visualization import Visualizer2D as vis2d
-
 def imcrop(img, bbox):
     x1, y1, x2, y2 = bbox
     if x1 < 0 or y1 < 0 or x2 > img.shape[1] or y2 > img.shape[0]:
@@ -31,17 +29,17 @@ def normalize(color_im, crop_size=(512, 512)):
     color_im = ColorImage(color_data, color_im.frame)
 
     # Rotate via PCA so that the principal axis is vertical
-    color_data = color_im.data
-    nzp = color_im.nonzero_pixels().astype(np.int32)
-    nzp = nzp - np.mean(nzp, axis=0)
-    pca = PCA(n_components=2)
-    pca.fit(nzp)
-    axis = pca.components_[0]
-    if axis[0] != 0:
-        angle = np.rad2deg(np.arctan(axis[1]/axis[0]))
-    else:
-        angle = 90.0
-    color_data = imutils.rotate_bound(color_data, angle)
+    # color_data = color_im.data
+    # nzp = color_im.nonzero_pixels().astype(np.int32)
+    # nzp = nzp - np.mean(nzp, axis=0)
+    # pca = PCA(n_components=2)
+    # pca.fit(nzp)
+    # axis = pca.components_[0]
+    # if axis[0] != 0:
+    #     angle = np.rad2deg(np.arctan(axis[1]/axis[0]))
+    # else:
+    #     angle = 90.0
+    # color_data = imutils.rotate_bound(color_data, angle)
     cx, cy = color_data.shape[1] // 2, color_data.shape[0] // 2
 
     # Crop about center to 512x512
@@ -61,16 +59,16 @@ def normalize_fill(color_im, crop_size=(512, 512)):
     color_data = color_im.data[ymin:ymax, xmin:xmax, :]
 
     # Rotate via PCA so that the principal axis is vertical
-    nzp = nzp.astype(np.int32)
-    nzp = nzp - np.mean(nzp, axis=0)
-    pca = PCA(n_components=2)
-    pca.fit(nzp)
-    axis = pca.components_[0]
-    if axis[0] != 0:
-        angle = np.rad2deg(np.arctan(axis[1]/axis[0]))
-    else:
-        angle = 90.0
-    color_data = imutils.rotate_bound(color_data, angle)
+    # nzp = nzp.astype(np.int32)
+    # nzp = nzp - np.mean(nzp, axis=0)
+    # pca = PCA(n_components=2)
+    # pca.fit(nzp)
+    # axis = pca.components_[0]
+    # if axis[0] != 0:
+    #     angle = np.rad2deg(np.arctan(axis[1]/axis[0]))
+    # else:
+    #     angle = 90.0
+    # color_data = imutils.rotate_bound(color_data, angle)
 
     # Resize to square by padding out the smaller dimension
     xlen, ylen = color_data.shape[1], color_data.shape[0]
@@ -191,11 +189,11 @@ def augment(image, n_samples, crop_size, preserve_scale):
 
 if __name__ == '__main__':
     object_images_dir = '/nfs/diskstation/projects/mech_search/siamese_net_training/single_obj_dataset/phoxi/color_images'
-    output_dataset_dir = '/nfs/diskstation/projects/mech_search/siamese_net_training/phoxi_training_dataset_224x224_fill'
-    per_obj_train_split = 0.8
+    output_dataset_dir = '/nfs/diskstation/dwang/mech_search_data'
+    object_train_split = 0.8
     num_images_per_view = 10
-    preserve_scale = False
-    crop_size = (224, 224)
+    preserve_scale = True
+    crop_size = (512, 512)
 
 
     train_dir = os.path.join(output_dataset_dir, 'train')
@@ -225,39 +223,38 @@ if __name__ == '__main__':
 
         object_images[objname].append(os.path.join(object_images_dir, filename))
 
-    # Split them into validation and training
-    for objname in object_images:
-        train_output_dir = os.path.join(train_dir, objname)
-        validation_output_dir = os.path.join(validation_dir, objname)
-        if not os.path.exists(train_output_dir):
-            os.makedirs(train_output_dir)
-        if not os.path.exists(validation_output_dir):
-            os.makedirs(validation_output_dir)
+    # Split set of objects into training and validation.
+    split_index = int(object_train_split * len(object_images))
+    all_objects = object_images.keys()
+    random.shuffle(all_objects)
+    train_objects = all_objects[:split_index]
+    validation_objects = all_objects[split_index:]
 
-        image_names = object_images[objname]
-        for i, fn in enumerate(image_names):
-            print(fn)
-            path, base = os.path.split(fn)
-            image = ColorImage.open(fn)
-            samples = augment(image, num_images_per_view, crop_size, preserve_scale)
+    for objects, directory in [(train_objects, train_dir), (validation_objects, validation_dir)]:
+        for objname in objects:
+            output_dir = os.path.join(directory, objname)
 
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
 
-            # Save original, which is always first sample
-            orig_output_dir = os.path.join(orig_dir, objname)
-            if not os.path.exists(orig_output_dir):
-                os.makedirs(orig_output_dir)
-            orig = samples[0]
-            orig.save(os.path.join(orig_output_dir, 'view_{:06d}.png'.format(i)))
+            image_names = object_images[objname]
+            for i, fn in enumerate(image_names):
+                print(fn)
+                path, base = os.path.split(fn)
+                image = ColorImage.open(fn)
+                samples = augment(image, num_images_per_view, crop_size, preserve_scale)
 
-            # Save samples
-            cutoff = int(per_obj_train_split * len(samples))
-            random.shuffle(samples)
-            for j, sample in enumerate(samples):
-                sample_name = uuid.uuid4().hex
-                output_dir = train_output_dir
-                if j >= cutoff:
-                    output_dir = validation_output_dir
-                output_dir = os.path.join(output_dir, 'view_{:06d}'.format(i))
-                if not os.path.exists(output_dir):
-                    os.makedirs(output_dir)
-                sample.save(os.path.join(output_dir, '{}.png'.format(sample_name)))
+                # Save original, which is always first sample
+                orig_output_dir = os.path.join(orig_dir, objname)
+                if not os.path.exists(orig_output_dir):
+                    os.makedirs(orig_output_dir)
+                orig = samples[0]
+                orig.save(os.path.join(orig_output_dir, 'view_{:06d}.png'.format(i)))
+
+                # Save samples
+                samples_output_dir = os.path.join(output_dir, 'view_{:06d}'.format(i))
+                if not os.path.exists(samples_output_dir):
+                    os.makedirs(samples_output_dir)
+                for sample in samples:
+                    sample_name = uuid.uuid4().hex
+                    sample.save(os.path.join(samples_output_dir, '{}.png'.format(sample_name)))
