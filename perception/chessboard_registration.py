@@ -7,6 +7,7 @@ import logging
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 from autolab_core import PointCloud, RigidTransform, Point
 from .image import DepthImage
@@ -90,7 +91,10 @@ class CameraChessboardRegistration:
             # average a bunch of depth images together
             depth_ims = None
             for i in range(num_images):
+                start = time.time()
                 small_color_im, new_depth_im, _ = sensor.frames()
+                end = time.time()
+                logging.info('Frames Runtime: %.3f' %(end-start))
                 if depth_ims is None:
                     depth_ims = np.zeros([new_depth_im.height,
                                           new_depth_im.width,
@@ -162,23 +166,13 @@ class CameraChessboardRegistration:
         if point_order == 'row_major':
             coord_pos_x = int(math.floor(sx*sy/2.0))
             coord_neg_x = int(math.ceil(sx*sy/2.0))
+            
             points_pos_x = points_3d_centered[coord_pos_x:]
             points_neg_x = points_3d_centered[:coord_neg_x]
             x_axis = np.mean(points_pos_x.data, axis=1) - np.mean(points_neg_x.data, axis=1)
             x_axis = x_axis - np.vdot(x_axis, n)*n
             x_axis = x_axis / np.linalg.norm(x_axis)
             y_axis = np.cross(n, x_axis)
-
-            """
-            from visualization import Visualizer3D as vis3d
-            vis3d.figure()
-            vis3d.points(points_3d_centered, scale=0.001, color=(0,0,1))
-            vis3d.points(points_pos_x, scale=0.0015, color=(0,1,0))
-            vis3d.points(points_neg_x, scale=0.0015, color=(1,0,0))
-            vis3d.show()
-            import IPython
-            IPython.embed()
-            """
         else:
             coord_pos_y = int(math.floor(sx*(sy-1)/2.0))
             coord_neg_y = int(math.ceil(sx*(sy+1)/2.0))
