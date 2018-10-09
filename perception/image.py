@@ -3439,13 +3439,24 @@ class PointCloudImage(Image):
         :obj:`NormalCloudImage`
             The corresponding NormalCloudImage.
         """
+        # compute direction via cross product
         gx, gy, _ = np.gradient(self.data)
         gx_data = gx.reshape(self.height * self.width, 3)
         gy_data = gy.reshape(self.height * self.width, 3)
         pc_grads = np.cross(gx_data, gy_data)  # default to point toward camera
+
+        # normalize
         pc_grad_norms = np.linalg.norm(pc_grads, axis=1)
         pc_grads[pc_grad_norms > 0] = pc_grads[pc_grad_norms > 0] / np.tile(pc_grad_norms[pc_grad_norms > 0, np.newaxis], [1, 3])
+        pc_grads[pc_grad_norms == 0.0] = np.array([0,0,-1.0]) # zero norm means pointing toward camera
+
+        # reshape
         normal_im_data = pc_grads.reshape(self.height, self.width, 3)
+
+        # preserve zeros
+        zero_px = self.zero_pixels()
+        normal_im_data[zero_px[:,0], zero_px[:,1], :] = np.zeros(3)
+        
         return NormalCloudImage(normal_im_data, frame=self.frame)
 
     @staticmethod
