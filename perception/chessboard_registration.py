@@ -75,6 +75,10 @@ class CameraChessboardRegistration:
         point_order = config['point_order']
         color_image_rescale_factor = config['color_image_rescale_factor']
         flip_normal = config['flip_normal']
+        y_points_left = False
+        if 'y_points_left' in config.keys() and sx == sy:
+            y_points_left = config['y_points_left']
+            num_images = 1
         vis = config['vis']
 
         # read params from sensor
@@ -191,8 +195,13 @@ class CameraChessboardRegistration:
                                      from_frame='cb',
                                      to_frame=sensor.frame)
         
+        if y_points_left and np.abs(T_cb_camera.y_axis[1]) > 0.1:
+            if T_cb_camera.x_axis[0] > 0:
+                T_cb_camera.rotation = T_cb_camera.rotation.dot(RigidTransform.z_axis_rotation(-np.pi/2).T)
+            else:
+                T_cb_camera.rotation = T_cb_camera.rotation.dot(RigidTransform.z_axis_rotation(np.pi/2).T)
         T_camera_cb = T_cb_camera.inverse()
-
+                
         # optionally display cb corners with detected pose in 3d space
         if config['debug']:
             # display image with axes overlayed

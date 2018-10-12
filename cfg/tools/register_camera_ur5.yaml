@@ -9,7 +9,8 @@ chessboard_registration:
   vis: 0 # visualize registration
   debug: 1 # show the final pose detection
   scale_amt: 0.1 # scale for vis axes
-
+  y_points_left: 1
+  
 calib_dir: /nfs/diskstation/calib # directory for the output
 chessboard_tf: /nfs/diskstation/calib/chessboard/chessboard_to_world_ur5.tf
 
@@ -46,9 +47,10 @@ gripper_height: 0.15
 vis_points: 1
 
 # ROBOT VERIFICATION PARAMS
-use_robot: 0
+use_robot: 1
+robot_type: ur5
 vis_cb_corners: 0
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
-gripper_offset_z: 0.0075
+gripper_offset_z: 0.005
 reset_bin: 1
