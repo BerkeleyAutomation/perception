@@ -28,21 +28,8 @@ def normalize(color_im, crop_size=(512, 512)):
     color_data = imutils.translate(color_data, cx - round(centroid[1]), cy - round(centroid[0]))
     color_im = ColorImage(color_data, color_im.frame)
 
-    # Rotate via PCA so that the principal axis is vertical
-    # color_data = color_im.data
-    # nzp = color_im.nonzero_pixels().astype(np.int32)
-    # nzp = nzp - np.mean(nzp, axis=0)
-    # pca = PCA(n_components=2)
-    # pca.fit(nzp)
-    # axis = pca.components_[0]
-    # if axis[0] != 0:
-    #     angle = np.rad2deg(np.arctan(axis[1]/axis[0]))
-    # else:
-    #     angle = 90.0
-    # color_data = imutils.rotate_bound(color_data, angle)
-    cx, cy = color_data.shape[1] // 2, color_data.shape[0] // 2
-
     # Crop about center to 512x512
+    cx, cy = color_data.shape[1] // 2, color_data.shape[0] // 2
     crop_x = crop_size[0] / 2
     crop_y = crop_size[1] / 2
     color_data = imcrop(color_data, (cx-crop_x, cy-crop_y, cx+crop_x, cy+crop_y))
@@ -57,18 +44,6 @@ def normalize_fill(color_im, crop_size=(512, 512)):
     ymin, xmin = np.min(nzp, axis=0)
     ymax, xmax = np.max(nzp, axis=0)
     color_data = color_im.data[ymin:ymax, xmin:xmax, :]
-
-    # Rotate via PCA so that the principal axis is vertical
-    # nzp = nzp.astype(np.int32)
-    # nzp = nzp - np.mean(nzp, axis=0)
-    # pca = PCA(n_components=2)
-    # pca.fit(nzp)
-    # axis = pca.components_[0]
-    # if axis[0] != 0:
-    #     angle = np.rad2deg(np.arctan(axis[1]/axis[0]))
-    # else:
-    #     angle = 90.0
-    # color_data = imutils.rotate_bound(color_data, angle)
 
     # Resize to square by padding out the smaller dimension
     xlen, ylen = color_data.shape[1], color_data.shape[0]
@@ -189,25 +164,23 @@ def augment(image, n_samples, crop_size, preserve_scale):
 
 if __name__ == '__main__':
     object_images_dir = '/nfs/diskstation/projects/mech_search/siamese_net_training/single_obj_dataset/phoxi/color_images'
-    output_dataset_dir = '/nfs/diskstation/dwang/mech_search_data'
+    output_dataset_dir = '/nfs/diskstation/dmwang/mech_search_data3'
     object_train_split = 0.8
     num_images_per_view = 10
     preserve_scale = True
     crop_size = (512, 512)
 
+    if os.path.exists(output_dataset_dir):
+        raise Exception("Output dataset directory already exists!")
 
     train_dir = os.path.join(output_dataset_dir, 'train')
     validation_dir = os.path.join(output_dataset_dir, 'validation')
     orig_dir = os.path.join(output_dataset_dir, 'originals')
 
-    if not os.path.exists(output_dataset_dir):
-        os.makedirs(output_dataset_dir)
-
-    if not os.path.exists(train_dir):
-        os.makedirs(train_dir)
-
-    if not os.path.exists(validation_dir):
-        os.makedirs(validation_dir)
+    os.makedirs(output_dataset_dir)
+    os.makedirs(orig_dir)
+    os.makedirs(train_dir)
+    os.makedirs(validation_dir)
 
     # Generate training and validation data
 
