@@ -1,35 +1,29 @@
 language: python
 sudo: required
 dist: trusty
-
 python:
-    - '2.7'
-    - '3.5'
-    - '3.6'
-
+- '2.7'
+- '3.5'
+- '3.6'
 before_install:
-    - pip install --upgrade pip setuptools wheel
-    - pip install --only-binary=numpy,scipy numpy scipy
-
+- pip install --upgrade pip setuptools wheel
+- pip install --only-binary=numpy,scipy numpy scipy
 install:
-    - pip install .
-    - pip install nose2
-
+- pip install .
+- pip install nose2
 script:
-    - cd tests
-    - nose2
-    - cd ..
-
+- cd tests
+- nose2
+- cd ..
 deploy:
-    provider: pypi
-    skip_existing: true
-    user: mmatl
-    on:
-        tags: true
-        branch: master
-    password:
-        secure: TdW1HmmOmvt0M/5Z7x8IvD7qZ9McFoax7LqFK2JpvIx5m1P0S1mOLkLSnvR6noD5JQBiRFz0+LZC6QWbvndH2SFnl5RRDSvJP+PabcMxwG33XNLjfgweaoa3wIH+PVNRU09XBTnkT52w8Zcu9x615r9V5JPjhl2lARHqzKC+cX/vOelaDXlROcis4OkExTaFIzt+1SMksKe3FlW7jcEnHfbx1TbghWpDQALCitfdB2cQwk3xBZ227Ywa/O9p5d46nTv5LHWOYwlODfWYtAPjz7V2WT5Yp7MYuc5LdSO5urTyHvJdzmUHC33yfEzuzIoRv66DJ7JDole8Mdxy8sv/jQ8acW3+PFgit1LI+bbGK7CP5W2ZXXpKoX7Vg7n00aJU07C+0WsV0V4w0Daez4xYdTYglP46YBmoGeIFtDDjA7KQttf7X2NRvzF1wW6VMYRIif4Um4o8jmZyJ429a4WhmraAhPjPetqDTiYQSuSEb1bf9/9xbSL7T5paKxC/dFYpuljTVQFT3r+Z9TqZNtF3YzyU12x7Vp0w9Yt3sx8ZUnCYz/9qpOAQle0yL9Fw07tZ9/px2+5bMZZRL/8zBIWYXt4a3k9Oo3VwI8hzRYNeomtAyC3wTSIFvtFFpejKRMr6oFLagrlbBAsTx1ZrE4ZQ16L63gCRhN/crR5rYf4FcCE=
-    distributions: sdist bdist_wheel
-
+  provider: pypi
+  skip_existing: true
+  user: mmatl
+  on:
+    tags: true
+    branch: master
+  password:
+    secure: IfCKijIg6eo4y2LThHQGk4I40/GzqgTh2JogsiYnSiXh1XGGo5/q6tAdUvkUpPqexVzxkcTl4JgeAEe4Wo5IHLsjKuaUdEuojsjBG6AaPDzV9Q9nJW1bnPrO2+ckcd9VBBl2dlQo4WOA9F4ppUHipD5vHg/4FWPAZE2S2F92+5UvWHr0P1knHXUst9wqAhSskcbt27Ob1E9n6sck5OAeWQGAfsPPPAELZQKjx9QFRP2eRiuMV5am7Wy3snJcxpCF8Lwk/Xko3bfZ+O1Gb9MtqN1t7YhnCP8FEIsvsXRWcgrMwdt2OUBJSKKUGeb9COakY3B8fFff1TUEy8Mb4PvyvxgNfSeYXm3SIVk9xWpDm30GZTbN8SbTgLhBA0kxCYP+HmIFy/zycwO1vTtmEXo5sHAopgdac6d9iTWCps1n0y2j0s4n3A6aMl40ecCjorMZEnwb00SaQNNIR7Pj8L8WHoaE+ZBxpHRBpPjnT2C5VaLbKHyZlM5q4b8seeXN01MHSNVki/2y2E5T9j/37lO+gD/PtqlNg9Z5MIU6nGw3Rw4i+XiVrOYXaYuTS9eIl5SPrr6oGUIxy9LF//RKY5yk+TKa9IQnP9FOv/BB2LDL5K9A4wfUtj7P0WCQuQ0Bo7Od14+DZ7+AspkEBurA/gPNQjkho15fSG2MWn84GjC+5M4=
+  distributions: sdist bdist_wheel
 notifications:
-    email: false
+  email: false
