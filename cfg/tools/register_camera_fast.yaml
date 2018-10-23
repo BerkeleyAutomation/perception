@@ -1,0 +1,54 @@
+# REGISTRATION PARAMS
+chessboard_registration:
+  corners_x: 11 # number of corners in the x direction
+  corners_y: 8 # number of corners in the y direction
+  flip_normal: 0
+  point_order: row_major
+
+  # VISUALIZATION PARAMS
+  vis: 0 # visualize registration
+  debug: 1 # show the final pose detection
+  scale_amt: 0.1 # scale for vis axes
+
+calib_dir: /nfs/diskstation/calib # directory for the output
+chessboard_tf: /nfs/diskstation/calib/chessboard/metal_chessboard_to_world_yumi1.tf
+
+# SENSOR CALIBRATION LIST
+sensors:
+#    primesense_overhead:
+#        sensor_config:
+#            type: primesense_ros
+#            auto_white_balance: 0
+#            flip_images: 1
+#        registration_config:
+#            num_transform_avg: 10 # Number of corner detections to average together
+#            num_images: 5         # Number of depth images to take median of for noise reduction
+#            color_image_rescale_factor: 4.0 # Rate to rescale the color image for detections
+    phoxi:
+        sensor_config:
+            type: phoxi
+            device_name: 2018-07-013-LC3
+            size: small
+        registration_config:
+            num_transform_avg: 5
+            num_images: 1
+            color_image_rescale_factor: 0.6
+
+# CB TF FIX PARAMS
+fix_orientation_cb_to_world: 0
+grid_x: 5
+grid_y: 5
+grid_width: 0.2
+grid_height: 0.2
+grid_center_x: 0.33
+grid_center_y: 0.0
+gripper_height: 0.15
+vis_points: 1
+
+# ROBOT VERIFICATION PARAMS
+use_robot: 1
+vis_cb_corners: 0
+gripper_offset_x: 0.0
+gripper_offset_y: 0.0
+gripper_offset_z: 0.0075
+reset_bin: 1
