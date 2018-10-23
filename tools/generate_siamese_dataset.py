@@ -4,9 +4,20 @@ import os
 import cv2
 import random
 import uuid
+import scipy.ndimage
 from skimage.transform import resize
 from sklearn.decomposition import PCA
 from perception import ColorImage, BinaryImage
+
+# Limit number of CPU cores used.
+cpu_cores = [8, 9, 10, 11] # Cores (numbered 0-11)
+os.system("taskset -pc {} {}".format(",".join(str(i) for i in cpu_cores), os.getpid()))
+
+def rotate_image(image):
+    angle = np.random.uniform(0.0, 360.0)
+    rotated_image_data = scipy.ndimage.rotate(image.data, angle, reshape=False)
+    rotated_image = ColorImage(rotated_image_data, image.frame)
+    return rotated_image
 
 def imcrop(img, bbox):
     x1, y1, x2, y2 = bbox
@@ -72,14 +83,31 @@ def get_key_function(central_point):
 
     return key_function
 
-def augment(image, n_samples, crop_size, preserve_scale):
+def augment(image, n_samples, crop_size, preserve_scale, rotate, keep_full_images):
     """Create data augmentations of an image crop by randomly occluding it with a line.
     """
     samples = []
     if preserve_scale:
+        normalized_image = normalize(image)
         samples.append(normalize(image))
     else:
+        normalized_image = normalize_fill(image, crop_size=crop_size)
         samples.append(normalize_fill(image, crop_size=crop_size))
+
+    # Always keep at least one copy of the original image.
+    if rotate:
+        samples.append(rotate_image(normalized_image))
+    else:
+        samples.append(normalized_image)
+
+    # Bias training dataset with more copies of original image.
+    if keep_full_images:
+        for _ in range(n_samples // 2 - 1):
+            if rotate:
+                samples.append(rotate_image(normalized_image))
+            else:
+                samples.append(normalized_image)
+
     orig_mask = image.to_binary()
     nzp = orig_mask.nonzero_pixels()
     min_number_points = 0.35*np.count_nonzero(orig_mask.data)
@@ -149,6 +177,10 @@ def augment(image, n_samples, crop_size, preserve_scale):
                 img = normalize(image.mask_binary(mask), crop_size=crop_size)
             else:
                 img = normalize_fill(image.mask_binary(mask), crop_size=crop_size)
+
+            if rotate:
+                img = rotate_image(img)
+
             samples.append(img)
 
         if np.count_nonzero(upper_mask) > min_number_points:
@@ -157,6 +189,10 @@ def augment(image, n_samples, crop_size, preserve_scale):
                 img = normalize(image.mask_binary(mask), crop_size=crop_size)
             else:
                 img = normalize_fill(image.mask_binary(mask), crop_size=crop_size)
+
+            if rotate:
+                img = rotate_image(img)
+
             samples.append(img)
 
     return samples[:n_samples]
@@ -164,10 +200,12 @@ def augment(image, n_samples, crop_size, preserve_scale):
 
 if __name__ == '__main__':
     object_images_dir = '/nfs/diskstation/projects/mech_search/siamese_net_training/single_obj_dataset/phoxi/color_images'
-    output_dataset_dir = '/nfs/diskstation/dmwang/mech_search_data3'
+    output_dataset_dir = '/nfs/diskstation/dmwang/mech_search_data_rotate_full_images'
     object_train_split = 0.8
     num_images_per_view = 10
     preserve_scale = True
+    rotate = True   # Apply random rotations.
+    keep_full_images = True    # When generating training image for a view, include examples of full images.
     crop_size = (512, 512)
 
     if os.path.exists(output_dataset_dir):
@@ -197,11 +235,18 @@ if __name__ == '__main__':
         object_images[objname].append(os.path.join(object_images_dir, filename))
 
     # Split set of objects into training and validation.
-    split_index = int(object_train_split * len(object_images))
-    all_objects = object_images.keys()
-    random.shuffle(all_objects)
-    train_objects = all_objects[:split_index]
-    validation_objects = all_objects[split_index:]
+    # split_index = int(object_train_split * len(object_images))
+    # all_objects = object_images.keys()
+    # random.shuffle(all_objects)
+    # train_objects = all_objects[:split_index]
+    # validation_objects = all_objects[split_index:]
+
+    # For keeping the same set of training and validation objects.
+    train_objects = os.listdir('/nfs/diskstation/dmwang/mech_search_data/train')
+    validation_objects = os.listdir('/nfs/diskstation/dmwang/mech_search_data/validation')
+
+    print('TRAIN OBJECTS:', train_objects)
+    print('VALIDATION OBJECTS:', validation_objects)
 
     for objects, directory in [(train_objects, train_dir), (validation_objects, validation_dir)]:
         for objname in objects:
@@ -215,7 +260,7 @@ if __name__ == '__main__':
                 print(fn)
                 path, base = os.path.split(fn)
                 image = ColorImage.open(fn)
-                samples = augment(image, num_images_per_view, crop_size, preserve_scale)
+                samples = augment(image, num_images_per_view, crop_size, preserve_scale, rotate, keep_full_images)
 
                 # Save original, which is always first sample
                 orig_output_dir = os.path.join(orig_dir, objname)
