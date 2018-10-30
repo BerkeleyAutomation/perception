@@ -64,7 +64,7 @@ class RealSenseSensor(CameraSensor):
 
         # camera parameters
         self._depth_scale = None
-        self._intrinsics = np.eye(1)
+        self._intrinsics = np.eye(3)
 
         # post-processing filters
         self._colorizer = rs.colorizer()
@@ -175,7 +175,7 @@ class RealSenseSensor(CameraSensor):
         """Stop the sensor.
         """
         # check that everything is running
-        if not self._running or self._device is None:
+        if not self._running:
             logging.warning('Primesense not running. Aborting stop.')
             return False
 
@@ -215,6 +215,9 @@ class RealSenseSensor(CameraSensor):
 
         # convert depth to meters
         depth_image *= self._depth_scale
+
+        # bgr to rgb
+        color_image = color_image[..., ::-1]
 
         depth = DepthImage(depth_image, frame=self._frame)
         color = ColorImage(color_image, frame=self._frame)
