@@ -33,6 +33,24 @@ class RealSenseRegistrationMode:
 
 class RealSenseSensor(CameraSensor):
     """Class for interacting with a RealSense D400-series sensor.
+
+    pyrealsense2 should be installed from source with the following
+    commands:
+
+    >>> git clone https://github.com/IntelRealSense/librealsense
+    >>> cd librealsense
+    >>> mkdir build
+    >>> cd build
+    >>> cmake .. \
+        -DBUILD_EXAMPLES=true \
+        -DBUILD_WITH_OPENMP=false \
+        -DHWM_OVER_XU=false \
+        -DBUILD_PYTHON_BINDINGS=true \
+        -DPYTHON_EXECUTABLE:FILEPATH=/path/to/your/python/library/ \
+        -G Unix\ Makefiles
+    >>> make -j4
+    >>> sudo make install
+    >>> export PYTHONPATH=$PYTHONPATH:/usr/local/lib
     """
     COLOR_IM_HEIGHT = 480
     COLOR_IM_WIDTH = 640
@@ -176,7 +194,7 @@ class RealSenseSensor(CameraSensor):
         """
         # check that everything is running
         if not self._running:
-            logging.warning('Primesense not running. Aborting stop.')
+            logging.warning('Realsense not running. Aborting stop.')
             return False
 
         self._pipe.stop()
