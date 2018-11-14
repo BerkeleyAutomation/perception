@@ -1972,6 +1972,7 @@ class GrayscaleImage(Image):
             If the data is not a properly-formatted ndarray or frame is not a
             string.
         """
+        self._encoding = 'mono16'
         Image.__init__(self, data, frame)
 
     def _check_valid_data(self, data):
@@ -2094,6 +2095,7 @@ class BinaryImage(Image):
             If the data is not a properly-formatted ndarray or frame is not a
             string.
         """
+        self._encoding = 'mono8'
         self._threshold = threshold
         data = BINARY_IM_MAX_VAL * \
             (data > threshold).astype(data.dtype)  # binarize
