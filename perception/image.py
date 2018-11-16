@@ -2402,6 +2402,8 @@ class BinaryImage(Image):
             cur_px_x >= 0) and np.all(
                 cur_px_x < self.width):
             includes = not cur_px.isdisjoint(pixel_set)
+        else:
+            return None
 
         # Continue until out of bounds or sets overlap
         while not includes:
@@ -2416,7 +2418,7 @@ class BinaryImage(Image):
                     cur_px_x < self.width):
                 includes = not cur_px.isdisjoint(pixel_set)
             else:
-                includes = True
+                return None
         
         return start
 
@@ -2458,6 +2460,9 @@ class BinaryImage(Image):
             cur_px_x >= 0) and np.all(
                 cur_px_x < self.width):
             occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
+        else:
+            return None 
+
         while not occupied:
             pixel = pixel + t * direction
             cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
@@ -2470,6 +2475,7 @@ class BinaryImage(Image):
                 occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
             else:
                 return None
+
         return pixel
     
     def closest_allzero_pixel(self, pixel, direction, w=13, t=0.5):
@@ -2512,6 +2518,8 @@ class BinaryImage(Image):
             cur_px_x >= 0) and np.all(
                 cur_px_x < self.width):
             empty = np.all(self[cur_px_y, cur_px_x] <= self._threshold)
+        else:
+            return None
         
         # If some nonzero pixels, continue incrementing along direction
         # and checking for empty space
