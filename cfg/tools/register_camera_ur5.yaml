@@ -6,7 +6,7 @@ chessboard_registration:
   point_order: col_major
 
   # VISUALIZATION PARAMS
-  vis: 1 # visualize registration
+  vis: 0 # visualize registration
   debug: 1 # show the final pose detection
   scale_amt: 0.1 # scale for vis axes
   y_points_left: 1
@@ -52,5 +52,5 @@ robot_type: ur5
 vis_cb_corners: 1
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
-gripper_offset_z: 0.005
+gripper_offset_z: 0.0
 reset_bin: 1

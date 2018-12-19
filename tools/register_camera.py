@@ -273,11 +273,9 @@ if __name__ == '__main__':
 
             # open interface to robot
             if robot_type == 'ur5':
-                from ur_control import UniversalRobot, ToolState, T_KINEMATIC_AVOIDANCE_WORLD
+                from ur_control import UniversalRobot, ToolState, T_KINEMATIC_AVOIDANCE_WORLD, KINEMATIC_AVOIDANCE_JOINTS
                 robot = UniversalRobot()
                 robot.reset_home()
-                if robot.tool_state == ToolState.PARALLEL_JAW:
-                    robot.switch_tool()
             else:
                 y = YuMiRobot(tcp=YMC.TCP_SUCTION_STIFF)
                 y.reset_home()
@@ -291,9 +289,9 @@ if __name__ == '__main__':
                 
             # create robot pose relative to target point
             if robot_type == 'ur5':
-                R_gripper_world = np.array([[0, 0, 1.0],
-                                            [0, 1.0, 0],
-                                            [-1.0, 0, 0]])
+                R_gripper_world = np.array([[0, -1.0, 0],
+                                            [-1.0, 0, 0],
+                                            [0, 0, -1.0]])
             else:
                 R_gripper_world = np.array([[1.0, 0, 0],
                                             [0, -1.0, 0],
@@ -326,8 +324,8 @@ if __name__ == '__main__':
                 vis3d.show()
             
             if robot_type == 'ur5':
-                waypoints = [T_KINEMATIC_AVOIDANCE_WORLD]                
-                robot.goto_pose(T_gripper_world_lift, waypoints=waypoints)
+                robot.movej(KINEMATIC_AVOIDANCE_JOINTS, wait_for_res=True)
+                robot.goto_pose(T_gripper_world_lift)
             else:
                 robot.goto_pose(T_gripper_world_lift)
             robot.goto_pose(T_gripper_world)
