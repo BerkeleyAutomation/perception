@@ -115,6 +115,8 @@ class CameraChessboardRegistration:
             if vis:
                 plt.figure()
                 plt.imshow(big_color_im.data)
+                for i in range(sx):
+                    plt.scatter(corner_px[i,0], corner_px[i,1], s=25, c='b')
                 plt.show()
 
             if corner_px is None:

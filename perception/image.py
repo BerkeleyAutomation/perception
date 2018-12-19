@@ -2818,6 +2818,26 @@ class RgbdImage(Image):
         """
         return self.color_im._image_data(normalize=normalize)
 
+    def mask_binary(self, binary_im):
+        """Create a new image by zeroing out data at locations
+        where binary_im == 0.0.
+
+        Parameters
+        ----------
+        binary_im : :obj:`BinaryImage`
+            A BinaryImage of the same size as this image, with pixel values of either
+            zero or one. Wherever this image has zero pixels, we'll zero out the
+            pixels of the new image.
+
+        Returns
+        -------
+        :obj:`Image`
+            A new Image of the same type, masked by the given binary image.
+        """
+        color = self.color.mask_binary(binary_im)
+        depth = self.depth.mask_binary(binary_im)
+        return RgbdImage.from_color_and_depth(color, depth)
+    
     def resize(self, size, interp='bilinear'):
         """Resize the image.
 
