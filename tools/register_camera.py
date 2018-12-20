@@ -289,8 +289,8 @@ if __name__ == '__main__':
                 
             # create robot pose relative to target point
             if robot_type == 'ur5':
-                R_gripper_world = np.array([[0, -1.0, 0],
-                                            [-1.0, 0, 0],
+                R_gripper_world = np.array([[-1.0, 0, 0],
+                                            [0, 1.0, 0],
                                             [0, 0, -1.0]])
             else:
                 R_gripper_world = np.array([[1.0, 0, 0],
