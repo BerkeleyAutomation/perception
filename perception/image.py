@@ -841,6 +841,7 @@ class Image(object):
         ValueError
             If an unsupported file type is specified.
         """
+        filename = str(filename)
         file_root, file_ext = os.path.splitext(filename)
         if file_ext in COLOR_IMAGE_EXTS:
             im_data = self._image_data()
