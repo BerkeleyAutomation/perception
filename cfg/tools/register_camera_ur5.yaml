@@ -52,5 +52,5 @@ robot_type: ur5
 vis_cb_corners: 1
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
-gripper_offset_z: 0.0
+gripper_offset_z: 0.005
 reset_bin: 1

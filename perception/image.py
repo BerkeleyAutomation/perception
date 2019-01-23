@@ -3461,16 +3461,22 @@ class PointCloudImage(Image):
                 3).T,
             frame=self._frame)
     
-    def normal_cloud_im(self):
-        """Generate a NormalCloudImage from the PointCloudImage.
+    def normal_cloud_im(self, ksize=3):
+        """Generate a NormalCloudImage from the PointCloudImage using Sobel filtering.
+
+        Parameters
+        ----------
+        ksize : int
+            Size of the kernel to use for derivative computation
 
         Returns
         -------
         :obj:`NormalCloudImage`
             The corresponding NormalCloudImage.
         """
-        # compute direction via cross product
-        gx, gy, _ = np.gradient(self.data)
+        # compute direction via cross product of derivatives
+        gy = cv2.Sobel(self.data, cv2.CV_64F, 1, 0, ksize=ksize)
+        gx = cv2.Sobel(self.data, cv2.CV_64F, 0, 1, ksize=ksize)
         gx_data = gx.reshape(self.height * self.width, 3)
         gy_data = gy.reshape(self.height * self.width, 3)
         pc_grads = np.cross(gx_data, gy_data)  # default to point toward camera
