@@ -78,6 +78,7 @@ class Image(object):
         self._check_valid_data(data)
         self._data = self._preprocess_data(data)
         self._frame = frame
+        self._encoding = 'passthrough'
 
     def _preprocess_data(self, data):
         """Converts a data array to the preferred 3D structure.
