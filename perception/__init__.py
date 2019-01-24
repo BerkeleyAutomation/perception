@@ -6,11 +6,13 @@ import logging
 
 from .version import __version__
 from .camera_intrinsics import CameraIntrinsics
+from .orthographic_intrinsics import OrthographicIntrinsics
+from .exceptions import SensorUnresponsiveException
 
 try:
     from .cnn import AlexNet, AlexNetWeights, conv
     from .features import Feature, LocalFeature, GlobalFeature, SHOTFeature, MVCNNFeature, BagOfFeatures
-    from .feature_extractors import FeatureExtractor, CNNBatchFeatureExtractor, CNNReusableBatchFeatureExtractor    
+    from .feature_extractors import FeatureExtractor, CNNBatchFeatureExtractor, CNNReusableBatchFeatureExtractor
 except Exception:
     logging.warning('Unable to import CNN modules! Likely due to missing tensorflow.')
     logging.warning('TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup')
@@ -34,6 +36,11 @@ try:
     from .primesense_sensor import PrimesenseSensor, PrimesenseSensor_ROS, PrimesenseRegistrationMode
 except Exception:
     logging.warning('Unable to import Primsense sensor modules! Likely due to missing OpenNI2.')
+
+try:
+    from .realsense_sensor import RealSenseSensor
+except Exception:
+    logging.warning('Unable to import RealSense sensor modules!')
 
 try:
     from .ensenso_sensor import EnsensoSensor
@@ -70,6 +77,7 @@ __all__ = [
     'Kinect2PacketPipelineMode', 'Kinect2FrameMode', 'Kinect2RegistrationMode', 'Kinect2DepthMode', 'Kinect2BridgedQuality', 'Kinect2Sensor','KinectSensorBridged','VirtualKinect2Sensor', 'Kinect2SensorFactory', 'load_images',
     'EnsensoSensor',
     'RgbdSensorFactory', 'PrimesenseSensor', 'VirtualPrimesenseSensor', 'PrimesenseSensor_ROS', 'PrimesenseRegistrationMode',
+    'RealSenseSensor',
     'RenderMode', 'ObjectRender', 'QueryImageBundle',
     'RegistrationResult', 'IterativeRegistrationSolver', 'PointToPlaneICPSolver',
     'OpenCVCameraSensor',

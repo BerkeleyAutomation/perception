@@ -47,6 +47,8 @@ class _Camera(Process):
         
     def run(self):
         """ Continually write images to the filename specified by a command queue. """
+        if not self.camera.is_running:
+            self.camera.start()
         while True:
             if not self.cmd_q.empty():
                 cmd = self.cmd_q.get()
@@ -57,7 +59,8 @@ class _Camera(Process):
                     filename = cmd[1]
                     self.out = si.FFmpegWriter(filename)
                     self.recording = True
-                    
+                    self.count = 0
+
             if self.recording:
                 if self.count == 0:
                     image, _, _ = self.camera.frames()
@@ -111,7 +114,6 @@ class VideoRecorder:
     def start(self):
         """ Starts the camera recording process. """
         self._started = True
-        self._actual_camera.start()
         self._camera = _Camera(self._actual_camera, self._cmd_q, self._res, self._codec, self._fps, self._rate)
         self._camera.start()
 
@@ -136,7 +138,7 @@ class VideoRecorder:
             raise Exception("Cannot stop a video recording when it's not recording!")
         self._cmd_q.put(('stop',))
         self._recording = False
-
+        
     def stop(self):
         """ Stop the camera process. """
         if not self._started:

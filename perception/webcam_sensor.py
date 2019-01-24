@@ -1,7 +1,9 @@
 import cv2
 import logging
 import numpy as np
+import os
 import subprocess
+import shlex
 
 from . import CameraSensor, ColorImage, CameraIntrinsics
 
@@ -24,6 +26,7 @@ class WebcamSensor(CameraSensor):
         self._device_id = 0
         self._cap = None
         self._running = False
+        self._adjust_exposure = True
 
         # Set up camera intrinsics for the sensor
         width, height = 1280, 960
@@ -66,7 +69,7 @@ class WebcamSensor(CameraSensor):
     def start(self):
         """Start the sensor.
         """
-        self._cap = cv2.VideoCapture(self._device_id + cv2.CAP_V4L)
+        self._cap = cv2.VideoCapture(self._device_id + cv2.CAP_V4L2)
         if not self._cap.isOpened():
             self._running = False
             self._cap.release()
@@ -76,6 +79,10 @@ class WebcamSensor(CameraSensor):
         self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, self._camera_intr.width)
         self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._camera_intr.height)
         self._running = True
+
+        # Capture 5 frames to flush webcam sensor
+        for _ in range(5):
+            _ = self.frames()
 
         return True
 
@@ -94,18 +101,32 @@ class WebcamSensor(CameraSensor):
 
         return True
 
-    def frames(self):
+    def frames(self, most_recent=False):
         """Retrieve a new frame from the PhoXi and convert it to a ColorImage,
         a DepthImage, and an IrImage.
+
+        Parameters
+        ----------
+        most_recent: bool
+            If true, the OpenCV buffer is emptied for the webcam before reading the most recent frame.
 
         Returns
         -------
         :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
             The ColorImage, DepthImage, and IrImage of the current frame.
         """
-        for i in range(5):
-            command = 'v4l2-ctl -d /dev/video{} -c exposure_auto=1 -c exposure_auto_priority=0 -c exposure_absolute=100 -c saturation=60 -c gain=140'.format(self._device_id)
-            subprocess.call(command, shell=True)
+        if most_recent:
+            for i in xrange(4):
+                self._cap.grab()
+        for i in range(1):
+            if self._adjust_exposure:
+                try:
+                    command = 'v4l2-ctl -d /dev/video{} -c exposure_auto=1 -c exposure_auto_priority=0 -c exposure_absolute=100 -c saturation=60 -c gain=140'.format(self._device_id)
+                    FNULL = open(os.devnull, 'w')
+                    subprocess.call(shlex.split(command), stdout=FNULL, stderr=subprocess.STDOUT)
+                except:
+                    pass
             ret, frame = self._cap.read()
         rgb_data = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
         return ColorImage(rgb_data, frame=self._frame), None, None

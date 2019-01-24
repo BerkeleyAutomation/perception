@@ -8,6 +8,7 @@ import IPython
 import logging
 import numpy as np
 import os
+import sys
 import time
 import traceback
 
@@ -46,10 +47,6 @@ if __name__ == '__main__':
     
     # get known tf from chessboard to world
     T_cb_world = RigidTransform.load(config['chessboard_tf'])
-    #T_cb_world.rotation = RigidTransform.x_axis_rotation(np.pi/256).dot(T_cb_world.rotation)
-    #T_cb_world.rotation = RigidTransform.y_axis_rotation(np.pi/512).dot(T_cb_world.rotation)
-    #T_cb_world.save(config['chessboard_tf'])
-    #print T_cb_world.rotation
     
     # initialize node
     rospy.init_node('register_camera', anonymous=True)
@@ -216,9 +213,6 @@ if __name__ == '__main__':
                         best_R_cb_world = R_cb_world
                 k += 1
                         
-            import IPython
-            IPython.embed()
-
             R_cb_world = best_R_cb_world
             T_corrected_cb_world = RigidTransform(rotation=R_cb_world,
                                                   from_frame='world',
@@ -265,6 +259,11 @@ if __name__ == '__main__':
                 
         # move the robot to the chessboard center for verification
         if config['use_robot']:  
+            # get robot type
+            robot_type = 'yumi'
+            if 'robot_type' in config.keys():
+                robot_type = config['robot_type']
+            
             # find the rightmost and further cb point in world frame
             cb_points_world = T_camera_world * reg_result.cb_points_cam
             cb_point_data_world = cb_points_world.data
@@ -272,19 +271,18 @@ if __name__ == '__main__':
             dir_world = dir_world / np.linalg.norm(dir_world)
             ip = dir_world.dot(cb_point_data_world)
 
-            if config['vis_cb_corners']:
-                _, depth_im, _ = sensor.frames()
-                points_world = T_camera_world * ir_intrinsics.deproject(depth_im)
-                vis3d.figure()
-                vis3d.points(cb_points_world, color=(0,0,1), scale=0.005)
-                vis3d.points(points_world, color=(0,1,0), subsample=10, random=True, scale=0.001)
-                vis3d.pose(T_camera_world)
-                vis3d.table(dim=0.5, T_table_world=T_cb_world)
-                vis3d.show()
-
             # open interface to robot
-            y = YuMiRobot(tcp=YMC.TCP_SUCTION_STIFF)
-            y.reset_home()
+            if robot_type == 'ur5':
+                from ur_control import UniversalRobot, ToolState, T_KINEMATIC_AVOIDANCE_WORLD
+                robot = UniversalRobot()
+                robot.reset_home()
+                if robot.tool_state == ToolState.PARALLEL_JAW:
+                    robot.switch_tool()
+            else:
+                y = YuMiRobot(tcp=YMC.TCP_SUCTION_STIFF)
+                y.reset_home()
+                robot = y.right
+                waypoints = []
             time.sleep(1)
                 
             # choose target point #1
@@ -292,9 +290,14 @@ if __name__ == '__main__':
             target_pt_world = cb_points_world[target_ind[0]]
                 
             # create robot pose relative to target point
-            R_gripper_world = np.array([[1.0, 0, 0],
-                                     [0, -1.0, 0],
-                                     [0, 0, -1.0]])
+            if robot_type == 'ur5':
+                R_gripper_world = np.array([[0, 0, 1.0],
+                                            [0, 1.0, 0],
+                                            [-1.0, 0, 0]])
+            else:
+                R_gripper_world = np.array([[1.0, 0, 0],
+                                            [0, -1.0, 0],
+                                            [0, 0, -1.0]])
             t_gripper_world = np.array([target_pt_world.x + config['gripper_offset_x'],
                                         target_pt_world.y + config['gripper_offset_y'],
                                         target_pt_world.z + config['gripper_offset_z']])
@@ -307,21 +310,37 @@ if __name__ == '__main__':
             T_lift = RigidTransform(translation=(0,0,0.05), from_frame='cb', to_frame='cb')
             T_gripper_world_lift = T_lift * T_gripper_world
             T_orig_gripper_world_lift = T_gripper_world_lift.copy()
-            y.right.goto_pose(T_gripper_world_lift)
-            y.right.goto_pose(T_gripper_world)
+
+            if config['vis_cb_corners']:
+                _, depth_im, _ = sensor.frames()
+                points_world = T_camera_world * ir_intrinsics.deproject(depth_im)
+                vis3d.figure()
+                vis3d.points(cb_points_world, color=(0,0,1), scale=0.005)
+                vis3d.points(points_world, color=(0,1,0), subsample=10, random=True, scale=0.001)
+                vis3d.pose(T_camera_world)
+                vis3d.pose(T_gripper_world_lift)
+                vis3d.pose(T_gripper_world)
+                vis3d.pose(T_cb_world)
+                vis3d.pose(RigidTransform())
+                vis3d.table(dim=0.5, T_table_world=T_cb_world)
+                vis3d.show()
+            
+            if robot_type == 'ur5':
+                waypoints = [T_KINEMATIC_AVOIDANCE_WORLD]                
+                robot.goto_pose(T_gripper_world_lift, waypoints=waypoints)
+            else:
+                robot.goto_pose(T_gripper_world_lift)
+            robot.goto_pose(T_gripper_world)
             
             # wait for human measurement
             yesno = raw_input('Take measurement. Hit [ENTER] when done')
-            y.right.goto_pose(T_gripper_world_lift)
+            robot.goto_pose(T_gripper_world_lift)
 
             # choose target point 2
             target_ind = np.where(ip == np.min(ip))[0]
             target_pt_world = cb_points_world[target_ind[0]]
                 
             # create robot pose relative to target point
-            R_gripper_world = np.array([[1.0, 0, 0],
-                                     [0, -1.0, 0],
-                                     [0, 0, -1.0]])
             t_gripper_world = np.array([target_pt_world.x + config['gripper_offset_x'],
                                         target_pt_world.y + config['gripper_offset_y'],
                                         target_pt_world.z + config['gripper_offset_z']])
@@ -333,13 +352,13 @@ if __name__ == '__main__':
             
             T_lift = RigidTransform(translation=(0,0,0.05), from_frame='cb', to_frame='cb')
             T_gripper_world_lift = T_lift * T_gripper_world
-            y.right.goto_pose(T_gripper_world_lift)
-            y.right.goto_pose(T_gripper_world)
+            robot.goto_pose(T_gripper_world_lift)
+            robot.goto_pose(T_gripper_world)
             
             # wait for human measurement
             yesno = raw_input('Take measurement. Hit [ENTER] when done')
-            y.right.goto_pose(T_gripper_world_lift)
-            y.right.goto_pose(T_orig_gripper_world_lift)
+            robot.goto_pose(T_gripper_world_lift)
+            robot.goto_pose(T_orig_gripper_world_lift)
 
             # choose target point 3
             dir_world = np.array([1.0, 1.0, 0])
@@ -349,9 +368,6 @@ if __name__ == '__main__':
             target_pt_world = cb_points_world[target_ind[0]]
                 
             # create robot pose relative to target point
-            R_gripper_world = np.array([[1.0, 0, 0],
-                                     [0, -1.0, 0],
-                                     [0, 0, -1.0]])
             t_gripper_world = np.array([target_pt_world.x + config['gripper_offset_x'],
                                         target_pt_world.y + config['gripper_offset_y'],
                                         target_pt_world.z + config['gripper_offset_z']])
@@ -363,17 +379,22 @@ if __name__ == '__main__':
             
             T_lift = RigidTransform(translation=(0,0,0.05), from_frame='cb', to_frame='cb')
             T_gripper_world_lift = T_lift * T_gripper_world
-            y.right.goto_pose(T_gripper_world_lift)
-            y.right.goto_pose(T_gripper_world)
+            robot.goto_pose(T_gripper_world_lift)
+            robot.goto_pose(T_gripper_world)
             
             # wait for human measurement
             yesno = raw_input('Take measurement. Hit [ENTER] when done')
-            y.right.goto_pose(T_gripper_world_lift)
-            y.right.goto_pose(T_orig_gripper_world_lift)
+            robot.goto_pose(T_gripper_world_lift)
+            robot.goto_pose(T_orig_gripper_world_lift)
             
             # stop robot
-            y.reset_home()
-            y.stop()
-
+            robot.reset_home()
+            if robot_type != 'ur5' and 'reset_bin' in config.keys() and config['reset_bin']:
+                y.reset_bin()
+            if robot_type == 'ur5':
+                robot.stop()
+            else:
+                y.stop()
+                
         sensor.stop()
             

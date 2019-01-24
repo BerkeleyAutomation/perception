@@ -841,6 +841,7 @@ class Image(object):
         ValueError
             If an unsupported file type is specified.
         """
+        filename = str(filename)
         file_root, file_ext = os.path.splitext(filename)
         if file_ext in COLOR_IMAGE_EXTS:
             im_data = self._image_data()
@@ -1473,13 +1474,22 @@ class DepthImage(Image):
             raise ValueError(
                 'Illegal data type. Depth images only support single channel')
 
-    def _image_data(self, normalize=False):
+    def _image_data(self, normalize=False,
+                    min_depth=MIN_DEPTH,
+                    max_depth=MAX_DEPTH,
+                    twobyte=False):
         """Returns the data in image format, with scaling and conversion to uint8 types.
 
         Parameters
         ----------
         normalize : bool
             whether or not to normalize by the min and max depth of the image
+        min_depth : float
+            minimum depth value for the normalization
+        max_depth : float
+            maximum depth value for the normalization
+        twobyte: bool
+            whether or not to use 16-bit encoding
 
         Returns
         -------
@@ -1488,18 +1498,27 @@ class DepthImage(Image):
             second is columns, and the third is a set of 3 RGB values, each of
             which is simply the depth entry scaled to between 0 and BINARY_IM_MAX_VAL.
         """
+        max_val = BINARY_IM_MAX_VAL
+        if twobyte:
+            max_val = np.iinfo(np.uint16).max
+        
         if normalize:
             min_depth = np.min(self._data)
             max_depth = np.max(self._data)
             depth_data = (self._data - min_depth) / (max_depth - min_depth)
-            depth_data = float(BINARY_IM_MAX_VAL) * depth_data.squeeze()
+            depth_data = float(max_val) * depth_data.squeeze()
         else:
-            depth_data = ((self._data - MIN_DEPTH) * \
-                          (float(BINARY_IM_MAX_VAL) / (MAX_DEPTH - MIN_DEPTH))).squeeze()
+            zero_px = np.where(self._data == 0)
+            zero_px = np.c_[zero_px[0], zero_px[1], zero_px[2]]
+            depth_data = ((self._data - min_depth) * \
+                          (float(max_val) / (max_depth - min_depth))).squeeze()
+            depth_data[zero_px[:,0], zero_px[:,1]] = 0
         im_data = np.zeros([self.height, self.width, 3])
         im_data[:, :, 0] = depth_data
         im_data[:, :, 1] = depth_data
         im_data[:, :, 2] = depth_data
+        if twobyte:
+            return im_data.astype(np.uint16)
         return im_data.astype(np.uint8)
 
     def resize(self, size, interp='bilinear'):
@@ -1954,6 +1973,7 @@ class GrayscaleImage(Image):
             If the data is not a properly-formatted ndarray or frame is not a
             string.
         """
+        self._encoding = 'mono16'
         Image.__init__(self, data, frame)
 
     def _check_valid_data(self, data):
@@ -2076,6 +2096,7 @@ class BinaryImage(Image):
             If the data is not a properly-formatted ndarray or frame is not a
             string.
         """
+        self._encoding = 'mono8'
         self._threshold = threshold
         data = BINARY_IM_MAX_VAL * \
             (data > threshold).astype(data.dtype)  # binarize
@@ -2382,6 +2403,8 @@ class BinaryImage(Image):
             cur_px_x >= 0) and np.all(
                 cur_px_x < self.width):
             includes = not cur_px.isdisjoint(pixel_set)
+        else:
+            return None
 
         # Continue until out of bounds or sets overlap
         while not includes:
@@ -2396,7 +2419,7 @@ class BinaryImage(Image):
                     cur_px_x < self.width):
                 includes = not cur_px.isdisjoint(pixel_set)
             else:
-                includes = True
+                return None
         
         return start
 
@@ -2438,6 +2461,9 @@ class BinaryImage(Image):
             cur_px_x >= 0) and np.all(
                 cur_px_x < self.width):
             occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
+        else:
+            return None 
+
         while not occupied:
             pixel = pixel + t * direction
             cur_px_y = np.ravel(y + pixel[0]).astype(np.uint16)
@@ -2450,6 +2476,7 @@ class BinaryImage(Image):
                 occupied = np.any(self[cur_px_y, cur_px_x] >= self._threshold)
             else:
                 return None
+
         return pixel
     
     def closest_allzero_pixel(self, pixel, direction, w=13, t=0.5):
@@ -2492,6 +2519,8 @@ class BinaryImage(Image):
             cur_px_x >= 0) and np.all(
                 cur_px_x < self.width):
             empty = np.all(self[cur_px_y, cur_px_x] <= self._threshold)
+        else:
+            return None
         
         # If some nonzero pixels, continue incrementing along direction
         # and checking for empty space
@@ -3327,7 +3356,7 @@ class PointCloudImage(Image):
         resized_data[:,:,2] = resized_data_2
         return PointCloudImage(resized_data, self._frame)
 
-    def to_mesh(self, dist_thresh=0.025):
+    def to_mesh(self, dist_thresh=0.01):
         """ Convert the point cloud to a mesh.
 
         Returns
@@ -3421,13 +3450,24 @@ class PointCloudImage(Image):
         :obj:`NormalCloudImage`
             The corresponding NormalCloudImage.
         """
+        # compute direction via cross product
         gx, gy, _ = np.gradient(self.data)
         gx_data = gx.reshape(self.height * self.width, 3)
         gy_data = gy.reshape(self.height * self.width, 3)
         pc_grads = np.cross(gx_data, gy_data)  # default to point toward camera
+
+        # normalize
         pc_grad_norms = np.linalg.norm(pc_grads, axis=1)
         pc_grads[pc_grad_norms > 0] = pc_grads[pc_grad_norms > 0] / np.tile(pc_grad_norms[pc_grad_norms > 0, np.newaxis], [1, 3])
+        pc_grads[pc_grad_norms == 0.0] = np.array([0,0,-1.0]) # zero norm means pointing toward camera
+
+        # reshape
         normal_im_data = pc_grads.reshape(self.height, self.width, 3)
+
+        # preserve zeros
+        zero_px = self.zero_pixels()
+        normal_im_data[zero_px[:,0], zero_px[:,1], :] = np.zeros(3)
+        
         return NormalCloudImage(normal_im_data, frame=self.frame)
 
     @staticmethod

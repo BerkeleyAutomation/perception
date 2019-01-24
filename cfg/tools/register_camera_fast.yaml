@@ -27,7 +27,7 @@ sensors:
     phoxi:
         sensor_config:
             type: phoxi
-            device_name: 1703005
+            device_name: 2018-07-013-LC3
             size: small
         registration_config:
             num_transform_avg: 5
