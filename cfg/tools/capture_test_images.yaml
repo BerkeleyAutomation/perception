@@ -1,19 +1,10 @@
 calib_dir: /nfs/diskstation/calib
 
 sensors:
-#  primesense:
-#    type: primesense_ros
-#    frame: primesense_overhead
-#    auto_white_balance: 0
-#    num_images: 3
-#  ensenso:
-#    type: ensenso
-#    frame: ensenso
-#    num_images: 3
   phoxi:
     type: phoxi
-    frame: phoxi
-    device_name: 1703005
+    frame: phoxi_ur5
+    device_name: 2018-07-013-LC3
     size: small
     num_images: 1
 
@@ -22,11 +13,10 @@ vis: 1
 # workspace definition(for segmentation)
 workspace:
   min_pt:
-    - 0.2
-    - -0.24
-    - 0.001
-
+    - -0.15
+    - 0.285
+    - -0.20
   max_pt:
-    - 0.57
-    - 0.24
-    - 0.1
+    - 0.15
+    - 0.73
+    - 0.0

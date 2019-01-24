@@ -16,6 +16,8 @@ from visualization import Visualizer3D as vis3d
 
 from perception import DepthImage, CameraIntrinsics
 
+KSIZE = 9
+
 if __name__ == '__main__':
     depth_im_filename = sys.argv[1]
     camera_intr_filename = sys.argv[2]
@@ -25,19 +27,14 @@ if __name__ == '__main__':
 
     depth_im = depth_im.inpaint()
     
-    #rescale_factor = 0.5
-    #depth_im = depth_im.resize(rescale_factor, interp='nearest')
-    #camera_intr = camera_intr.resize(rescale_factor)
-
     point_cloud_im = camera_intr.deproject_to_image(depth_im)
-    normal_cloud_im = point_cloud_im.normal_cloud_im()
-    normal_cloud_im_s = point_cloud_im.normal_cloud_im(ksize=9)
+    normal_cloud_im = point_cloud_im.normal_cloud_im(ksize=KSIZE)
 
     vis3d.figure()
     vis3d.points(point_cloud_im.to_point_cloud(), scale=0.0025)
 
     alpha = 0.025
-    subsample = 8
+    subsample = 20
     for i in range(0, point_cloud_im.height, subsample):
         for j in range(0, point_cloud_im.width, subsample):
             p = point_cloud_im[i,j]
