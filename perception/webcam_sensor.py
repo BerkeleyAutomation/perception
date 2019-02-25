@@ -23,7 +23,7 @@ class WebcamSensor(CameraSensor):
         """
         self._frame = frame
         self._camera_intr = None
-        self._device_id = 0
+        self._device_id = device_id
         self._cap = None
         self._running = False
         self._adjust_exposure = True
