@@ -11,6 +11,7 @@ import rospy
 import matplotlib.pyplot as plt
 
 from autolab_core import RigidTransform, Box, YamlConfig, Logger
+import autolab_core.utils as utils
 from perception import RgbdSensorFactory, Image
 
 # set up logger
@@ -32,6 +33,11 @@ if __name__ == '__main__':
     # make output dir if needed
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+
+    # read rescale factor
+    rescale_factor = 1.0
+    if 'rescale_factor' in config.keys():
+        rescale_factor = config['rescale_factor']
 
     # read workspace bounds
     workspace = None
@@ -70,13 +76,11 @@ if __name__ == '__main__':
         # get raw images
         for i in range(sensor_config['num_images']):
             logger.info('Capturing image %d' %(i))
-
-            # save raw images
+            message = 'Hit ENTER when ready.'
+            utils.keyboard_input(message=message)
+            
+            # read images
             color, depth, ir = sensor.frames()
-            color.save(os.path.join(save_dir, 'color_%d.png' %(i)))
-            depth.save(os.path.join(save_dir, 'depth_%d.npy' %(i)))
-            if ir is not None:
-                ir.save(os.path.join(save_dir, 'ir_%d.npy' %(i)))
 
             # save processed images
             if workspace is not None:
@@ -93,6 +97,24 @@ if __name__ == '__main__':
                 depth_im_seg = camera_intr.project_to_image(seg_point_cloud_cam)
                 segmask = depth_im_seg.to_binary()
 
+                # rescale segmask
+                if rescale_factor != 1.0:
+                    segmask = segmask.resize(rescale_factor, interp='nearest')
+                
+                # save segmask
+                segmask.save(os.path.join(save_dir, 'segmask_%d.png' %(i)))
+
+            # rescale images
+            if rescale_factor != 1.0:
+                color = color.resize(rescale_factor)
+                depth = depth.resize(rescale_factor, interp='nearest')
+            
+            # save images
+            color.save(os.path.join(save_dir, 'color_%d.png' %(i)))
+            depth.save(os.path.join(save_dir, 'depth_%d.npy' %(i)))
+            if ir is not None:
+                ir.save(os.path.join(save_dir, 'ir_%d.npy' %(i)))
+                
             if vis:
                 from visualization import Visualizer2D as vis2d
                 num_plots = 3 if workspace is not None else 2

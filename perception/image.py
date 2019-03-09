@@ -1723,9 +1723,9 @@ class DepthImage(Image):
         """
         # take closest pixel
         if filter_equal_depth:
-            farther_px = np.where(self.data > depth_im.data)
+            farther_px = np.where((self.data > depth_im.data) & (np.isfinite(depth_im.data)))
         else:
-            farther_px = np.where(self.data >= depth_im.data)
+            farther_px = np.where((self.data >= depth_im.data) & (np.isfinite(depth_im.data)))
         farther_px = np.c_[farther_px[0], farther_px[1]]
         return farther_px
 

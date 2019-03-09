@@ -267,7 +267,7 @@ if __name__ == '__main__':
             # find the rightmost and further cb point in world frame
             cb_points_world = T_camera_world * reg_result.cb_points_cam
             cb_point_data_world = cb_points_world.data
-            dir_world = np.array([1.0, -1.0, 0])
+            dir_world = np.array([-1.0, 1.0, 0])
             dir_world = dir_world / np.linalg.norm(dir_world)
             ip = dir_world.dot(cb_point_data_world)
 
@@ -322,7 +322,7 @@ if __name__ == '__main__':
                 vis3d.pose(RigidTransform())
                 vis3d.table(dim=0.5, T_table_world=T_cb_world)
                 vis3d.show()
-            
+
             if robot_type == 'ur5':
                 robot.movej(KINEMATIC_AVOIDANCE_JOINTS, wait_for_res=True)
                 robot.goto_pose(T_gripper_world_lift)
