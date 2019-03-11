@@ -49,7 +49,7 @@ vis_points: 1
 # ROBOT VERIFICATION PARAMS
 use_robot: 1
 robot_type: ur5
-vis_cb_corners: 1
+vis_cb_corners: 0
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
 gripper_offset_z: 0.005

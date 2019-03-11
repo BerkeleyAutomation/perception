@@ -7,6 +7,7 @@ import IPython
 import logging
 import os
 
+import six
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -72,7 +73,7 @@ class Image(object):
         """
         if not isinstance(data, np.ndarray):
             raise ValueError('Must initialize image with a numpy ndarray')
-        if not isinstance(frame, str) and not isinstance(frame, unicode):
+        if not isinstance(frame, six.string_types):
             raise ValueError('Must provide string name of frame of data')
 
         self._check_valid_data(data)
