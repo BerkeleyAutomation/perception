@@ -31,13 +31,6 @@ import scipy.ndimage.morphology as snm
 from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
 from .constants import *
 
-try:
-    from cv_bridge import CvBridge, CvBridgeError
-    from sensor_msgs.msg import Image
-except Exception:
-    logging.warning(
-        'autolab_perception is not installed as a catkin package - ROS msg conversions will not be available for image wrappers')
-
 BINARY_IM_MAX_VAL = np.iinfo(np.uint8).max
 BINARY_IM_DEFAULT_THRESH = BINARY_IM_MAX_VAL / 2
 
@@ -186,6 +179,7 @@ class Image(object):
     def rosmsg(self):
         """:obj:`sensor_msgs.Image` : ROS Image
         """
+        from cv_bridge import CvBridge, CvBridgeError
         cv_bridge = CvBridge()
         try:
             return cv_bridge.cv2_to_imgmsg(self._data, encoding=self._encoding)
