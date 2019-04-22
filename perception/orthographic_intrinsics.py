@@ -13,12 +13,6 @@ from autolab_core import Point, PointCloud, ImageCoords
 from .constants import INTR_EXTENSION
 from .image import DepthImage, PointCloudImage
 
-try:
-    from sensor_msgs.msg import CameraInfo, RegionOfInterest
-    from std_msgs.msg import Header
-except Exception:
-    logging.warning('autolab_perception is not installed as a catkin package - ROS msg conversions will not be available for image wrappers')
-
 class OrthographicIntrinsics(object):
     """A set of intrinsic parameters for orthographic point cloud projections
     """

@@ -15,18 +15,6 @@ except:
 
 from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, IrImage, Image
 
-try:
-    import rospy
-    from rospy import numpy_msg
-except ImportError:
-    logging.warning("Failed to import ROS in primesense_sensor.py. ROS functionality not available")
-try:
-    from perception.srv import *
-    ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
-    ImageBuffer._response_class = ImageBufferResponse
-except ImportError:
-    logging.warning('primesense_sensor.py not installed as catkin package. ROS functionality not available.')
-
 class PrimesenseRegistrationMode:
     """Primesense registration mode.
     """
@@ -285,6 +273,12 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
     """
     def __init__(self, depth_image_buffer= None, depth_absolute=False, color_image_buffer=None, color_absolute=False,
                  flip_images=True, frame=None, staleness_limit=10., timeout=10):  
+        import rospy
+        from rospy import numpy_msg
+        from perception.srv import *
+        ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
+        ImageBuffer._response_class = ImageBufferResponse
+    
         self._flip_images = flip_images
         self._frame = frame
         

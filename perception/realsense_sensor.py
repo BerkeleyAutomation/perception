@@ -11,19 +11,6 @@ except ImportError:
 
 from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage
 
-try:
-    import rospy
-    from rospy import numpy_msg
-except ImportError:
-    logging.warning("Failed to import ROS in realsense_sensor.py. ROS functionality not available")
-try:
-    from perception.srv import *
-    ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
-    ImageBuffer._response_class = ImageBufferResponse
-except ImportError:
-    logging.warning('realsense_sensor.py not installed as catkin package. ROS functionality not available.')
-
-
 class RealSenseRegistrationMode:
     """Realsense registration mode.
     """

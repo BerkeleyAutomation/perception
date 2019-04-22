@@ -7,6 +7,7 @@ import IPython
 import logging
 import os
 
+import six
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -29,13 +30,6 @@ import scipy.ndimage.morphology as snm
 
 from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
 from .constants import *
-
-try:
-    from cv_bridge import CvBridge, CvBridgeError
-    from sensor_msgs.msg import Image
-except Exception:
-    logging.warning(
-        'autolab_perception is not installed as a catkin package - ROS msg conversions will not be available for image wrappers')
 
 BINARY_IM_MAX_VAL = np.iinfo(np.uint8).max
 BINARY_IM_DEFAULT_THRESH = BINARY_IM_MAX_VAL / 2
@@ -72,7 +66,7 @@ class Image(object):
         """
         if not isinstance(data, np.ndarray):
             raise ValueError('Must initialize image with a numpy ndarray')
-        if not isinstance(frame, str) and not isinstance(frame, unicode):
+        if not isinstance(frame, six.string_types):
             raise ValueError('Must provide string name of frame of data')
 
         self._check_valid_data(data)
@@ -186,6 +180,7 @@ class Image(object):
     def rosmsg(self):
         """:obj:`sensor_msgs.Image` : ROS Image
         """
+        from cv_bridge import CvBridge, CvBridgeError
         cv_bridge = CvBridge()
         try:
             return cv_bridge.cv2_to_imgmsg(self._data, encoding=self._encoding)
@@ -1725,9 +1720,9 @@ class DepthImage(Image):
         """
         # take closest pixel
         if filter_equal_depth:
-            farther_px = np.where(self.data > depth_im.data)
+            farther_px = np.where((self.data > depth_im.data) & (np.isfinite(depth_im.data)))
         else:
-            farther_px = np.where(self.data >= depth_im.data)
+            farther_px = np.where((self.data >= depth_im.data) & (np.isfinite(depth_im.data)))
         farther_px = np.c_[farther_px[0], farther_px[1]]
         return farther_px
 

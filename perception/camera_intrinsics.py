@@ -13,12 +13,6 @@ from autolab_core import Point, PointCloud, ImageCoords
 from .constants import INTR_EXTENSION
 from .image import DepthImage, PointCloudImage
 
-try:
-    from sensor_msgs.msg import CameraInfo, RegionOfInterest
-    from std_msgs.msg import Header
-except Exception:
-    logging.warning('autolab_perception is not installed as a catkin package - ROS msg conversions will not be available for image wrappers')
-
 class CameraIntrinsics(object):
     """A set of intrinsic parameters for a camera. This class is used to project
     and deproject points.
@@ -148,6 +142,9 @@ class CameraIntrinsics(object):
     def rosmsg(self):
         """:obj:`sensor_msgs.CamerInfo` : Returns ROS CamerInfo msg 
         """
+        from sensor_msgs.msg import CameraInfo, RegionOfInterest
+        from std_msgs.msg import Header
+
         msg_header = Header()
         msg_header.frame_id = self._frame
 
