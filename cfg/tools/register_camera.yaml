@@ -10,8 +10,8 @@ chessboard_registration:
   debug: 1 # show the final pose detection
   scale_amt: 0.1 # scale for vis axes
 
-calib_dir: /nfs/diskstation/calib # directory for the output
-chessboard_tf: /nfs/diskstation/calib/chessboard/metal_chessboard_to_world_yumi1.tf
+calib_dir: /mnt/data/diskstation/calib # directory for the output
+chessboard_tf: /mnt/data/diskstation/calib/chessboard/metal_chessboard_to_world_yumi1.tf
 
 # SENSOR CALIBRATION LIST
 sensors:

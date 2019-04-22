@@ -2820,6 +2820,26 @@ class RgbdImage(Image):
         """
         return self.color_im._image_data(normalize=normalize)
 
+    def mask_binary(self, binary_im):
+        """Create a new image by zeroing out data at locations
+        where binary_im == 0.0.
+
+        Parameters
+        ----------
+        binary_im : :obj:`BinaryImage`
+            A BinaryImage of the same size as this image, with pixel values of either
+            zero or one. Wherever this image has zero pixels, we'll zero out the
+            pixels of the new image.
+
+        Returns
+        -------
+        :obj:`Image`
+            A new Image of the same type, masked by the given binary image.
+        """
+        color = self.color.mask_binary(binary_im)
+        depth = self.depth.mask_binary(binary_im)
+        return RgbdImage.from_color_and_depth(color, depth)
+    
     def resize(self, size, interp='bilinear'):
         """Resize the image.
 
@@ -3443,16 +3463,22 @@ class PointCloudImage(Image):
                 3).T,
             frame=self._frame)
     
-    def normal_cloud_im(self):
-        """Generate a NormalCloudImage from the PointCloudImage.
+    def normal_cloud_im(self, ksize=3):
+        """Generate a NormalCloudImage from the PointCloudImage using Sobel filtering.
+
+        Parameters
+        ----------
+        ksize : int
+            Size of the kernel to use for derivative computation
 
         Returns
         -------
         :obj:`NormalCloudImage`
             The corresponding NormalCloudImage.
         """
-        # compute direction via cross product
-        gx, gy, _ = np.gradient(self.data)
+        # compute direction via cross product of derivatives
+        gy = cv2.Sobel(self.data, cv2.CV_64F, 1, 0, ksize=ksize)
+        gx = cv2.Sobel(self.data, cv2.CV_64F, 0, 1, ksize=ksize)
         gx_data = gx.reshape(self.height * self.width, 3)
         gy_data = gy.reshape(self.height * self.width, 3)
         pc_grads = np.cross(gx_data, gy_data)  # default to point toward camera

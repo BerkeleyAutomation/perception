@@ -33,7 +33,7 @@ sensors:
         registration_config:
             num_transform_avg: 1
             num_images: 1
-            color_image_rescale_factor: 0.6
+            color_image_rescale_factor: 1.0
 
 # CB TF FIX PARAMS
 fix_orientation_cb_to_world: 0
@@ -49,7 +49,7 @@ vis_points: 1
 # ROBOT VERIFICATION PARAMS
 use_robot: 1
 robot_type: ur5
-vis_cb_corners: 0
+vis_cb_corners: 1
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0
 gripper_offset_z: 0.005
