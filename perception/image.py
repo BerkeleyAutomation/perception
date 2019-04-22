@@ -177,6 +177,12 @@ class Image(object):
         """
 
     @property
+    def encoding(self):
+        """str : encoding method for the image
+        """
+        return self._encoding
+        
+    @property
     def rosmsg(self):
         """:obj:`sensor_msgs.Image` : ROS Image
         """
@@ -2092,7 +2098,7 @@ class BinaryImage(Image):
             If the data is not a properly-formatted ndarray or frame is not a
             string.
         """
-        self._encoding = 'mono8'
+        self._encoding = 'passthrough'
         self._threshold = threshold
         data = BINARY_IM_MAX_VAL * \
             (data > threshold).astype(data.dtype)  # binarize
