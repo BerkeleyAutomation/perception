@@ -8,7 +8,7 @@ requirements = [
     'numpy',
     'scipy',
     'autolab_core',
-    'matplotlib',
+    'matplotlib<=2.2.0',
     'multiprocess',
     'opencv-python',
     'keras',
