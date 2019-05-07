@@ -1523,6 +1523,36 @@ class DepthImage(Image):
             return im_data.astype(np.uint16)
         return im_data.astype(np.uint8)
 
+    def save(self, filename, normalize=False, min_depth=MIN_DEPTH, max_depth=MAX_DEPTH, twobyte=False):
+        """Writes the image to a file.
+
+        Parameters
+        ----------
+        filename : :obj:`str`
+            The file to save the image to. Must be one of .png, .jpg,
+            .npy, or .npz.
+
+        Raises
+        ------
+        ValueError
+            If an unsupported file type is specified.
+        """
+        filename = str(filename)
+        file_root, file_ext = os.path.splitext(filename)
+        if file_ext in COLOR_IMAGE_EXTS:
+            im_data = self._image_data(normalize=normalize, min_depth=min_depth, max_depth=max_depth, twobyte=twobyte)
+            if im_data.dtype.type == np.uint8:
+                pil_image = PImage.fromarray(im_data.squeeze())
+                pil_image.save(filename)
+            else:
+                try:
+                    import png
+                except:
+                    raise ValueError('PyPNG not installed! Cannot save 16-bit images')
+                png.fromarray(im_data, 'L').save(filename)
+        else:
+            super().save(filename)
+
     def resize(self, size, interp='bilinear'):
         """Resize the image.
 

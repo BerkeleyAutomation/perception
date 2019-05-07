@@ -18,7 +18,8 @@ requirements = [
     'ipython==5.5.0',
     'scikit-image',
     'scikit-learn',
-    'scikit-video'
+    'scikit-video',
+    'ffmpeg-python'
 ]
 
 exec(open('perception/version.py').read())
