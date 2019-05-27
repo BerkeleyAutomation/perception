@@ -36,9 +36,40 @@ BINARY_IM_DEFAULT_THRESH = BINARY_IM_MAX_VAL / 2
 
 
 def imresize(image, size, interp="nearest"):
-    skt_interp_map = {"nearest": 0, "bilinear": 1, "bicubic": 4,}
+    """Wrapper over `skimage.transform.resize` to mimic `scipy.misc.imresize`.
+
+    Since `scipy.misc.imresize` has been removed in version 1.3.*, instead use
+    `skimage.transform.resize`. The "lanczos" and "cubic" interpolation methods
+    are not supported by `skimage.transform.resize`, however there is now
+    "biquadratic", "biquartic", and "biquintic".
+
+    Parameters
+    ----------
+    image : :obj:`numpy.ndarray`
+        The image to resize.
+
+    size : int, float, or tuple
+        * int   - Percentage of current size.
+        * float - Fraction of current size.
+        * tuple - Size of the output image.
+
+    interp : :obj:`str`, optional
+        Interpolation to use for re-sizing ("neartest", "bilinear", 
+        "biquadratic", "bicubic", "biquartic", "biquintic"). Default is
+        "nearest".
+
+    Returns
+    -------
+    :obj:`np.ndarray`
+        The resized image.
+    """
+    skt_interp_map = {"nearest": 0, "bilinear": 1, "biquadratic": 2,
+                      "bicubic": 3, "biquartic": 4, "biquintic": 5}
     if interp in ("lanczos", "cubic"):
-        raise ValueError("\"lanczos\" and \"cubic\" interpolation are no longer supported.")
+        raise ValueError("\"lanczos\" and \"cubic\""
+                         " interpolation are no longer supported.")
+    assert interp in skt_interp_map, ("Interpolation \"{}\" not"
+                                      " supported.".format(interp))
 
     if isinstance(size, (tuple, list)):
         output_shape = size
@@ -46,7 +77,11 @@ def imresize(image, size, interp="nearest"):
         output_shape = tuple((np.asarray(image.shape)*size).astype(int))
     elif isinstance(size, (int)):
         output_shape = tuple((np.asarray(image.shape)*(float(size)/100)).astype(int))
+    else:
+        raise ValueError("Invalid type for size \"{}\".".format(type(size)))
+
     return skt.resize(image, output_shape, order=skt_interp_map[interp])
+
 
 class Image(object):
     """Abstract wrapper class for images.
