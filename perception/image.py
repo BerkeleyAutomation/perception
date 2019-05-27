@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import PIL.Image as PImage
 
-import scipy.misc as sm
 import scipy.signal as ssg
 import scipy.ndimage.filters as sf
 import scipy.ndimage.interpolation as sni
@@ -26,6 +25,7 @@ import sklearn.mixture as smx
 import scipy.ndimage.filters as sf
 import scipy.spatial.distance as ssd
 import skimage.morphology as morph
+import skimage.transform as skt
 import scipy.ndimage.morphology as snm
 
 from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
@@ -34,6 +34,19 @@ from .constants import *
 BINARY_IM_MAX_VAL = np.iinfo(np.uint8).max
 BINARY_IM_DEFAULT_THRESH = BINARY_IM_MAX_VAL / 2
 
+
+def imresize(image, size, interp="nearest"):
+    skt_interp_map = {"nearest": 0, "bilinear": 1, "bicubic": 4,}
+    if interp in ("lanczos", "cubic"):
+        raise ValueError("\"lanczos\" and \"cubic\" interpolation are no longer supported.")
+
+    if isinstance(size, (tuple, list)):
+        output_shape = size
+    elif isinstance(size, (float)):
+        output_shape = tuple((np.asarray(image.shape)*size).astype(int))
+    elif isinstance(size, (int)):
+        output_shape = tuple((np.asarray(image.shape)*(float(size)/100)).astype(int))
+    return skt.resize(image, output_shape, order=skt_interp_map[interp])
 
 class Image(object):
     """Abstract wrapper class for images.
@@ -1074,7 +1087,7 @@ class ColorImage(Image):
         :obj:`ColorImage`
             The resized image.
         """
-        resized_data = sm.imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp)
         return ColorImage(resized_data, self._frame)
 
     def find_chessboard(self, sx=6, sy=9):
@@ -1542,7 +1555,7 @@ class DepthImage(Image):
         :obj:`DepthImage`
             The resized image.
         """
-        resized_data = sm.imresize(self.data, size, interp=interp, mode='F')
+        resized_data = imresize(self.data, size, interp=interp)
         return DepthImage(resized_data, self._frame)
 
     def threshold(self, front_thresh=0.0, rear_thresh=100.0):
@@ -1924,7 +1937,7 @@ class IrImage(Image):
         :obj:`IrImage`
             The resized image.
         """
-        resized_data = sm.imresize(self._data, size, interp=interp)
+        resized_data = imresize(self._data, size, interp=interp)
         return IrImage(resized_data, self._frame)
 
     @staticmethod
@@ -2030,7 +2043,7 @@ class GrayscaleImage(Image):
         :obj:`GrayscaleImage`
             The resized image.
         """
-        resized_data = sm.imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp)
         return GrayscaleImage(resized_data, self._frame)
 
     def to_color(self):
@@ -2155,7 +2168,7 @@ class BinaryImage(Image):
         :obj:`BinaryImage`
             The resized image.
         """
-        resized_data = sm.imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp)
         return BinaryImage(resized_data, self._frame)
 
     def mask_binary(self, binary_im):
@@ -3281,7 +3294,7 @@ class SegmentationImage(Image):
             Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
             'bicubic', or 'cubic')
         """
-        resized_data = sm.imresize(self.data, size, interp=interp, mode='L')
+        resized_data = imresize(self.data, size, interp=interp)
         return SegmentationImage(resized_data, self._frame)
 
     @staticmethod
@@ -3367,9 +3380,9 @@ class PointCloudImage(Image):
         :obj:`PointCloudImage`
             The resized image.
         """
-        resized_data_0 = sm.imresize(self._data[:,:,0], size, interp=interp, mode='F')
-        resized_data_1 = sm.imresize(self._data[:,:,1], size, interp=interp, mode='F')
-        resized_data_2 = sm.imresize(self._data[:,:,2], size, interp=interp, mode='F')
+        resized_data_0 = imresize(self._data[:,:,0], size, interp=interp)
+        resized_data_1 = imresize(self._data[:,:,1], size, interp=interp)
+        resized_data_2 = imresize(self._data[:,:,2], size, interp=interp)
         resized_data = np.zeros([resized_data_0.shape[0],
                                  resized_data_0.shape[1],
                                  self.channels])
