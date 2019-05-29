@@ -1,5 +1,5 @@
 """
-Setup of meshpy python codebase
+Setup of Berkeley AUTOLab Perception module Python codebase.
 Author: Jeff Mahler
 """
 from setuptools import setup
