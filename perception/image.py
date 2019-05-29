@@ -74,9 +74,13 @@ def imresize(image, size, interp="nearest"):
     if isinstance(size, (tuple, list)):
         output_shape = size
     elif isinstance(size, (float)):
-        output_shape = tuple((np.asarray(image.shape)*size).astype(int))
+        np_shape = np.asarray(image.shape).astype(np.float32)
+        np_shape[0:2] *= size
+        output_shape = tuple(np_shape.astype(int))
     elif isinstance(size, (int)):
-        output_shape = tuple((np.asarray(image.shape)*(float(size)/100)).astype(int))
+        np_shape = np.asarray(image.shape).astype(np.float32)
+        np_shape[0:2] *= size / 100.0
+        output_shape = tuple(np_shape.astype(int))
     else:
         raise ValueError("Invalid type for size \"{}\".".format(type(size)))
 
