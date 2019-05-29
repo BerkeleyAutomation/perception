@@ -80,8 +80,11 @@ def imresize(image, size, interp="nearest"):
     else:
         raise ValueError("Invalid type for size \"{}\".".format(type(size)))
 
-    return skt.resize(image, output_shape, order=skt_interp_map[interp])
-
+    return skt.resize(image,
+                      output_shape,
+                      order=skt_interp_map[interp],
+                      anti_aliasing=False,
+                      mode="constant")
 
 class Image(object):
     """Abstract wrapper class for images.
