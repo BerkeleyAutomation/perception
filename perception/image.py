@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import PIL.Image as PImage
 
-import scipy.misc as sm
 import scipy.signal as ssg
 import scipy.ndimage.filters as sf
 import scipy.ndimage.interpolation as sni
@@ -26,6 +25,7 @@ import sklearn.mixture as smx
 import scipy.ndimage.filters as sf
 import scipy.spatial.distance as ssd
 import skimage.morphology as morph
+import skimage.transform as skt
 import scipy.ndimage.morphology as snm
 
 from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
@@ -34,6 +34,61 @@ from .constants import *
 BINARY_IM_MAX_VAL = np.iinfo(np.uint8).max
 BINARY_IM_DEFAULT_THRESH = BINARY_IM_MAX_VAL / 2
 
+
+def imresize(image, size, interp="nearest"):
+    """Wrapper over `skimage.transform.resize` to mimic `scipy.misc.imresize`.
+
+    Since `scipy.misc.imresize` has been removed in version 1.3.*, instead use
+    `skimage.transform.resize`. The "lanczos" and "cubic" interpolation methods
+    are not supported by `skimage.transform.resize`, however there is now
+    "biquadratic", "biquartic", and "biquintic".
+
+    Parameters
+    ----------
+    image : :obj:`numpy.ndarray`
+        The image to resize.
+
+    size : int, float, or tuple
+        * int   - Percentage of current size.
+        * float - Fraction of current size.
+        * tuple - Size of the output image.
+
+    interp : :obj:`str`, optional
+        Interpolation to use for re-sizing ("neartest", "bilinear", 
+        "biquadratic", "bicubic", "biquartic", "biquintic"). Default is
+        "nearest".
+
+    Returns
+    -------
+    :obj:`np.ndarray`
+        The resized image.
+    """
+    skt_interp_map = {"nearest": 0, "bilinear": 1, "biquadratic": 2,
+                      "bicubic": 3, "biquartic": 4, "biquintic": 5}
+    if interp in ("lanczos", "cubic"):
+        raise ValueError("\"lanczos\" and \"cubic\""
+                         " interpolation are no longer supported.")
+    assert interp in skt_interp_map, ("Interpolation \"{}\" not"
+                                      " supported.".format(interp))
+
+    if isinstance(size, (tuple, list)):
+        output_shape = size
+    elif isinstance(size, (float)):
+        np_shape = np.asarray(image.shape).astype(np.float32)
+        np_shape[0:2] *= size
+        output_shape = tuple(np_shape.astype(int))
+    elif isinstance(size, (int)):
+        np_shape = np.asarray(image.shape).astype(np.float32)
+        np_shape[0:2] *= size / 100.0
+        output_shape = tuple(np_shape.astype(int))
+    else:
+        raise ValueError("Invalid type for size \"{}\".".format(type(size)))
+
+    return skt.resize(image,
+                      output_shape,
+                      order=skt_interp_map[interp],
+                      anti_aliasing=False,
+                      mode="constant")
 
 class Image(object):
     """Abstract wrapper class for images.
@@ -1074,7 +1129,7 @@ class ColorImage(Image):
         :obj:`ColorImage`
             The resized image.
         """
-        resized_data = sm.imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
         return ColorImage(resized_data, self._frame)
 
     def find_chessboard(self, sx=6, sy=9):
@@ -1572,7 +1627,7 @@ class DepthImage(Image):
         :obj:`DepthImage`
             The resized image.
         """
-        resized_data = sm.imresize(self.data, size, interp=interp, mode='F')
+        resized_data = imresize(self.data, size, interp=interp).astype(np.float32)
         return DepthImage(resized_data, self._frame)
 
     def threshold(self, front_thresh=0.0, rear_thresh=100.0):
@@ -1954,7 +2009,7 @@ class IrImage(Image):
         :obj:`IrImage`
             The resized image.
         """
-        resized_data = sm.imresize(self._data, size, interp=interp)
+        resized_data = imresize(self._data, size, interp=interp).astype(np.uint16)
         return IrImage(resized_data, self._frame)
 
     @staticmethod
@@ -2060,7 +2115,7 @@ class GrayscaleImage(Image):
         :obj:`GrayscaleImage`
             The resized image.
         """
-        resized_data = sm.imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
         return GrayscaleImage(resized_data, self._frame)
 
     def to_color(self):
@@ -2185,7 +2240,7 @@ class BinaryImage(Image):
         :obj:`BinaryImage`
             The resized image.
         """
-        resized_data = sm.imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
         return BinaryImage(resized_data, self._frame)
 
     def mask_binary(self, binary_im):
@@ -3311,7 +3366,7 @@ class SegmentationImage(Image):
             Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
             'bicubic', or 'cubic')
         """
-        resized_data = sm.imresize(self.data, size, interp=interp, mode='L')
+        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
         return SegmentationImage(resized_data, self._frame)
 
     @staticmethod
@@ -3397,9 +3452,9 @@ class PointCloudImage(Image):
         :obj:`PointCloudImage`
             The resized image.
         """
-        resized_data_0 = sm.imresize(self._data[:,:,0], size, interp=interp, mode='F')
-        resized_data_1 = sm.imresize(self._data[:,:,1], size, interp=interp, mode='F')
-        resized_data_2 = sm.imresize(self._data[:,:,2], size, interp=interp, mode='F')
+        resized_data_0 = imresize(self._data[:,:,0], size, interp=interp).astype(np.float32)
+        resized_data_1 = imresize(self._data[:,:,1], size, interp=interp).astype(np.float32)
+        resized_data_2 = imresize(self._data[:,:,2], size, interp=interp).astype(np.float32)
         resized_data = np.zeros([resized_data_0.shape[0],
                                  resized_data_0.shape[1],
                                  self.channels])
