@@ -1125,7 +1125,7 @@ class ColorImage(Image):
         :obj:`ColorImage`
             The resized image.
         """
-        resized_data = imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
         return ColorImage(resized_data, self._frame)
 
     def find_chessboard(self, sx=6, sy=9):
@@ -1593,7 +1593,7 @@ class DepthImage(Image):
         :obj:`DepthImage`
             The resized image.
         """
-        resized_data = imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp).astype(np.float32)
         return DepthImage(resized_data, self._frame)
 
     def threshold(self, front_thresh=0.0, rear_thresh=100.0):
@@ -1975,7 +1975,7 @@ class IrImage(Image):
         :obj:`IrImage`
             The resized image.
         """
-        resized_data = imresize(self._data, size, interp=interp)
+        resized_data = imresize(self._data, size, interp=interp).astype(np.uint16)
         return IrImage(resized_data, self._frame)
 
     @staticmethod
@@ -2081,7 +2081,7 @@ class GrayscaleImage(Image):
         :obj:`GrayscaleImage`
             The resized image.
         """
-        resized_data = imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
         return GrayscaleImage(resized_data, self._frame)
 
     def to_color(self):
@@ -2206,7 +2206,7 @@ class BinaryImage(Image):
         :obj:`BinaryImage`
             The resized image.
         """
-        resized_data = imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
         return BinaryImage(resized_data, self._frame)
 
     def mask_binary(self, binary_im):
@@ -3332,7 +3332,7 @@ class SegmentationImage(Image):
             Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
             'bicubic', or 'cubic')
         """
-        resized_data = imresize(self.data, size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
         return SegmentationImage(resized_data, self._frame)
 
     @staticmethod
@@ -3418,9 +3418,9 @@ class PointCloudImage(Image):
         :obj:`PointCloudImage`
             The resized image.
         """
-        resized_data_0 = imresize(self._data[:,:,0], size, interp=interp)
-        resized_data_1 = imresize(self._data[:,:,1], size, interp=interp)
-        resized_data_2 = imresize(self._data[:,:,2], size, interp=interp)
+        resized_data_0 = imresize(self._data[:,:,0], size, interp=interp).astype(np.float32)
+        resized_data_1 = imresize(self._data[:,:,1], size, interp=interp).astype(np.float32)
+        resized_data_2 = imresize(self._data[:,:,2], size, interp=interp).astype(np.float32)
         resized_data = np.zeros([resized_data_0.shape[0],
                                  resized_data_0.shape[1],
                                  self.channels])
