@@ -1627,7 +1627,7 @@ class DepthImage(Image):
         :obj:`DepthImage`
             The resized image.
         """
-        resized_data = imresize(self.data, size, interp=interp).astype(np.float32)
+        resized_data = imresize(self.data.astype(np.float32), size, interp=interp)
         return DepthImage(resized_data, self._frame)
 
     def threshold(self, front_thresh=0.0, rear_thresh=100.0):
