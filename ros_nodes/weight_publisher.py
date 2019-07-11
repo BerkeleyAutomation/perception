@@ -80,7 +80,6 @@ class WeightPublisher(object):
                                     timeout=0.5,
                                     exclusive=True)
                 ser.write('ID\r')
-                ser.flush()
                 time.sleep(0.05)
                 resp = ser.read(13)
                 ser.close()
