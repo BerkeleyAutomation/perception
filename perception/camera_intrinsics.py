@@ -46,8 +46,8 @@ class CameraIntrinsics(object):
         self._cx = float(cx)
         self._cy = float(cy)
         self._skew = float(skew)
-        self._height = int(height)
-        self._width = int(width)
+        self._height = int(height) if height is not None else None
+        self._width = int(width) if width is not None else None
 
         # set focal, camera center automatically if under specified
         if fy is None:

@@ -139,7 +139,7 @@ class Kinect2Sensor(CameraSensor):
         return CameraIntrinsics(self._ir_frame, camera_params.fx, camera_params.fy,
                                 camera_params.cx, camera_params.cy,
                                 height=Kinect2Sensor.DEPTH_IM_HEIGHT,
-                                width=Kinect2Sensor.DEPTH_IM_WIDTH)
+                                width=Kinect2Sensor.COLOR_IM_WIDTH)
 
     @property
     def is_running(self):
