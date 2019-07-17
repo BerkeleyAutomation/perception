@@ -1627,7 +1627,7 @@ class DepthImage(Image):
         :obj:`DepthImage`
             The resized image.
         """
-        resized_data = imresize(self.data.astype(np.float32), size, interp=interp)
+        resized_data = imresize(self.data, size, interp=interp)
         return DepthImage(resized_data, self._frame)
 
     def threshold(self, front_thresh=0.0, rear_thresh=100.0):
@@ -2240,8 +2240,8 @@ class BinaryImage(Image):
         :obj:`BinaryImage`
             The resized image.
         """
-        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
-        return BinaryImage(resized_data, self._frame)
+        resized_data = imresize(self.data.astype(np.float32), size, interp=interp)
+        return BinaryImage(resized_data.astype(np.uint8), self._frame)
 
     def mask_binary(self, binary_im):
         """ Takes AND operation with other binary image.
