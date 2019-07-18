@@ -1129,7 +1129,7 @@ class ColorImage(Image):
         :obj:`ColorImage`
             The resized image.
         """
-        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
+        resized_data = (imresize(self.data, size, interp=interp)*255).astype(np.uint8)
         return ColorImage(resized_data, self._frame)
 
     def find_chessboard(self, sx=6, sy=9):
