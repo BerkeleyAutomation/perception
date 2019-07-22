@@ -275,7 +275,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
                  flip_images=True, frame=None, staleness_limit=10., timeout=10):  
         import rospy
         from rospy import numpy_msg
-        from perception.srv import *
+        from perception.srv import ImageBufferResponse
         ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
         ImageBuffer._response_class = ImageBufferResponse
     
