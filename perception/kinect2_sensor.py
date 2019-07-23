@@ -33,6 +33,8 @@ class Kinect2PacketPipelineMode:
     """
     OPENGL = 0
     CPU = 1
+    OPENCL = 2
+    AUTO = 3
 
 class Kinect2FrameMode:
     """Type of frames that Kinect processes.
@@ -71,7 +73,7 @@ class Kinect2Sensor(CameraSensor):
     DEPTH_IM_HEIGHT = 424
     DEPTH_IM_WIDTH = 512
 
-    def __init__(self, packet_pipeline_mode = Kinect2PacketPipelineMode.CPU,
+    def __init__(self, packet_pipeline_mode = Kinect2PacketPipelineMode.AUTO,
                  registration_mode = Kinect2RegistrationMode.COLOR_TO_DEPTH,
                  depth_mode = Kinect2DepthMode.METERS,
                  device_num=0, frame=None):
@@ -80,8 +82,9 @@ class Kinect2Sensor(CameraSensor):
         Parameters
         ----------
         packet_pipeline_mode : int
-            Either Kinect2PacketPipelineMode.OPENGL or
-            Kinect2PacketPipelineMode.CPU -- indicates packet processing type.
+            Either Kinect2PacketPipelineMode.OPENGL, Kinect2PacketPipelineMode.OPENCL or
+            Kinect2PacketPipelineMode.CPU -- indicates packet processing type. If not specified
+            the PackagePipeLine will be determined automatically.
 
         registration_mode : int
             Either Kinect2RegistrationMode.NONE or
@@ -139,7 +142,7 @@ class Kinect2Sensor(CameraSensor):
         return CameraIntrinsics(self._ir_frame, camera_params.fx, camera_params.fy,
                                 camera_params.cx, camera_params.cy,
                                 height=Kinect2Sensor.DEPTH_IM_HEIGHT,
-                                width=Kinect2Sensor.DEPTH_IM_WIDTH)
+                                width=Kinect2Sensor.COLOR_IM_WIDTH)
 
     @property
     def is_running(self):
@@ -173,15 +176,43 @@ class Kinect2Sensor(CameraSensor):
         IOError
             If the Kinect v2 is not detected.
         """
-        # open packet pipeline
-        if self._packet_pipeline_mode == Kinect2PacketPipelineMode.OPENGL:
-            self._pipeline = lf2.OpenGLPacketPipeline()
-        elif self._packet_pipeline_mode == Kinect2PacketPipelineMode.CPU:
-            self._pipeline = lf2.CpuPacketPipeline()
 
         # setup logger
         self._logger = lf2.createConsoleLogger(lf2.LoggerLevel.Warning)
         lf2.setGlobalLogger(self._logger)
+
+        # open packet pipeline
+        if self._packet_pipeline_mode == Kinect2PacketPipelineMode.OPENGL: # OpenGL packet pipeline
+            try: # Try if OpenGL is available
+                from pylibfreenect2 import OpenGLPacketPipeline
+                self._pipeline = lf2.OpenGLPacketPipeline()
+            except:
+                logging.warning("OpenGL not available. CPU packet pipeline used instead")
+                self._packet_pipeline_mode = Kinect2PacketPipelineMode.CPU
+                self._pipeline = lf2.CpuPacketPipeline()
+        elif self._packet_pipeline_mode == Kinect2PacketPipelineMode.OPENCL: # OpenCL packet pipeline
+            try: # Try if OpenCL is available
+                self._pipeline = lf2.OpenCLPacketPipeline()
+            except:
+                logging.warning("OpenCL not available. CPU packet pipeline used instead.")
+                self._packet_pipeline_mode = Kinect2PacketPipelineMode.CPU
+                self._pipeline = lf2.CpuPacketPipeline()
+        elif self._packet_pipeline_mode == Kinect2PacketPipelineMode.CPU: # CPU packet pipeline
+            self._pipeline = lf2.CpuPacketPipeline()
+        else: # Try to determine packet pipeline automatically
+            try:
+                from pylibfreenect2 import OpenGLPacketPipeline
+                self._pipeline = lf2.OpenGLPacketPipeline()
+                self._packet_pipeline_mode = Kinect2PacketPipelineMode.OPENGL
+            except:
+                try:
+                    from pylibfreenect2 import OpenCLPacketPipeline
+                    self._pipeline = lf2.OpenCLPacketPipeline()
+                    self._packet_pipeline_mode = Kinect2PacketPipelineMode.OPENCL
+                except:
+                    from pylibfreenect2 import CpuPacketPipeline
+                    self._pipeline = lf2.CpuPacketPipeline()
+                    self._packet_pipeline_mode = Kinect2PacketPipelineMode.CPU
 
         # check devices
         self._fn_handle = lf2.Freenect2()
