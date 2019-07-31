@@ -112,20 +112,21 @@ class CameraChessboardRegistration:
             big_color_im = small_color_im.resize(color_image_rescale_factor)
             corner_px = big_color_im.find_chessboard(sx=sx, sy=sy)
 
-            if vis:
+            # Visualize corner detections on big color image if vis==True
+            if vis and corner_px is not None:
                 plt.figure()
                 plt.imshow(big_color_im.data)
                 for i in range(sx):
                     plt.scatter(corner_px[i,0], corner_px[i,1], s=25, c='b')
                 plt.show()
-
-            if corner_px is None:
+            elif corner_px is None:
                 logging.error('No chessboard detected! Check camera exposure settings')
                 continue
 
             # convert back to original image
             small_corner_px = corner_px / color_image_rescale_factor
         
+            # Visualize corner detections on small color image if vis==True
             if vis:
                 plt.figure()
                 plt.imshow(small_color_im.data)
