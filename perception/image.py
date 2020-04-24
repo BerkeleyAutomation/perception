@@ -84,7 +84,7 @@ def imresize(image, size, interp="nearest"):
     else:
         raise ValueError("Invalid type for size \"{}\".".format(type(size)))
 
-    return skt.resize(image,
+    return skt.resize(image.astype(np.float),
                       output_shape,
                       order=skt_interp_map[interp],
                       anti_aliasing=False,
@@ -3368,6 +3368,13 @@ class SegmentationImage(Image):
         """
         resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
         return SegmentationImage(resized_data, self._frame)
+
+    def to_color(self):
+        if self.num_segments > 10:
+            color = (np.iinfo(np.uint8).max * plt.cm.tab20(self.data)).astype(np.uint8)
+        else:
+            color = (np.iinfo(np.uint8).max * plt.cm.tab10(self.data)).astype(np.uint8)
+        return ColorImage(color[:, :, :3])
 
     @staticmethod
     def open(filename, frame='unspecified'):
