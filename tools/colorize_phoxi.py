@@ -43,17 +43,17 @@ def main():
     # Capture PhoXi and webcam images
     phoxi_color_im, phoxi_depth_im, _ = phoxi.frames()
 
-    #vis2d.figure()
-    #vis2d.subplot(121)
-    #vis2d.imshow(phoxi_color_im)
-    #vis2d.subplot(122)
-    #vis2d.imshow(phoxi_depth_im)
-    #vis2d.show()
+    # vis2d.figure()
+    # vis2d.subplot(121)
+    # vis2d.imshow(phoxi_color_im)
+    # vis2d.subplot(122)
+    # vis2d.imshow(phoxi_depth_im)
+    # vis2d.show()
 
     phoxi_pc = phoxi.ir_intrinsics.deproject(phoxi_depth_im)
     colors = phoxi_color_im.data.reshape((phoxi_color_im.shape[0] * phoxi_color_im.shape[1], phoxi_color_im.shape[2])) / 255.0
     vis3d.figure()
-    vis3d.points(phoxi_pc, color=colors, scale=0.001, subsample=3)
+    vis3d.points(phoxi_pc.data.T[::3], color=colors[::3], scale=0.001)
     vis3d.show()
 
     # Export to PLY file
@@ -68,4 +68,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

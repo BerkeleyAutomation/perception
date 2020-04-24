@@ -81,13 +81,7 @@ class ColorizedPhoXiSensor(CameraSensor):
     def start(self):
         """Start the sensor.
         """
-        running = self._webcam.start()
-        if not running:
-            return running
-
-        running &= self._phoxi.start()
-        if not running:
-            self._webcam.stop()
+        running = self._phoxi.start()
         return running
 
     def stop(self):
@@ -98,7 +92,6 @@ class ColorizedPhoXiSensor(CameraSensor):
             logging.warning('Colorized PhoXi not running. Aborting stop')
             return False
 
-        self._webcam.stop()
         self._phoxi.stop()
 
         return True
@@ -112,8 +105,10 @@ class ColorizedPhoXiSensor(CameraSensor):
         :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
             The ColorImage, DepthImage, and IrImage of the current frame.
         """
+        self._webcam.start()
         _, phoxi_depth_im, _ = self._phoxi.frames()
         webcam_color_im, _, _ = self._webcam.frames(most_recent=True)
+        self._webcam.stop()
 
         # Colorize PhoXi Image
         phoxi_color_im = self._colorize(phoxi_depth_im, webcam_color_im)
@@ -194,5 +189,3 @@ class ColorizedPhoXiSensor(CameraSensor):
         color_im_data[order] = color_im_data.copy()
         color_im_data = color_im_data.reshape(target_shape)
         return ColorImage(color_im_data, frame=self._frame)
-
-
