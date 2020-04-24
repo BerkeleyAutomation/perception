@@ -116,7 +116,7 @@ class WebcamSensor(CameraSensor):
             The ColorImage, DepthImage, and IrImage of the current frame.
         """
         if most_recent:
-            for i in xrange(4):
+            for i in range(4):
                 self._cap.grab()
         for i in range(1):
             if self._adjust_exposure:
