@@ -11,7 +11,7 @@ from perception import DepthImage, CameraIntrinsics
 
 KSIZE = 9
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     depth_im_filename = sys.argv[1]
     camera_intr_filename = sys.argv[2]
 
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     depth_im = DepthImage.open(depth_im_filename, frame=camera_intr.frame)
 
     depth_im = depth_im.inpaint()
-    
+
     point_cloud_im = camera_intr.deproject_to_image(depth_im)
     normal_cloud_im = point_cloud_im.normal_cloud_im(ksize=KSIZE)
 
@@ -30,14 +30,14 @@ if __name__ == '__main__':
     subsample = 20
     for i in range(0, point_cloud_im.height, subsample):
         for j in range(0, point_cloud_im.width, subsample):
-            p = point_cloud_im[i,j]
-            n = normal_cloud_im[i,j]
-            n2 = normal_cloud_im_s[i,j]
+            p = point_cloud_im[i, j]
+            n = normal_cloud_im[i, j]
+            n2 = normal_cloud_im_s[i, j]
             if np.linalg.norm(n) > 0:
-                points = np.array([p, p + alpha*n])
-                vis3d.plot3d(points, tube_radius=0.001, color=(1,0,0))
+                points = np.array([p, p + alpha * n])
+                vis3d.plot3d(points, tube_radius=0.001, color=(1, 0, 0))
 
-                points = np.array([p, p + alpha*n2])
-                vis3d.plot3d(points, tube_radius=0.001, color=(1,0,1))
+                points = np.array([p, p + alpha * n2])
+                vis3d.plot3d(points, tube_radius=0.001, color=(1, 0, 1))
 
     vis3d.show()

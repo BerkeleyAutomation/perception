@@ -2,16 +2,14 @@
 Class for interfacing with the Primesense Carmine RGBD sensor
 Author: Jeff Mahler
 """
-import copy
 import logging
 import numpy as np
-import os
 
-from .constants import MM_TO_METERS, INTR_EXTENSION
+from .constants import MM_TO_METERS
 
 try:
     from primesense import openni2
-except:
+except ImportError:
     logging.warning(
         "Unable to import openni2 driver. Python-only Primesense driver may not work properly"
     )
@@ -21,7 +19,6 @@ from perception import (
     CameraSensor,
     ColorImage,
     DepthImage,
-    IrImage,
     Image,
 )
 
@@ -278,13 +275,13 @@ class PrimesenseSensor(CameraSensor):
         return ColorImage(color_image, frame=self._frame)
 
     def frames(self):
-        """Retrieve a new frame from the Kinect and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the Kinect and convert it to a
+        ColorImage and a DepthImage.
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
 
         Raises
         ------
@@ -293,7 +290,7 @@ class PrimesenseSensor(CameraSensor):
         """
         color_im = self._read_color_image()
         depth_im = self._read_depth_image()
-        return color_im, depth_im, None
+        return color_im, depth_im
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):
         """Collect a series of depth images and return the median of the set.
@@ -365,7 +362,6 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         timeout=10,
     ):
         import rospy
-        from rospy import numpy_msg
         from perception.srv import ImageBufferResponse
 
         ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
@@ -387,12 +383,12 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         # Set image buffer locations
         self._depth_image_buffer = (
             "{0}/depth/stream_image_buffer".format(frame)
-            if depth_image_buffer == None
+            if depth_image_buffer is None
             else depth_image_buffer
         )
         self._color_image_buffer = (
             "{0}/rgb/stream_image_buffer".format(frame)
-            if color_image_buffer == None
+            if color_image_buffer is None
             else color_image_buffer
         )
         if not depth_absolute:
@@ -438,7 +434,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         rospy.wait_for_service(stream_buffer, timeout=self.timeout)
         ros_image_buffer = rospy.ServiceProxy(stream_buffer, ImageBuffer)
         ret = ros_image_buffer(number, 1)
-        if not staleness_limit == None:
+        if staleness_limit is not None:
             if ret.timestamps[-1] > staleness_limit:
                 raise RuntimeError(
                     "Got data {0} seconds old, more than allowed {1} seconds".format(
@@ -463,7 +459,7 @@ class PrimesenseSensor_ROS(PrimesenseSensor):
         """
         try:
             self.frames()
-        except:
+        except RuntimeError:
             return False
         return True
 

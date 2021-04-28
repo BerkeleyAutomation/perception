@@ -2,7 +2,6 @@
 Classes for easy chessboard registration
 Authors: Jeff Mahler and Jacky Liang
 """
-import cv2
 import logging
 import math
 import matplotlib.pyplot as plt

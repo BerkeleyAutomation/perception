@@ -1,9 +1,8 @@
 """
-Encapsulates camera intrinsic parameters for projecting / deprojecitng points
+Encapsulates camera intrinsic parameters for projecting / deprojecting points
 Author: Jeff Mahler
 """
 import copy
-import logging
 import numpy as np
 import json
 import os

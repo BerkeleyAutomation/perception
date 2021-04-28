@@ -2,7 +2,7 @@
 Classes for features of a 3D object surface.
 Author: Jeff Mahler
 """
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 import numpy as np
 

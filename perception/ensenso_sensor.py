@@ -15,7 +15,6 @@ except ImportError:
         "Failed to import ROS in ensenso_sensor.py. ROS functionality not available"
     )
 
-from .constants import MM_TO_METERS, INTR_EXTENSION
 from . import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, Image
 
 
@@ -142,13 +141,13 @@ class EnsensoSensor(CameraSensor):
         return True
 
     def frames(self):
-        """Retrieve a new frame from the Ensenso and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the Ensenso and convert it to a
+        ColorImage and a DepthImage.
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
 
         Raises
         ------

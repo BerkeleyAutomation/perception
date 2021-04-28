@@ -1,6 +1,5 @@
 import cv2
 import logging
-import numpy as np
 import os
 import subprocess
 import shlex
@@ -101,8 +100,8 @@ class WebcamSensor(CameraSensor):
         return True
 
     def frames(self, most_recent=False):
-        """Retrieve a new frame from the PhoXi and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the Webcam and convert it to a
+        ColorImage and DepthImage pair.
 
         Parameters
         ----------
@@ -111,13 +110,13 @@ class WebcamSensor(CameraSensor):
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
         """
         if most_recent:
-            for i in range(4):
+            for _ in range(4):
                 self._cap.grab()
-        for i in range(1):
+        for _ in range(1):
             if self._adjust_exposure:
                 try:
                     command = "v4l2-ctl -d /dev/video{} -c exposure_auto=1 -c exposure_auto_priority=0 -c exposure_absolute=100 -c saturation=60 -c gain=140".format(
@@ -129,9 +128,9 @@ class WebcamSensor(CameraSensor):
                         stdout=FNULL,
                         stderr=subprocess.STDOUT,
                     )
-                except:
+                except subprocess.SubprocessError:
                     pass
-            ret, frame = self._cap.read()
+            _, frame = self._cap.read()
         rgb_data = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        return ColorImage(rgb_data, frame=self._frame), None, None
+        return ColorImage(rgb_data, frame=self._frame), None

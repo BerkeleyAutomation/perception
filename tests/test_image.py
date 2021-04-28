@@ -35,7 +35,7 @@ class TestImage(unittest.TestCase):
         caught_bad_channels = False
         try:
             im = ColorImage(random_data)
-        except:
+        except ValueError:
             caught_bad_channels = True
         self.assertTrue(caught_bad_channels)
 
@@ -44,7 +44,7 @@ class TestImage(unittest.TestCase):
         caught_bad_dtype = False
         try:
             im = ColorImage(random_data)
-        except:
+        except ValueError:
             caught_bad_dtype = True
         self.assertTrue(caught_bad_dtype)
 
@@ -65,7 +65,7 @@ class TestImage(unittest.TestCase):
         caught_bad_channels = False
         try:
             im = DepthImage(random_data)
-        except:
+        except ValueError:
             caught_bad_channels = True
         self.assertTrue(caught_bad_channels)
 
@@ -74,7 +74,7 @@ class TestImage(unittest.TestCase):
         caught_bad_dtype = False
         try:
             im = DepthImage(random_data)
-        except:
+        except ValueError:
             caught_bad_dtype = True
         self.assertTrue(caught_bad_dtype)
 
@@ -95,7 +95,7 @@ class TestImage(unittest.TestCase):
         caught_bad_channels = False
         try:
             im = BinaryImage(random_data)
-        except:
+        except ValueError:
             caught_bad_channels = True
         self.assertTrue(caught_bad_channels)
 
@@ -104,7 +104,7 @@ class TestImage(unittest.TestCase):
         caught_bad_dtype = False
         try:
             im = BinaryImage(random_data)
-        except:
+        except ValueError:
             caught_bad_dtype = True
         self.assertTrue(caught_bad_dtype)
 
@@ -124,7 +124,7 @@ class TestImage(unittest.TestCase):
         caught_bad_channels = False
         try:
             im = GrayscaleImage(random_data)
-        except:
+        except ValueError:
             caught_bad_channels = True
         self.assertTrue(caught_bad_channels)
 
@@ -133,7 +133,7 @@ class TestImage(unittest.TestCase):
         caught_bad_dtype = False
         try:
             im = GrayscaleImage(random_data)
-        except:
+        except ValueError:
             caught_bad_dtype = True
         self.assertTrue(caught_bad_dtype)
 
@@ -153,7 +153,7 @@ class TestImage(unittest.TestCase):
         caught_bad_channels = False
         try:
             im = SegmentationImage(random_data)
-        except:
+        except ValueError:
             caught_bad_channels = True
         self.assertTrue(caught_bad_channels)
 
@@ -162,7 +162,7 @@ class TestImage(unittest.TestCase):
         caught_bad_dtype = False
         try:
             im = SegmentationImage(random_data)
-        except:
+        except ValueError:
             caught_bad_dtype = True
         self.assertTrue(caught_bad_dtype)
 
@@ -182,7 +182,7 @@ class TestImage(unittest.TestCase):
         caught_bad_channels = False
         try:
             im = PointCloudImage(random_data)
-        except:
+        except ValueError:
             caught_bad_channels = True
         self.assertTrue(caught_bad_channels)
 
@@ -191,7 +191,7 @@ class TestImage(unittest.TestCase):
         caught_bad_dtype = False
         try:
             im = PointCloudImage(random_data)
-        except:
+        except ValueError:
             caught_bad_dtype = True
         self.assertTrue(caught_bad_dtype)
 
@@ -215,7 +215,7 @@ class TestImage(unittest.TestCase):
         caught_bad_channels = False
         try:
             im = NormalCloudImage(random_data)
-        except:
+        except ValueError:
             caught_bad_channels = True
         self.assertTrue(caught_bad_channels)
 
@@ -224,7 +224,7 @@ class TestImage(unittest.TestCase):
         caught_bad_dtype = False
         try:
             im = NormalCloudImage(random_data)
-        except:
+        except ValueError:
             caught_bad_dtype = True
         self.assertTrue(caught_bad_dtype)
 
@@ -233,7 +233,7 @@ class TestImage(unittest.TestCase):
         caught_bad_norm = False
         try:
             im = NormalCloudImage(random_data)
-        except:
+        except ValueError:
             caught_bad_norm = True
         self.assertTrue(caught_bad_norm)
 

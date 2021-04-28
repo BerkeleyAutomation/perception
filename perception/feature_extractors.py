@@ -8,8 +8,6 @@ import logging
 import numpy as np
 import time
 
-from .constants import *
-from .cnn import AlexNet
 from .image import Image, ColorImage, DepthImage
 
 

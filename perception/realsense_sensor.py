@@ -20,7 +20,7 @@ class RealSenseRegistrationMode:
 
 
 class RealSenseSensor(CameraSensor):
-    """Class for interacting with a RealSense D400-series sensor.
+    r"""Class for interacting with a RealSense D400-series sensor.
 
     pyrealsense2 should be installed from source with the following
     commands:
@@ -225,13 +225,13 @@ class RealSenseSensor(CameraSensor):
         return color, depth
 
     def frames(self):
-        """Retrieve a new frame from the RealSense and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the RealSense and convert it to a
+        ColorImage and a DepthImage
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
 
         Raises
         ------
@@ -239,4 +239,4 @@ class RealSenseSensor(CameraSensor):
             If the RealSense stream is not running.
         """
         color_im, depth_im = self._read_color_and_depth_image()
-        return color_im, depth_im, None
+        return color_im, depth_im

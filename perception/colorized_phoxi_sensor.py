@@ -1,13 +1,11 @@
 import logging
 import numpy as np
 import os
-import time
 
 from autolab_core import RigidTransform, PointCloud
 from . import (
     CameraSensor,
     ColorImage,
-    CameraIntrinsics,
     PhoXiSensor,
     WebcamSensor,
 )
@@ -98,13 +96,13 @@ class ColorizedPhoXiSensor(CameraSensor):
         return True
 
     def frames(self):
-        """Retrieve a new frame from the PhoXi and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the PhoXi and convert it to a
+        ColorImage and a DepthImage.
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`numpy.ndarray`
+            The ColorImage and DepthImage of the current frame.
         """
         self._webcam.start()
         _, phoxi_depth_im, _ = self._phoxi.frames()
@@ -113,7 +111,7 @@ class ColorizedPhoXiSensor(CameraSensor):
 
         # Colorize PhoXi Image
         phoxi_color_im = self._colorize(phoxi_depth_im, webcam_color_im)
-        return phoxi_color_im, phoxi_depth_im, None
+        return phoxi_color_im, phoxi_depth_im
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):
         """Collect a series of depth images and return the median of the set.

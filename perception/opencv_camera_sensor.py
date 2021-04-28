@@ -4,7 +4,6 @@ Author: Jacky Liang
 """
 import cv2
 import numpy as np
-from time import time
 
 from .camera_sensor import CameraSensor
 from .image import ColorImage

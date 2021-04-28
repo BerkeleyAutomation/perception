@@ -9,9 +9,8 @@ import os
 import time
 
 try:
-    import cv2
     import pylibfreenect2 as lf2
-except:
+except ImportError:
     logging.warning(
         "Unable to import pylibfreenect2. Python-only Kinect driver may not work properly."
     )
@@ -20,7 +19,6 @@ try:
     from cv_bridge import CvBridge, CvBridgeError
     import rospy
     import sensor_msgs.msg
-    import sensor_msgs.point_cloud2 as pc2
 except ImportError:
     logging.warning(
         "Failed to import ROS in Kinect2_sensor.py. Kinect will not be able to be used in bridged mode"
@@ -30,7 +28,7 @@ except ImportError:
 from .constants import MM_TO_METERS, INTR_EXTENSION
 from .camera_intrinsics import CameraIntrinsics
 from .camera_sensor import CameraSensor
-from .image import ColorImage, DepthImage, IrImage, Image
+from .image import ColorImage, DepthImage, Image
 
 
 class Kinect2PacketPipelineMode:
@@ -270,8 +268,8 @@ class Kinect2Sensor(CameraSensor):
         return True
 
     def frames(self, skip_registration=False):
-        """Retrieve a new frame from the Kinect and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the Kinect and convert it to a
+        ColorImage and a DepthImage
 
         Parameters
         ----------
@@ -280,18 +278,18 @@ class Kinect2Sensor(CameraSensor):
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
 
         Raises
         ------
         RuntimeError
             If the Kinect stream is not running.
         """
-        color_im, depth_im, ir_im, _ = self._frames_and_index_map(
+        color_im, depth_im, _, _ = self._frames_and_index_map(
             skip_registration=skip_registration
         )
-        return color_im, depth_im, ir_im
+        return color_im, depth_im
 
     def median_depth_img(self, num_img=1):
         """Collect a series of depth images and return the median of the set.
@@ -316,7 +314,7 @@ class Kinect2Sensor(CameraSensor):
 
     def _frames_and_index_map(self, skip_registration=False):
         """Retrieve a new frame from the Kinect and return a ColorImage,
-        DepthImage, IrImage, and a map from depth pixels to color pixel indices.
+        DepthImage, and a map from depth pixels to color pixel indices.
 
         Parameters
         ----------

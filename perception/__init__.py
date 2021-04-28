@@ -4,13 +4,9 @@ Authors: Jeff, Jacky
 """
 import logging
 
-from .version import __version__
 from .camera_intrinsics import CameraIntrinsics
-from .orthographic_intrinsics import OrthographicIntrinsics
-from .exceptions import SensorUnresponsiveException
 
 try:
-    from .cnn import AlexNet, AlexNetWeights, conv
     from .features import (
         Feature,
         LocalFeature,
@@ -24,7 +20,7 @@ try:
         CNNBatchFeatureExtractor,
         CNNReusableBatchFeatureExtractor,
     )
-except Exception:
+except ImportError:
     logging.warning(
         "Unable to import CNN modules! Likely due to missing tensorflow."
     )
@@ -43,7 +39,6 @@ from .image import (
     Image,
     ColorImage,
     DepthImage,
-    IrImage,
     GrayscaleImage,
     RgbdImage,
     GdImage,
@@ -90,7 +85,7 @@ try:
         Kinect2SensorFactory,
         load_images,
     )
-except Exception:
+except ImportError:
     logging.warning(
         "Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2."
     )
@@ -104,36 +99,36 @@ try:
         PrimesenseSensor_ROS,
         PrimesenseRegistrationMode,
     )
-except Exception:
+except ImportError:
     logging.warning(
         "Unable to import Primsense sensor modules! Likely due to missing OpenNI2."
     )
 
 try:
     from .realsense_sensor import RealSenseSensor
-except Exception:
+except ImportError:
     logging.warning("Unable to import RealSense sensor modules!")
 
 try:
     from .ensenso_sensor import EnsensoSensor
-except Exception:
+except ImportError:
     logging.warning("Unable to import Ensenso sensor modules!.")
 
 try:
     from .phoxi_sensor import PhoXiSensor
     from .colorized_phoxi_sensor import ColorizedPhoXiSensor
-except Exception as e:
+except ImportError:
     logging.warning("Unable to import PhoXi sensor modules!")
 
 try:
     from .opencv_camera_sensor import OpenCVCameraSensor
     from .rgbd_sensors import RgbdSensorFactory
-except Exception:
+except ImportError:
     logging.warning("Unable to import generic sensor modules!.")
 
 try:
     from .weight_sensor import WeightSensor
-except:
+except ImportError:
     logging.warning("Unable to import weight sensor modules!")
 
 from .video_recorder import VideoRecorder
@@ -166,7 +161,6 @@ __all__ = [
     "Image",
     "ColorImage",
     "DepthImage",
-    "IrImage",
     "GrayscaleImage",
     "RgbdImage",
     "GdImage",
