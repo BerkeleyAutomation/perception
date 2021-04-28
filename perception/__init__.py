@@ -47,7 +47,6 @@ from .image import (
     PointCloudImage,
     NormalCloudImage,
 )
-from .object_render import RenderMode, ObjectRender, QueryImageBundle
 from .chessboard_registration import (
     ChessboardRegistrationResult,
     CameraChessboardRegistration,
@@ -65,8 +64,8 @@ from .detector import (
     PointCloudBoxDetector,
     RgbdDetectorFactory,
 )
-from .camera_sensor import (
-    CameraSensor,
+from .camera_sensor import CameraSensor
+from .virtual_camera_sensor import (
     VirtualSensor,
     TensorDatasetVirtualSensor,
 )

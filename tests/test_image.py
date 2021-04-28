@@ -2,6 +2,7 @@
 Tests the image class.
 Author: Jeff Mahler
 """
+import os
 import logging
 import numpy as np
 import unittest
@@ -464,6 +465,8 @@ class TestImage(unittest.TestCase):
         color_data = (255 * np.random.rand(height, width, 3)).astype(np.uint8)
         im = ColorImage(color_data, "a")
         file_root = COLOR_IM_FILEROOT
+        if not os.path.exists(os.path.dirname(file_root)):
+            os.makedirs(os.path.dirname(file_root))
 
         # save and load png
         filename = file_root + ".png"
@@ -473,11 +476,13 @@ class TestImage(unittest.TestCase):
             np.sum(np.abs(loaded_im.data - im.data)) < 1e-5,
             msg="ColorImage data changed after load png",
         )
+        os.remove(filename)
 
         # save and load jpg
         filename = file_root + ".jpg"
         im.save(filename)
         loaded_im = ColorImage.open(filename)
+        os.remove(filename)
 
         # save and load npy
         filename = file_root + ".npy"
@@ -487,6 +492,7 @@ class TestImage(unittest.TestCase):
             np.sum(np.abs(loaded_im.data - im.data)) < 1e-5,
             msg="ColorImage data changed after load npy",
         )
+        os.remove(filename)
 
         # save and load npz
         filename = file_root + ".npz"
@@ -496,6 +502,8 @@ class TestImage(unittest.TestCase):
             np.sum(np.abs(loaded_im.data - im.data)) < 1e-5,
             msg="ColorImage data changed after load npz",
         )
+        os.remove(filename)
+        os.rmdir(os.path.dirname(file_root))
 
 
 if __name__ == "__main__":

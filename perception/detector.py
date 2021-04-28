@@ -12,7 +12,6 @@ import scipy.ndimage.morphology as snm
 from autolab_core import Box
 
 from .image import BinaryImage, DepthImage
-from .object_render import RenderMode
 
 
 class RgbdDetection(object):
