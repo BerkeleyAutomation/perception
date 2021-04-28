@@ -3,7 +3,6 @@ Analyzes CNN classification performance
 Author: Jeff Mahler
 """
 import argparse
-import IPython
 import logging
 import matplotlib.pyplot as plt
 import numpy as np

@@ -204,7 +204,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
             # create pose values from the solution
             R = np.eye(3)
             R = R + skew(v[:3])
-            U, S, V = np.linalg.svd(R)
+            U, S, V = np.linalg.svd(R.astype(np.float))
             R = U.dot(V)
             t = v[3:]
 
@@ -357,7 +357,7 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
             # create pose values from the solution
             R = np.eye(3)
             R = R + skew(np.array([[0],[0],[v[0,0]]]))
-            U, S, V = np.linalg.svd(R)
+            U, S, V = np.linalg.svd(R.astype(np.float))
             R = U.dot(V)
             t = np.array([[v[1,0]], [v[2,0]], [0]])
 

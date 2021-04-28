@@ -3,7 +3,6 @@ Encapsulates camera intrinsic parameters for projecting / deprojecitng points
 Author: Jeff Mahler
 """
 import copy
-import logging
 import numpy as np
 import json
 import os
@@ -465,7 +464,7 @@ class CameraIntrinsics(object):
         ValueError
             If filename does not have the .intr extension.
         """
-        file_root, file_ext = os.path.splitext(filename)
+        _, file_ext = os.path.splitext(filename)
         if file_ext.lower() != INTR_EXTENSION:
             raise ValueError('Extension %s not supported for CameraIntrinsics. Must be stored with extension %s' %(file_ext, INTR_EXTENSION))
 

@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 from .camera_intrinsics import CameraIntrinsics
 from .constants import *
-from .image import ColorImage, DepthImage, IrImage
+from .image import Image, ColorImage, DepthImage
 
 import os
 

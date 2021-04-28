@@ -1,10 +1,11 @@
 language: python
 sudo: required
-dist: trusty
+dist: bionic
 python:
-- '2.7'
 - '3.5'
 - '3.6'
+- '3.8'
+- '3.9'
 before_install:
 - pip install --upgrade pip setuptools wheel
 - pip install --only-binary=numpy,scipy numpy scipy
@@ -18,12 +19,12 @@ script:
 deploy:
   provider: pypi
   skip_existing: true
-  user: mmatl
   on:
     tags: true
     branch: master
+  user: mjd3
   password:
-    secure: IfCKijIg6eo4y2LThHQGk4I40/GzqgTh2JogsiYnSiXh1XGGo5/q6tAdUvkUpPqexVzxkcTl4JgeAEe4Wo5IHLsjKuaUdEuojsjBG6AaPDzV9Q9nJW1bnPrO2+ckcd9VBBl2dlQo4WOA9F4ppUHipD5vHg/4FWPAZE2S2F92+5UvWHr0P1knHXUst9wqAhSskcbt27Ob1E9n6sck5OAeWQGAfsPPPAELZQKjx9QFRP2eRiuMV5am7Wy3snJcxpCF8Lwk/Xko3bfZ+O1Gb9MtqN1t7YhnCP8FEIsvsXRWcgrMwdt2OUBJSKKUGeb9COakY3B8fFff1TUEy8Mb4PvyvxgNfSeYXm3SIVk9xWpDm30GZTbN8SbTgLhBA0kxCYP+HmIFy/zycwO1vTtmEXo5sHAopgdac6d9iTWCps1n0y2j0s4n3A6aMl40ecCjorMZEnwb00SaQNNIR7Pj8L8WHoaE+ZBxpHRBpPjnT2C5VaLbKHyZlM5q4b8seeXN01MHSNVki/2y2E5T9j/37lO+gD/PtqlNg9Z5MIU6nGw3Rw4i+XiVrOYXaYuTS9eIl5SPrr6oGUIxy9LF//RKY5yk+TKa9IQnP9FOv/BB2LDL5K9A4wfUtj7P0WCQuQ0Bo7Od14+DZ7+AspkEBurA/gPNQjkho15fSG2MWn84GjC+5M4=
+    secure: Y9n3QtRBBx1b948CN4b6tdqPVXWnToxl8vq0h+MMqar02Jcg5ojCkPiCVhhOT5PualvVw+P6+EfqoC8AphfafBnVANQBAid7j4nlGN7jVROVinXSVlBxGxUqYPdU407GTZktVw5jtWz7/MV3sQ8EeHStTyP4C7Nkp69sE83Lqfx2grzfW+jOCwLHWtEz61d664RMXJUxjk40nxilWu4Zubsz1w8Pistu4+ur+5YYcwyauGjTIZC9QsVOpXRXGEjBB+OSNr/i21qInbmkGY2VLq1iv+H/1GVzHMowy2AL7ZVsIFJ97vb7eSEe3xQ7VzdwrvD6+VoqZBj0DJXIup4tAePgfcQJP67Jzp48A9I9uM1+Psui6Mcbxk5yq/nqdJHAY86G6P8WLoGZM6QUsnx3Km0/l3XWDEx9yE8eybugsa1e9f2zdw8c0Smjq37y2feVSLmHU1fPcNsOlrVzhqz7EK7a9s6Flj7l7cT8KhADmvSPBuresK9byA4SXH5PKw7r9ctuhcmi6t5jipPLvm7ekcqHOpVa/GYW8W/iP9C6tNTaFUZ6mAVj4RVZ1zu4YKtM6PakcP45UNXNKPgQwsTBAxS5fKYXA5+P3MC8AO3Qrarn2Y0lOdXtaAzd5B8PsxBZmEZE/2HJQtHwF5ba6KzjkQAHY2Cu2/vaIhVc/gpQSpY=
   distributions: sdist bdist_wheel
 notifications:
   email: false
