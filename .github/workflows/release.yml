@@ -21,10 +21,8 @@ jobs:
         pip install autopep8 flake8
     - name: Check Formatting
       run: |
-        flake8 tests
-        flake8 perception
-        flake8 tools
-        flake8 setup.py
+        flake8 --config=.flake8 .
+        autopep8 --recursive --aggressive --diff --exit-code ros_nodes/
         autopep8 --recursive --aggressive --diff --exit-code perception/
         autopep8 --recursive --aggressive --diff --exit-code tools/
         autopep8 --recursive --aggressive --diff --exit-code tests/
