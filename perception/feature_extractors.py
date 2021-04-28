@@ -12,6 +12,7 @@ from .constants import *
 from .cnn import AlexNet
 from .image import Image, ColorImage, DepthImage
 
+
 class FeatureExtractor:
     __metaclass__ = ABCMeta
 
@@ -29,27 +30,29 @@ class FeatureExtractor:
         """
         pass
 
+
 class CNNBatchFeatureExtractor(FeatureExtractor):
-    """ Extract feature descriptors for images in a giant batch using Convolutional Neural Networks.
+    """Extract feature descriptors for images in a giant batch using Convolutional Neural Networks.
 
     Attributes
     ----------
     cnn : :obj:`AlexNet`
         the convolutional neural network to use
     """
+
     def __init__(self, config):
         self.cnn_ = AlexNet(config, use_default_weights=True)
 
     def open(self):
-        """ Opens the tensorflow session. For memory management. """
+        """Opens the tensorflow session. For memory management."""
         self.cnn_.open_session()
 
     def close(self):
-        """ Closes the tensorflow session. For memory management. """
+        """Closes the tensorflow session. For memory management."""
         self.cnn_.close_session()
 
     def _forward_pass(self, images):
-        """ Forward pass a list of images through the CNN """
+        """Forward pass a list of images through the CNN"""
         # form image array
         num_images = len(images)
         if num_images == 0:
@@ -59,11 +62,17 @@ class CNNBatchFeatureExtractor(FeatureExtractor):
                 new_images = []
                 for image in images:
                     if len(image.shape) > 2:
-                        new_images.append(ColorImage(image, frame='unspecified'))
-                    elif image.dtype == np.float32 or image.dtype == np.float64:
-                        new_images.append(DepthImage(image, frame='unspecified'))
+                        new_images.append(
+                            ColorImage(image, frame="unspecified")
+                        )
+                    elif (
+                        image.dtype == np.float32 or image.dtype == np.float64
+                    ):
+                        new_images.append(
+                            DepthImage(image, frame="unspecified")
+                        )
                     else:
-                        raise ValueError('Image type not understood')
+                        raise ValueError("Image type not understood")
                 images = new_images
                 break
 
@@ -71,22 +80,27 @@ class CNNBatchFeatureExtractor(FeatureExtractor):
         im_width = images[0].width
         channels = images[0].channels
         tensor_channels = 3
-        image_arr = np.zeros([num_images, im_height, im_width, tensor_channels])
+        image_arr = np.zeros(
+            [num_images, im_height, im_width, tensor_channels]
+        )
         for j, image in enumerate(images):
             if channels == 3:
-                image_arr[j,:,:,:] = image.raw_data
+                image_arr[j, :, :, :] = image.raw_data
             else:
-                image_arr[j,:,:,:] = np.tile(image.raw_data, [1,1,1,3])
+                image_arr[j, :, :, :] = np.tile(image.raw_data, [1, 1, 1, 3])
 
         # predict
         fp_start = time.time()
         final_blobs = self.cnn_.featurize(image_arr)
         fp_stop = time.time()
-        logging.debug('Featurization took %f sec per image' %((fp_stop - fp_start) / len(images)))
+        logging.debug(
+            "Featurization took %f sec per image"
+            % ((fp_stop - fp_start) / len(images))
+        )
         return final_blobs.reshape(final_blobs.shape[0], -1)
 
     def extract(self, images):
-        """ Form feature descriptors for a set of images.
+        """Form feature descriptors for a set of images.
 
         Parameters
         ----------
@@ -95,7 +109,9 @@ class CNNBatchFeatureExtractor(FeatureExtractor):
         """
         return self._forward_pass(images)
 
+
 class CNNReusableBatchFeatureExtractor(CNNBatchFeatureExtractor):
-    """ Extract feature descriptors for images in a giant batch. Allows you to initialize the extractor with a pre-existing CNN, for memory management reasons. """
+    """Extract feature descriptors for images in a giant batch. Allows you to initialize the extractor with a pre-existing CNN, for memory management reasons."""
+
     def __init__(self, cnn):
         self.cnn_ = cnn

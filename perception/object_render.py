@@ -6,18 +6,20 @@ from autolab_core import RigidTransform
 
 from .image import BinaryImage, ColorImage, DepthImage
 
+
 class RenderMode(object):
-    """Supported rendering modes.
-    """
-    SEGMASK = 'segmask'
-    DEPTH = 'depth'
-    SCALED_DEPTH = 'scaled_depth'
-    COLOR = 'color'
-    GRAY = 'gray'
-    GD = 'gd'
-    RGBD = 'rgbd'
-    GD = 'gd'
-    GRAYSCALE = 'gray'
+    """Supported rendering modes."""
+
+    SEGMASK = "segmask"
+    DEPTH = "depth"
+    SCALED_DEPTH = "scaled_depth"
+    COLOR = "color"
+    GRAY = "gray"
+    GD = "gd"
+    RGBD = "rgbd"
+    GD = "gd"
+    GRAYSCALE = "gray"
+
 
 class ObjectRender(object):
     """Class to encapsulate images of an object rendered from a virtual camera.
@@ -28,8 +30,13 @@ class ObjectRender(object):
         the renderer.
     """
 
-    def __init__(self, image, T_camera_world=RigidTransform(from_frame='camera', to_frame='table'),
-                 obj_key = None, stable_pose=None):
+    def __init__(
+        self,
+        image,
+        T_camera_world=RigidTransform(from_frame="camera", to_frame="table"),
+        obj_key=None,
+        stable_pose=None,
+    ):
         """Create an ObjectRender.
 
         Parameters
@@ -62,16 +69,21 @@ class ObjectRender(object):
             The desired transform.
         """
         if self.stable_pose is None:
-            T_obj_world = RigidTransform(from_frame='obj', to_frame='world')
+            T_obj_world = RigidTransform(from_frame="obj", to_frame="world")
         else:
-            T_obj_world = self.stable_pose.T_obj_table.as_frames('obj', 'world')
+            T_obj_world = self.stable_pose.T_obj_table.as_frames(
+                "obj", "world"
+            )
         T_camera_obj = T_obj_world.inverse() * self.T_camera_world
         return T_camera_obj
 
+
 class QueryImageBundle:
-    """Struct to encapsulate renders of multiple image types.
-    """
-    def __init__(self, binary_image_render, color_image_render, depth_image_render):
+    """Struct to encapsulate renders of multiple image types."""
+
+    def __init__(
+        self, binary_image_render, color_image_render, depth_image_render
+    ):
         """Initialize a QueryImageBundle.
 
         Parameters
@@ -91,20 +103,17 @@ class QueryImageBundle:
 
     @property
     def binary_im(self):
-        """:obj:`BinaryImage` : The binary image from the set.
-        """
+        """:obj:`BinaryImage` : The binary image from the set."""
         return self.binary_im_render.image
 
     @property
     def color_im(self):
-        """:obj:`ColorImage` : The color image from the set.
-        """
+        """:obj:`ColorImage` : The color image from the set."""
         return self.color_im_render.image
 
     @property
     def depth_im(self):
-        """:obj:`DepthImage` : The depth image from the set.
-        """
+        """:obj:`DepthImage` : The depth image from the set."""
         return self.depth_im_render.image
 
     def image(self, render_mode):

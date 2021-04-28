@@ -11,8 +11,9 @@ from autolab_core import PointCloud
 
 from .features import BagOfFeatures
 
+
 class Correspondences:
-    """ Wrapper for point-set correspondences.
+    """Wrapper for point-set correspondences.
 
     Attributes
     ----------
@@ -25,6 +26,7 @@ class Correspondences:
     num_matches : int
         the total number of matches
     """
+
     def __init__(self, index_map, source_points, target_points):
         self.index_map_ = index_map
         self.source_points_ = source_points
@@ -55,10 +57,14 @@ class Correspondences:
         if self.iter_count_ >= len(self.num_matches_):
             raise StopIteration
         else:
-            return self.source_points_[self.iter_count,:], self.target_points_[self.iter_count,:]
+            return (
+                self.source_points_[self.iter_count, :],
+                self.target_points_[self.iter_count, :],
+            )
+
 
 class NormalCorrespondences(Correspondences):
-    """ Wrapper for point-set correspondences with surface normals.
+    """Wrapper for point-set correspondences with surface normals.
 
     Attributes
     ----------
@@ -75,7 +81,15 @@ class NormalCorrespondences(Correspondences):
     num_matches : int
         the total number of matches
     """
-    def __init__(self, index_map, source_points, target_points, source_normals, target_normals):
+
+    def __init__(
+        self,
+        index_map,
+        source_points,
+        target_points,
+        source_normals,
+        target_normals,
+    ):
         self.source_normals_ = source_normals
         self.target_normals_ = target_normals
         Correspondences.__init__(self, index_map, source_points, target_points)
@@ -96,20 +110,27 @@ class NormalCorrespondences(Correspondences):
         if self.iter_count_ >= len(self.num_matches_):
             raise StopIteration
         else:
-            return self.source_points_[self.iter_count,:], self.target_points_[self.iter_count,:], self.source_normals_[self.iter_count,:], self.target_normals_[self.iter_count,:]
+            return (
+                self.source_points_[self.iter_count, :],
+                self.target_points_[self.iter_count, :],
+                self.source_normals_[self.iter_count, :],
+                self.target_normals_[self.iter_count, :],
+            )
+
 
 class FeatureMatcher:
     """
     Generic feature matching between local features on a source and target object using nearest neighbors.
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
         pass
 
     @staticmethod
-    def get_point_index(point, all_points, eps = 1e-4):
-        """ Get the index of a point in an array """
+    def get_point_index(point, all_points, eps=1e-4):
+        """Get the index of a point in an array"""
         inds = np.where(np.linalg.norm(point - all_points, axis=1) < eps)
         if inds[0].shape[0] == 0:
             return -1
@@ -121,6 +142,7 @@ class FeatureMatcher:
         Matches features between a source and target object. Source and target object types depend on subclass implementation.
         """
         pass
+
 
 class RawDistanceFeatureMatcher(FeatureMatcher):
     def match(self, source_obj_features, target_obj_features):
@@ -140,9 +162,9 @@ class RawDistanceFeatureMatcher(FeatureMatcher):
             the correspondences between source and target
         """
         if not isinstance(source_obj_features, f.BagOfFeatures):
-            raise ValueError('Must supply source bag of object features')
+            raise ValueError("Must supply source bag of object features")
         if not isinstance(target_obj_features, f.BagOfFeatures):
-            raise ValueError('Must supply target bag of object features')
+            raise ValueError("Must supply target bag of object features")
 
         # source feature descriptors and keypoints
         source_descriptors = source_obj_features.descriptors
@@ -150,30 +172,37 @@ class RawDistanceFeatureMatcher(FeatureMatcher):
         source_keypoints = source_obj_features.keypoints
         target_keypoints = target_obj_features.keypoints
 
-        #calculate distance between this model's descriptors and each of the other_model's descriptors
+        # calculate distance between this model's descriptors and each of the other_model's descriptors
         dists = spatial.distance.cdist(source_descriptors, target_descriptors)
 
-        #calculate the indices of the target_model that minimize the distance to the descriptors in this model
+        # calculate the indices of the target_model that minimize the distance to the descriptors in this model
         source_closest_descriptors = dists.argmin(axis=1)
         target_closest_descriptors = dists.argmin(axis=0)
         match_indices = []
-        source_matched_points = np.zeros((0,3))
-        target_matched_points = np.zeros((0,3))
+        source_matched_points = np.zeros((0, 3))
+        target_matched_points = np.zeros((0, 3))
 
-        #calculate which points/indices the closest descriptors correspond to
+        # calculate which points/indices the closest descriptors correspond to
         for i, j in enumerate(source_closest_descriptors):
             # for now, only keep correspondences that are a 2-way match
             if target_closest_descriptors[j] == i:
                 match_indices.append(j)
-                source_matched_points = np.r_[source_matched_points, source_keypoints[i:i+1, :]]
-                target_matched_points = np.r_[target_matched_points, target_keypoints[j:j+1, :]]
+                source_matched_points = np.r_[
+                    source_matched_points, source_keypoints[i : i + 1, :]
+                ]
+                target_matched_points = np.r_[
+                    target_matched_points, target_keypoints[j : j + 1, :]
+                ]
             else:
                 match_indices.append(-1)
 
-        return Correspondences(match_indices, source_matched_points, target_matched_points)
+        return Correspondences(
+            match_indices, source_matched_points, target_matched_points
+        )
+
 
 class PointToPlaneFeatureMatcher(FeatureMatcher):
-    """ Match points using a point to plane criterion with thresholding.
+    """Match points using a point to plane criterion with thresholding.
 
     Attributes
     ----------
@@ -182,12 +211,15 @@ class PointToPlaneFeatureMatcher(FeatureMatcher):
     norm_thresh : float
         threshold cosine distance alignment betwen normals to consider a match valid
     """
+
     def __init__(self, dist_thresh=0.05, norm_thresh=0.75):
         self.dist_thresh_ = dist_thresh
         self.norm_thresh_ = norm_thresh
         FeatureMatcher.__init__(self)
 
-    def match(self, source_points, target_points, source_normals, target_normals):
+    def match(
+        self, source_points, target_points, source_normals, target_normals
+    ):
         """
         Matches points between two point-normal sets. Uses the closest ip to choose matches, with distance for thresholding only.
 
@@ -208,13 +240,17 @@ class PointToPlaneFeatureMatcher(FeatureMatcher):
             the correspondences between source and target
         """
         # compute the distances and inner products between the point sets
-        dists = ssd.cdist(source_points, target_points, 'euclidean')
-        ip = source_normals.dot(target_normals.T) # abs because we don't have correct orientations
+        dists = ssd.cdist(source_points, target_points, "euclidean")
+        ip = source_normals.dot(
+            target_normals.T
+        )  # abs because we don't have correct orientations
         source_ip = source_points.dot(target_normals.T)
         target_ip = target_points.dot(target_normals.T)
         target_ip = np.diag(target_ip)
         target_ip = np.tile(target_ip, [source_points.shape[0], 1])
-        abs_diff = np.abs(source_ip - target_ip) # difference in inner products
+        abs_diff = np.abs(
+            source_ip - target_ip
+        )  # difference in inner products
 
         # mark invalid correspondences
         invalid_dists = np.where(dists > self.dist_thresh_)
@@ -228,4 +264,10 @@ class PointToPlaneFeatureMatcher(FeatureMatcher):
         invalid_matches = np.where(match_vals == np.inf)
         match_indices[invalid_matches[0]] = -1
 
-        return NormalCorrespondences(match_indices, source_points, target_points, source_normals, target_normals)
+        return NormalCorrespondences(
+            match_indices,
+            source_points,
+            target_points,
+            source_normals,
+            target_normals,
+        )

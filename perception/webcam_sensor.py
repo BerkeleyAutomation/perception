@@ -7,11 +7,11 @@ import shlex
 
 from . import CameraSensor, ColorImage, CameraIntrinsics
 
-class WebcamSensor(CameraSensor):
-    """Class for interfacing with a Logitech webcam sensor (720p).
-    """
 
-    def __init__(self, frame='webcam', device_id=0):
+class WebcamSensor(CameraSensor):
+    """Class for interfacing with a Logitech webcam sensor (720p)."""
+
+    def __init__(self, frame="webcam", device_id=0):
         """Initialize a Logitech webcam sensor.
 
         Parameters
@@ -30,45 +30,45 @@ class WebcamSensor(CameraSensor):
 
         # Set up camera intrinsics for the sensor
         width, height = 1280, 960
-        focal_x, focal_y = 1430., 1420.
-        center_x, center_y = 1280/2, 960/2
-        self._camera_intr = CameraIntrinsics(self._frame, focal_x, focal_y,
-                                             center_x, center_y,
-                                             height=height, width=width)
+        focal_x, focal_y = 1430.0, 1420.0
+        center_x, center_y = 1280 / 2, 960 / 2
+        self._camera_intr = CameraIntrinsics(
+            self._frame,
+            focal_x,
+            focal_y,
+            center_x,
+            center_y,
+            height=height,
+            width=width,
+        )
 
     def __del__(self):
-        """Automatically stop the sensor for safety.
-        """
+        """Automatically stop the sensor for safety."""
         if self.is_running:
             self.stop()
 
     @property
     def color_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi Greyscale camera.
-        """
+        """CameraIntrinsics : The camera intrinsics for the PhoXi Greyscale camera."""
         return self._camera_intr
 
     @property
     def is_running(self):
-        """bool : True if the stream is running, or false otherwise.
-        """
+        """bool : True if the stream is running, or false otherwise."""
         return self._running
 
     @property
     def frame(self):
-        """str : The reference frame of the sensor.
-        """
+        """str : The reference frame of the sensor."""
         return self._frame
 
     @property
     def color_frame(self):
-        """str : The reference frame of the sensor.
-        """
+        """str : The reference frame of the sensor."""
         return self._frame
 
     def start(self):
-        """Start the sensor.
-        """
+        """Start the sensor."""
         self._cap = cv2.VideoCapture(self._device_id + cv2.CAP_V4L2)
         if not self._cap.isOpened():
             self._running = False
@@ -87,11 +87,10 @@ class WebcamSensor(CameraSensor):
         return True
 
     def stop(self):
-        """Stop the sensor.
-        """
+        """Stop the sensor."""
         # Check that everything is running
         if not self._running:
-            logging.warning('Webcam not running. Aborting stop')
+            logging.warning("Webcam not running. Aborting stop")
             return False
 
         if self._cap:
@@ -121,9 +120,15 @@ class WebcamSensor(CameraSensor):
         for i in range(1):
             if self._adjust_exposure:
                 try:
-                    command = 'v4l2-ctl -d /dev/video{} -c exposure_auto=1 -c exposure_auto_priority=0 -c exposure_absolute=100 -c saturation=60 -c gain=140'.format(self._device_id)
-                    FNULL = open(os.devnull, 'w')
-                    subprocess.call(shlex.split(command), stdout=FNULL, stderr=subprocess.STDOUT)
+                    command = "v4l2-ctl -d /dev/video{} -c exposure_auto=1 -c exposure_auto_priority=0 -c exposure_absolute=100 -c saturation=60 -c gain=140".format(
+                        self._device_id
+                    )
+                    FNULL = open(os.devnull, "w")
+                    subprocess.call(
+                        shlex.split(command),
+                        stdout=FNULL,
+                        stderr=subprocess.STDOUT,
+                    )
                 except:
                     pass
             ret, frame = self._cap.read()

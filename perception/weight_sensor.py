@@ -8,11 +8,11 @@ import time
 from std_msgs.msg import Float32MultiArray
 from std_srvs.srv import Empty
 
-class WeightSensor(object):
-    """Class for reading from a set of load cells.
-    """
 
-    def __init__(self, id_mask='F1804', ntaps=4, debug=False):
+class WeightSensor(object):
+    """Class for reading from a set of load cells."""
+
+    def __init__(self, id_mask="F1804", ntaps=4, debug=False):
         """Initialize the WeightSensor.
 
         Parameters
@@ -31,24 +31,21 @@ class WeightSensor(object):
         self._filter_coeffs = signal.firwin(ntaps, 0.1)
         self._running = False
 
-
     def start(self):
-        """Start the sensor.
-        """
-        if rospy.get_name() == '/unnamed':
-            raise ValueError('Weight sensor must be run inside a ros node!')
-        self._weight_subscriber = rospy.Subscriber('weight_sensor/weights', Float32MultiArray, self._weights_callback)
+        """Start the sensor."""
+        if rospy.get_name() == "/unnamed":
+            raise ValueError("Weight sensor must be run inside a ros node!")
+        self._weight_subscriber = rospy.Subscriber(
+            "weight_sensor/weights", Float32MultiArray, self._weights_callback
+        )
         self._running = True
 
-
     def stop(self):
-        """Stop the sensor.
-        """
+        """Stop the sensor."""
         if not self._running:
             return
         self._weight_subscriber.unregister()
         self._running = False
-
 
     def total_weight(self):
         """Read a weight from the sensor in grams.
@@ -83,30 +80,27 @@ class WeightSensor(object):
             return weights.dot(self._filter_coeffs)
 
     def tare(self):
-        """Zero out (tare) the sensor.
-        """
+        """Zero out (tare) the sensor."""
         if not self._running:
-            raise ValueError('Weight sensor is not running!')
-        rospy.ServiceProxy('weight_sensor/tare', Empty)()
+            raise ValueError("Weight sensor is not running!")
+        rospy.ServiceProxy("weight_sensor/tare", Empty)()
 
     def _raw_weights(self):
-        """Create a numpy array containing the raw sensor weights.
-        """
+        """Create a numpy array containing the raw sensor weights."""
         if self._debug:
-            return np.array([[],[],[],[]])
+            return np.array([[], [], [], []])
 
         if not self._running:
-            raise ValueError('Weight sensor is not running!')
+            raise ValueError("Weight sensor is not running!")
         if len(self._weight_buffers) == 0:
             time.sleep(0.3)
             if len(self._weight_buffers) == 0:
-                raise ValueError('Weight sensor is not retrieving data!')
+                raise ValueError("Weight sensor is not retrieving data!")
         weights = np.array(self._weight_buffers)
         return weights
 
     def _weights_callback(self, msg):
-        """Callback for recording weights from sensor.
-        """
+        """Callback for recording weights from sensor."""
         # Read weights
         weights = np.array(msg.data)
 
@@ -120,17 +114,16 @@ class WeightSensor(object):
                 self._weight_buffers[i].pop(0)
             self._weight_buffers[i].append(w)
 
-
     def __del__(self):
         self.stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ws = None
-    rospy.init_node('weight_sensor_node', anonymous=True)
+    rospy.init_node("weight_sensor_node", anonymous=True)
     ws = WeightSensor()
     ws.start()
     ws.tare()
     while not rospy.is_shutdown():
-        print('{:.2f}'.format(ws.total_weight()))
+        print("{:.2f}".format(ws.total_weight()))
         time.sleep(0.1)

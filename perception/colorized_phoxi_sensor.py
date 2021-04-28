@@ -4,13 +4,19 @@ import os
 import time
 
 from autolab_core import RigidTransform, PointCloud
-from . import CameraSensor, ColorImage, CameraIntrinsics, PhoXiSensor, WebcamSensor
+from . import (
+    CameraSensor,
+    ColorImage,
+    CameraIntrinsics,
+    PhoXiSensor,
+    WebcamSensor,
+)
+
 
 class ColorizedPhoXiSensor(CameraSensor):
-    """Class for using a Logitech Webcam sensor to colorize a PhoXi's point clouds.
-    """
+    """Class for using a Logitech Webcam sensor to colorize a PhoXi's point clouds."""
 
-    def __init__(self, phoxi_config, webcam_config, calib_dir, frame='phoxi'):
+    def __init__(self, phoxi_config, webcam_config, calib_dir, frame="phoxi"):
         """Initialize a webcam-colorized PhoXi sensor.
 
         Parameters
@@ -27,8 +33,12 @@ class ColorizedPhoXiSensor(CameraSensor):
             Filepath for T_webcam_world
         """
         self._frame = frame
-        phoxi_to_world_fn = os.path.join(calib_dir, 'phoxi', 'phoxi_to_world.tf')
-        webcam_to_world_fn = os.path.join(calib_dir, 'webcam', 'webcam_to_world.tf')
+        phoxi_to_world_fn = os.path.join(
+            calib_dir, "phoxi", "phoxi_to_world.tf"
+        )
+        webcam_to_world_fn = os.path.join(
+            calib_dir, "webcam", "webcam_to_world.tf"
+        )
         self._T_phoxi_world = RigidTransform.load(phoxi_to_world_fn)
         self._T_webcam_world = RigidTransform.load(webcam_to_world_fn)
         self._phoxi = PhoXiSensor(**phoxi_config)
@@ -37,59 +47,50 @@ class ColorizedPhoXiSensor(CameraSensor):
         self._running = False
 
     def __del__(self):
-        """Automatically stop the sensor for safety.
-        """
+        """Automatically stop the sensor for safety."""
         if self.is_running:
             self.stop()
 
     @property
     def color_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi Greyscale camera.
-        """
+        """CameraIntrinsics : The camera intrinsics for the PhoXi Greyscale camera."""
         return self._camera_intr
 
     @property
     def ir_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi IR camera.
-        """
+        """CameraIntrinsics : The camera intrinsics for the PhoXi IR camera."""
         return self._camera_intr
 
     @property
     def is_running(self):
-        """bool : True if the stream is running, or false otherwise.
-        """
+        """bool : True if the stream is running, or false otherwise."""
         return self._running
 
     @property
     def frame(self):
-        """str : The reference frame of the sensor.
-        """
+        """str : The reference frame of the sensor."""
         return self._frame
 
     @property
     def color_frame(self):
-        """str : The reference frame of the sensor.
-        """
+        """str : The reference frame of the sensor."""
         return self._frame
 
     @property
     def ir_frame(self):
-        """str : The reference frame of the sensor.
-        """
+        """str : The reference frame of the sensor."""
         return self._frame
 
     def start(self):
-        """Start the sensor.
-        """
+        """Start the sensor."""
         running = self._phoxi.start()
         return running
 
     def stop(self):
-        """Stop the sensor.
-        """
+        """Stop the sensor."""
         # Check that everything is running
         if not self._running:
-            logging.warning('Colorized PhoXi not running. Aborting stop')
+            logging.warning("Colorized PhoXi not running. Aborting stop")
             return False
 
         self._phoxi.stop()
@@ -155,14 +156,20 @@ class ColorizedPhoXiSensor(CameraSensor):
         # Project the point cloud into the webcam's frame
         target_shape = (depth_im.data.shape[0], depth_im.data.shape[1], 3)
         pc_depth = self._phoxi.ir_intrinsics.deproject(depth_im)
-        pc_color = self._T_webcam_world.inverse().dot(self._T_phoxi_world).apply(pc_depth)
+        pc_color = (
+            self._T_webcam_world.inverse()
+            .dot(self._T_phoxi_world)
+            .apply(pc_depth)
+        )
 
         # Sort the points by their distance from the webcam's apeture
         pc_data = pc_color.data.T
         dists = np.linalg.norm(pc_data, axis=1)
         order = np.argsort(dists)
         pc_data = pc_data[order]
-        pc_color = PointCloud(pc_data.T, frame=self._webcam.color_intrinsics.frame)
+        pc_color = PointCloud(
+            pc_data.T, frame=self._webcam.color_intrinsics.frame
+        )
         sorted_dists = dists[order]
         sorted_depths = depth_im.data.flatten()[order]
 
@@ -171,20 +178,33 @@ class ColorizedPhoXiSensor(CameraSensor):
 
         # Create mask for points that are masked by others
         rounded_icds = np.array(icds / 3.0, dtype=np.uint32)
-        unique_icds, unique_inds, unique_inv = np.unique(rounded_icds, axis=0, return_index=True, return_inverse=True)
+        unique_icds, unique_inds, unique_inv = np.unique(
+            rounded_icds, axis=0, return_index=True, return_inverse=True
+        )
         icd_depths = sorted_dists[unique_inds]
         min_depths_pp = icd_depths[unique_inv]
         depth_delta_mask = np.abs(min_depths_pp - sorted_dists) < 5e-3
 
         # Create mask for points with missing depth or that lie outside the image
-        valid_mask = np.logical_and(np.logical_and(icds[:,0] >= 0, icds[:,0] < self._webcam.color_intrinsics.width),
-                                    np.logical_and(icds[:,1] >= 0, icds[:,1] < self._webcam.color_intrinsics.height))
+        valid_mask = np.logical_and(
+            np.logical_and(
+                icds[:, 0] >= 0,
+                icds[:, 0] < self._webcam.color_intrinsics.width,
+            ),
+            np.logical_and(
+                icds[:, 1] >= 0,
+                icds[:, 1] < self._webcam.color_intrinsics.height,
+            ),
+        )
         valid_mask = np.logical_and(valid_mask, sorted_depths != 0.0)
         valid_mask = np.logical_and(valid_mask, depth_delta_mask)
         valid_icds = icds[valid_mask]
 
-        colors = color_im.data[valid_icds[:,1],valid_icds[:,0],:]
-        color_im_data = np.zeros((target_shape[0] * target_shape[1], target_shape[2]), dtype=np.uint8)
+        colors = color_im.data[valid_icds[:, 1], valid_icds[:, 0], :]
+        color_im_data = np.zeros(
+            (target_shape[0] * target_shape[1], target_shape[2]),
+            dtype=np.uint8,
+        )
         color_im_data[valid_mask] = colors
         color_im_data[order] = color_im_data.copy()
         color_im_data = color_im_data.reshape(target_shape)
