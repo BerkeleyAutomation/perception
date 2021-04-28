@@ -3,23 +3,16 @@ Register Ensenso to the robot
 Author: Jeff Mahler
 """
 import argparse
-import IPython
 import logging
 import numpy as np
 import os
-import struct
-import sys
 import time
 
-from cv_bridge import CvBridge, CvBridgeError
-from ensenso.srv import CalibrateHandEye, CollectPattern, EstimatePatternPose
-from geometry_msgs.msg import Pose, PoseArray
+from ensenso.srv import CollectPattern, EstimatePatternPose
 import rospy
 
 from autolab_core import Point, RigidTransform, YamlConfig
-from perception import DepthImage, EnsensoSensor
-from visualization import Visualizer2D as vis2d
-from visualization import Visualizer3D as vis3d
+from perception import EnsensoSensor
 from yumipy import YuMiRobot
 from yumipy import YuMiConstants as YMC
 

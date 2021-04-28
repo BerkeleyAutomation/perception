@@ -5,35 +5,22 @@ Author: Jeff Mahler
 import argparse
 import cPickle as pkl
 import logging
-import IPython
 import numpy as np
 import os
 import random
-import sys
 import time
 
-import scipy.misc as sm
-import scipy.stats as ss
 
-from keras import backend as K
-from keras.callbacks import Callback, ModelCheckpoint
-from keras.layers import Dense, Input, GlobalAveragePooling2D, Reshape
-from keras.models import Model
-from keras.preprocessing.image import ImageDataGenerator, Iterator, transform_matrix_offset_center, apply_transform
-from keras.applications.imagenet_utils import _obtain_input_shape
+from keras.callbacks import ModelCheckpoint
 from keras.optimizers import SGD, Adam
-from keras.utils import to_categorical
 
 import autolab_core.utils as utils
 from autolab_core import YamlConfig
-from perception import Image, RgbdImage
 from perception.models.constants import *
 from perception.models import ClassificationCNN, FinetunedClassificationCNN
-from perception.models import TrainHistory, TensorDataGenerator, TensorDatasetIterator
-from visualization import Visualizer2D as vis
+from perception.models import TrainHistory, TensorDataGenerator
 
-from dexnet.learning import ClassificationResult
-from dexnet.learning import TensorDataset, Tensor
+from dexnet.learning import TensorDataset
 
 def finetune_classification_cnn(config):
     """ Main function. """

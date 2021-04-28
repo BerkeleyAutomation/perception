@@ -2,16 +2,9 @@
 Test to compare normal computation methods
 Author: Jeff Mahler
 """
-import cv2
 import numpy as np
-import pcl
-import os
 import sys
 
-import IPython
-
-from autolab_core import RigidTransform
-from visualization import Visualizer2D as vis2d
 from visualization import Visualizer3D as vis3d
 
 from perception import DepthImage, CameraIntrinsics

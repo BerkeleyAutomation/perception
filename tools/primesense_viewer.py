@@ -2,7 +2,6 @@
 Simple tool to view output and fps of a primesense RGBD sensor
 Author: Jeff Mahler
 """
-import IPython
 import logging
 import numpy as np
 import time

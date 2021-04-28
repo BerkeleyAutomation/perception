@@ -2,11 +2,7 @@
 Test implementation of ResNet-50
 Author: Jeff Mahler
 """
-import cv2
-import IPython
 import matplotlib.pyplot as plt
-import numpy as np
-import os
 import sys
 
 from perception import ColorImage
@@ -30,5 +26,3 @@ if __name__ == '__main__':
     plt.imshow(im.bgr2rgb().data)
     plt.title('Pred: %s' %(category))
     plt.show()
-
-    IPython.embed()

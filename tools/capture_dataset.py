@@ -4,8 +4,6 @@ Be sure to register beforehand!!!
 Author: Jeff Mahler
 """
 import argparse
-import copy
-import IPython
 import logging
 import numpy as np
 import os
@@ -13,7 +11,6 @@ import pcl
 import rosgraph.roslogging as rl
 import rospy
 import scipy.stats as ss
-import sys
 import trimesh
 
 import matplotlib.pyplot as plt
@@ -24,7 +21,6 @@ from autolab_core.constants import *
 from meshrender import Scene, SceneObject, VirtualCamera, MaterialProperties
 from perception import RgbdSensorFactory, Image, RenderMode
 from visualization import Visualizer2D as vis2d
-from visualization import Visualizer3D as vis3d
 
 GUI_PAUSE = 0.5
 

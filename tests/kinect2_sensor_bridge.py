@@ -3,24 +3,17 @@
 Interface to the Ensenso N* Sensor
 Author: Jeff Mahler
 """
-import IPython
 import logging
-import numpy as np
-import os
-import struct
 import sys
 import time
 import signal
 
 try:
-    from cv_bridge import CvBridge, CvBridgeError
     import rospy
-    import sensor_msgs.msg
-    import sensor_msgs.point_cloud2 as pc2
 except ImportError:
     logging.warning("Failed to import ROS in Kinect2_sensor.py. Kinect will not be able to be used in bridged mode")
     
-from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, Image, RgbdSensorFactory, Kinect2BridgedQuality
+from perception import RgbdSensorFactory, Kinect2BridgedQuality
        
 def main(args):
     # from visualization import Visualizer2D as vis2d

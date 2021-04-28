@@ -4,8 +4,6 @@ Author: Jeff Mahler
 """
 from abc import ABCMeta, abstractmethod
 import colorsys
-import cv2
-import IPython
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,7 +11,7 @@ import scipy.ndimage.morphology as snm
 
 from autolab_core import Box
 
-from .image import BinaryImage, ColorImage, DepthImage
+from .image import BinaryImage, DepthImage
 from .object_render import RenderMode
 
 class RgbdDetection(object):

@@ -2,19 +2,14 @@
 Interface to the Ensenso N* Sensor
 Author: Jeff Mahler
 """
-import IPython
 import logging
 import numpy as np
-import os
 import struct
-import sys
 import time
 
 try:
-    from cv_bridge import CvBridge, CvBridgeError
     import rospy
     from sensor_msgs.msg import CameraInfo, PointCloud2
-    import sensor_msgs.point_cloud2 as pc2
 except ImportError:
     logging.warning("Failed to import ROS in ensenso_sensor.py. ROS functionality not available")
     

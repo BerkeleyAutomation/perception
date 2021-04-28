@@ -3,7 +3,6 @@ Lean classes to encapculate images
 Author: Jeff
 """
 from abc import ABCMeta, abstractmethod
-import IPython
 import logging
 import os
 
@@ -21,14 +20,13 @@ import scipy.spatial.distance as ssd
 import scipy.signal as ssg
 
 import sklearn.cluster as sc
-import sklearn.mixture as smx
 import scipy.ndimage.filters as sf
 import scipy.spatial.distance as ssd
 import skimage.morphology as morph
 import skimage.transform as skt
 import scipy.ndimage.morphology as snm
 
-from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Box, Contour
+from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Contour
 from .constants import *
 
 BINARY_IM_MAX_VAL = np.iinfo(np.uint8).max

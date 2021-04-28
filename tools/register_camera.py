@@ -4,15 +4,12 @@ Authors: Jeff Mahler and Brenton Chu
 """ 
 import argparse
 import cv2
-import IPython
 import logging
 import numpy as np
 import os
-import sys
 import time
 import traceback
 
-from mpl_toolkits.mplot3d import Axes3D
 
 import rospy
 import rosgraph.roslogging as rl
@@ -20,7 +17,6 @@ import rosgraph.roslogging as rl
 from autolab_core import Point, PointCloud, RigidTransform, YamlConfig
 from perception import CameraChessboardRegistration, RgbdSensorFactory
 
-from visualization import Visualizer2D as vis2d
 from visualization import Visualizer3D as vis3d
 from yumipy import YuMiRobot
 from yumipy import YuMiConstants as YMC
