@@ -22,10 +22,7 @@ jobs:
     - name: Check Formatting
       run: |
         flake8 --config=.flake8 .
-        autopep8 --recursive --aggressive --diff --exit-code ros_nodes/
-        autopep8 --recursive --aggressive --diff --exit-code perception/
-        autopep8 --recursive --aggressive --diff --exit-code tools/
-        autopep8 --recursive --aggressive --diff --exit-code tests/
+        black -l 79 --check .
 
   tests:
     name: Run Unit Tests
