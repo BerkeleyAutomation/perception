@@ -18,7 +18,7 @@ jobs:
     - name: Check Formatting
       run: |
         flake8 --config=.flake8 .
-        black -l 79 --check
+        black -l 79 --check .
 
   tests:
     name: Run Unit Tests
