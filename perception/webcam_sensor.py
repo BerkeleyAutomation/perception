@@ -2,7 +2,6 @@ import cv2
 import logging
 import os
 import subprocess
-import shlex
 
 from . import CameraSensor, ColorImage, CameraIntrinsics
 
@@ -48,7 +47,7 @@ class WebcamSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi Greyscale camera."""
+        """Camera intrinsics for the PhoXi Greyscale camera."""
         return self._camera_intr
 
     @property
@@ -106,7 +105,8 @@ class WebcamSensor(CameraSensor):
         Parameters
         ----------
         most_recent: bool
-            If true, the OpenCV buffer is emptied for the webcam before reading the most recent frame.
+            If true, the OpenCV buffer is emptied for the webcam
+            before reading the most recent frame.
 
         Returns
         -------
@@ -119,12 +119,17 @@ class WebcamSensor(CameraSensor):
         for _ in range(1):
             if self._adjust_exposure:
                 try:
-                    command = "v4l2-ctl -d /dev/video{} -c exposure_auto=1 -c exposure_auto_priority=0 -c exposure_absolute=100 -c saturation=60 -c gain=140".format(
-                        self._device_id
-                    )
+                    command = [
+                        "v4l2-ctl",
+                        "-d /dev/video{}".format(self._device_id),
+                        "-c exposure_auto=1",
+                        "-c exposure_auto_priority=0",
+                        "-c exposure_absolute=100",
+                        "-c saturation=60" "-c gain=140",
+                    ]
                     FNULL = open(os.devnull, "w")
                     subprocess.call(
-                        shlex.split(command),
+                        command,
                         stdout=FNULL,
                         stderr=subprocess.STDOUT,
                     )

@@ -24,13 +24,17 @@ class RgbdDetection(object):
     width : int
         width of detected object in pixels
     camera_intr : :obj:`CameraIntrinsics`
-        camera intrinsics that project the detected window into the camera center
+        camera intrinsics that project the detected window into
+        the camera center
     query_im : :obj:`ColorImage`
-        binary segmask for detected object as a 3-channel color image, for backwards comp
+        binary segmask for detected object as a 3-channel color image,
+        for backwards comp
     color_im : :obj:`ColorImage`
-        color thumbnail of detected object, with object masked if binary mask available
+        color thumbnail of detected object, with object masked
+        if binary mask available
     depth_im : :obj:`DepthImage`
-        depth thumbnail of detected object, with object masked if binary mask available
+        depth thumbnail of detected object, with object masked
+        if binary mask available
     binary_im : :obj:`BinaryImage`
         binary segmask of detected object
     depth_im_table : :obj:`DepthImage`
@@ -119,17 +123,6 @@ class RgbdDetection(object):
         point_normal_cloud.remove_zero_points()
         return point_normal_cloud
 
-    def image(self, render_mode):
-        """Get the image associated with a particular render mode"""
-        if render_mode == RenderMode.SEGMASK:
-            return self.query_im
-        elif render_mode == RenderMode.COLOR:
-            return self.color_im
-        elif render_mode == RenderMode.DEPTH:
-            return self.depth_im
-        else:
-            raise ValueError("Render mode %s not supported" % (render_mode))
-
 
 class RgbdDetector(object):
     """Wraps methods for as many distinct objects in the image as possible."""
@@ -187,7 +180,8 @@ class RgbdForegroundMaskDetector(RgbdDetector):
         segmask=None,
     ):
         """
-        Detects all relevant objects in an rgbd image pair using foreground masking.
+        Detects all relevant objects in an rgbd image pair
+        using foreground masking.
 
         Parameters
         ----------
@@ -275,21 +269,21 @@ class RgbdForegroundMaskDetector(RgbdDetector):
 
 class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
     """Detect by identifying all connected components in the foreground of
-    the images using background subtraction.
-    Converts all detections within a specified area into query images for a cnn.
-    Optionally resegements the images using KMeans to remove spurious background pixels.
+    the images using background subtraction. Converts all detections within
+    a specified area into query images for a cnn. Optionally resegements
+    the images using KMeans to remove spurious background pixels.
     """
 
     def _segment_color(
         self, color_im, bounding_box, bgmodel, cfg, vis_segmentation=False
     ):
-        """Re-segments a color image to isolate an object of interest using foreground masking and kmeans"""
+        """Re-segments a color image to isolate an object of interest
+        using foreground masking and kmeans"""
         # read params
         foreground_mask_tolerance = cfg["foreground_mask_tolerance"]
         color_seg_rgb_weight = cfg["color_seg_rgb_weight"]
         color_seg_num_clusters = cfg["color_seg_num_clusters"]
         color_seg_hsv_weight = cfg["color_seg_hsv_weight"]
-        color_seg_dist_pctile = cfg["color_seg_dist_pctile"]
         color_seg_dist_thresh = cfg["color_seg_dist_thresh"]
         color_seg_min_bg_dist = cfg["color_seg_min_bg_dist"]
         min_contour_area = cfg["min_contour_area"]
@@ -395,7 +389,8 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
         segmask=None,
     ):
         """
-        Detects all relevant objects in an rgbd image pair using foreground masking.
+        Detects all relevant objects in an rgbd image pair using
+        foreground masking.
 
         Parameters
         ----------
@@ -440,7 +435,6 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
         if "kinect2_denoising" in cfg.keys() and cfg["kinect2_denoising"]:
             kinect2_denoising = True
             depth_offset = cfg["kinect2_noise_offset"]
-            max_depth = cfg["kinect2_noise_max_depth"]
 
         # mask image using background detection
         bgmodel = color_im.background_model()
@@ -540,7 +534,6 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
             depth_thumbnail = depth_thumbnail.replace_zeros(fill_depth)
             if kinect2_denoising:
                 depth_data = depth_thumbnail.data
-                min_depth = np.min(depth_data)
                 binary_mask_data = binary_thumbnail.data
                 depth_mask_data = depth_thumbnail.mask_binary(
                     binary_thumbnail
@@ -569,8 +562,9 @@ class RgbdForegroundMaskQueryImageDetector(RgbdDetector):
 class PointCloudBoxDetector(RgbdDetector):
     """Detect by removing all points in a point cloud that are outside of
     a given 3D bounding box.
-    Converts all detections within a specified area into query images for a cnn.
-    Optionally resegements the images using KMeans to remove spurious background pixels.
+    Converts all detections within a specified area into query images
+    for a cnn. Optionally resegements the images using KMeans to remove
+    spurious background pixels.
     """
 
     def detect(
@@ -616,7 +610,6 @@ class PointCloudBoxDetector(RgbdDetector):
         box_padding_px = cfg["box_padding_px"]
         crop_height = cfg["image_height"]
         crop_width = cfg["image_width"]
-        depth_grad_thresh = cfg["depth_grad_thresh"]
         point_cloud_mask_only = cfg["point_cloud_mask_only"]
 
         w = cfg["filter_dim"]
@@ -631,7 +624,6 @@ class PointCloudBoxDetector(RgbdDetector):
         if "kinect2_denoising" in cfg.keys() and cfg["kinect2_denoising"]:
             kinect2_denoising = True
             depth_offset = cfg["kinect2_noise_offset"]
-            max_depth = cfg["kinect2_noise_max_depth"]
 
         box = Box(min_pt_box, max_pt_box, "world")
 
@@ -643,7 +635,6 @@ class PointCloudBoxDetector(RgbdDetector):
         depth_im_seg = camera_intr.project_to_image(seg_point_cloud_cam)
 
         # mask image using background detection
-        bgmodel = color_im.background_model()
         binary_im = depth_im_seg.to_binary()
         if segmask is not None:
             binary_im = binary_im.mask_binary(segmask.inverse())
@@ -766,7 +757,6 @@ class PointCloudBoxDetector(RgbdDetector):
             depth_thumbnail = depth_thumbnail.replace_zeros(fill_depth)
             if kinect2_denoising:
                 depth_data = depth_thumbnail.data
-                min_depth = np.min(depth_data)
                 binary_mask_data = binary_thumbnail.data
                 depth_mask_data = depth_thumbnail.mask_binary(
                     binary_thumbnail

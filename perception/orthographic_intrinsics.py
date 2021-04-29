@@ -14,7 +14,9 @@ from .image import DepthImage, PointCloudImage
 
 
 class OrthographicIntrinsics(object):
-    """A set of intrinsic parameters for orthographic point cloud projections"""
+    """A set of intrinsic parameters for orthographic
+    point cloud projections
+    """
 
     def __init__(
         self,
@@ -70,7 +72,7 @@ class OrthographicIntrinsics(object):
 
     @property
     def S(self):
-        """:obj:`numpy.ndarray` : The 3x3 scaling matrix for this projection"""
+        """:obj:`numpy.ndarray` : The 3x3 scaling matrix of this projection"""
         S = np.array(
             [
                 [self._plane_width / self._vol_width, 0, 0],
@@ -82,7 +84,7 @@ class OrthographicIntrinsics(object):
 
     @property
     def t(self):
-        """:obj:`numpy.ndarray` : The 3x1 translation matrix for this projection"""
+        """:obj:`numpy.ndarray` : 3x1 translation vector of this projection"""
         t = np.array(
             [
                 self._plane_width / 2,
@@ -108,7 +110,8 @@ class OrthographicIntrinsics(object):
 
         Parameters
         ----------
-        point_cloud : :obj:`autolab_core.PointCloud` or :obj:`autolab_core.Point`
+        point_cloud : :obj:`autolab_core.PointCloud` or
+          :obj:`autolab_core.Point`
             A PointCloud or Point to project onto the camera image plane.
 
         round_px : bool
@@ -162,7 +165,8 @@ class OrthographicIntrinsics(object):
 
         Parameters
         ----------
-        point_cloud : :obj:`autolab_core.PointCloud` or :obj:`autolab_core.Point`
+        point_cloud : :obj:`autolab_core.PointCloud` or
+          :obj:`autolab_core.Point`
             A PointCloud or Point to project onto the camera image plane.
 
         round_px : bool
@@ -231,8 +235,8 @@ class OrthographicIntrinsics(object):
         Raises
         ------
         ValueError
-            If depth_image is not a valid DepthImage in the same reference frame
-            as the camera.
+            If depth_image is not a valid DepthImage in the same
+            reference frame as the camera.
         """
         # check valid input
         if not isinstance(depth_image, DepthImage):
@@ -276,8 +280,8 @@ class OrthographicIntrinsics(object):
         Raises
         ------
         ValueError
-            If depth_image is not a valid DepthImage in the same reference frame
-            as the camera.
+            If depth_image is not a valid DepthImage in the same
+            reference frame as the camera.
         """
         point_cloud = self.deproject(depth_image)
         point_cloud_im_data = point_cloud.data.T.reshape(
@@ -334,11 +338,13 @@ class OrthographicIntrinsics(object):
         ValueError
             If filename does not have the .intr extension.
         """
-        file_root, file_ext = os.path.splitext(filename)
+        _, file_ext = os.path.splitext(filename)
         if file_ext.lower() != INTR_EXTENSION:
             raise ValueError(
-                "Extension %s not supported for OrhtographicIntrinsics. Must be stored with extension %s"
-                % (file_ext, INTR_EXTENSION)
+                "Extension {} not supported for OrthographicIntrinsics. "
+                "Must be stored with extension {}".format(
+                    file_ext, INTR_EXTENSION
+                )
             )
 
         camera_intr_dict = copy.deepcopy(self.__dict__)
@@ -365,11 +371,13 @@ class OrthographicIntrinsics(object):
         ValueError
             If filename does not have the .intr extension.
         """
-        file_root, file_ext = os.path.splitext(filename)
+        _, file_ext = os.path.splitext(filename)
         if file_ext.lower() != INTR_EXTENSION:
             raise ValueError(
-                "Extension %s not supported for CameraIntrinsics. Must be stored with extension %s"
-                % (file_ext, INTR_EXTENSION)
+                "Extension {} not supported for CameraIntrinsics. "
+                "Must be stored with extension {}".format(
+                    file_ext, INTR_EXTENSION
+                )
             )
 
         f = open(filename, "r")

@@ -8,7 +8,7 @@ from unittest import TestCase
 import logging
 import numpy as np
 
-from .constants import *
+from .constants import NUM_POINTS, NUM_ITERS
 
 from autolab_core import RigidTransform, PointCloud, NormalCloud
 from perception import PointToPlaneICPSolver, PointToPlaneFeatureMatcher

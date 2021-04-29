@@ -31,7 +31,8 @@ class WeightPublisher(object):
         Parameters
         ----------
         id_mask : str
-            A template for the first n digits of the device IDs for valid load cells.
+            A template for the first n digits of the device IDs
+            for valid load cells.
         """
         self._rate = rospy.Rate(rate)
         self._pub = rospy.Publisher(

@@ -75,7 +75,8 @@ class IterativeRegistrationSolver:
 
 
 class PointToPlaneICPSolver(IterativeRegistrationSolver):
-    """Performs Iterated Closest Point with an objective weighted between point-to-point and point-to-plane.
+    """Performs Iterated Closest Point with an objective weighted between
+       point-to-point and point-to-plane.
 
     Attributes
     ----------
@@ -111,9 +112,10 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
         vis=False,
     ):
         """
-        Iteratively register objects to one another using a modified version of point to plane ICP.
-        The cost func is PointToPlane_COST + gamma * PointToPoint_COST.
-        Uses a `stochastic Gauss-Newton step` where on each iteration a smaller number of points is sampled.
+        Iteratively register objects to one another using a modified version
+        of point to plane ICP. The cost func is PointToPlane_COST +
+        gamma * PointToPoint_COST. Uses a `stochastic Gauss-Newton step`
+        where on each iteration a smaller number of points is sampled.
 
         Parameters
         ----------
@@ -161,7 +163,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
             or target_point_cloud.num_points != target_normal_cloud.num_points
         ):
             raise ValueError(
-                "Input point clouds must have the same number of points as corresponding normal cloud"
+                "Input point clouds must have the same number of points \
+                 as corresponding normal cloud"
             )
 
         # extract source and target point and normal data arrays
@@ -232,7 +235,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
                 logging.warning("No correspondences found")
                 break
 
-            # create A and b matrices for Gauss-Newton step on joint cost function
+            # create A and b matrices for Gauss-Newton step on joint cost
+            # function
             A = np.zeros([6, 6])
             b = np.zeros([6, 1])
             Ap = np.zeros([6, 6])
@@ -331,9 +335,10 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
         vis=False,
     ):
         """
-        Iteratively register objects to one another using a modified version of point to plane ICP
-        which only solves for tx and ty (translation in the plane) and theta (rotation about the z axis).
-        The cost func is actually PointToPlane_COST + gamma * PointToPoint_COST
+        Iteratively register objects to one another using a modified version
+        of point to plane ICP which only solves for tx and ty (translation
+        in the plane) and theta (rotation about the z axis). The cost func
+        is actually PointToPlane_COST + gamma * PointToPoint_COST
         Points should be specified in the basis of the planar worksurface.
 
         Parameters
@@ -379,7 +384,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
             or target_point_cloud.num_points != target_normal_cloud.num_points
         ):
             raise ValueError(
-                "Input point clouds must have the same number of points as corresponding normal cloud"
+                "Input point clouds must have the same number of points as \
+                    corresponding normal cloud"
             )
 
         # extract source and target point and normal data arrays
@@ -401,8 +407,6 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
         orig_source_normals = orig_source_normals[valid_inds[0], :]
 
         # alloc buffers for solutions
-        source_mean_point = np.mean(orig_source_points, axis=0)
-        target_mean_point = np.mean(orig_target_points, axis=0)
         R_sol = np.eye(3)
         t_sol = np.zeros([3, 1])
 
@@ -448,7 +452,8 @@ class PointToPlaneICPSolver(IterativeRegistrationSolver):
             if num_corrs == 0:
                 break
 
-            # create A and b matrices for Gauss-Newton step on joint cost function
+            # create A and b matrices for Gauss-Newton step on joint cost
+            # function
             A = np.zeros([3, 3])  # A and b for point to plane cost
             b = np.zeros([3, 1])
             Ap = np.zeros([3, 3])  # A and b for point to point cost

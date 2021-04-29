@@ -59,9 +59,8 @@ if __name__ == "__main__":
             corner_px = resized_color_im.find_chessboard(sx=nx, sy=ny)
             if corner_px is None:
                 logging.error(
-                    "No chessboard detected in sensor {}! Check camera exposure settings".format(
-                        sensor_frame
-                    )
+                    "No chessboard detected in sensor {}! "
+                    "Check camera exposure settings".format(sensor_frame)
                 )
                 exit(1)
             webcam_corner_px = corner_px / resize_factor
@@ -94,7 +93,7 @@ if __name__ == "__main__":
             logging.info("Rotation: ")
             logging.info(T_camera_world.rotation)
 
-        except Exception as e:
+        except Exception:
             logging.error("Failed to register sensor {}".format(sensor_frame))
             traceback.print_exc()
             continue

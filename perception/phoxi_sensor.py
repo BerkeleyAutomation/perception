@@ -16,7 +16,8 @@ try:
     )
 except ImportError:
     logging.warning(
-        "Failed to import ROS in phoxi_sensor.py. PhoXiSensor functionality unavailable."
+        "Failed to import ROS in phoxi_sensor.py. "
+        "PhoXiSensor functionality unavailable."
     )
 
 from . import (
@@ -40,9 +41,11 @@ class PhoXiSensor(CameraSensor):
         Parameters
         ----------
         frame : str
-            A name for the frame in which depth images, normal maps, and RGB images are returned.
+            A name for the frame in which depth images, normal maps,
+            and RGB images are returned.
         device_name : str
-            The string name of the PhoXi device (SN listed on sticker on back sensor).
+            The string name of the PhoXi device
+            (SN listed on sticker on back sensor).
             Old PhoXi: 1703005
             New PhoXi: 2018-02-020-LC3
         size : str
@@ -92,12 +95,12 @@ class PhoXiSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi Greyscale camera."""
+        """CameraIntrinsics : Camera intrinsics for PhoXi Greyscale camera."""
         return self._camera_intr
 
     @property
     def ir_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi IR camera."""
+        """CameraIntrinsics : Camera intrinsics for PhoXi IR camera."""
         return self._camera_intr
 
     @property

@@ -11,7 +11,7 @@ import time
 from ensenso.srv import CollectPattern, EstimatePatternPose
 import rospy
 
-from autolab_core import Point, RigidTransform, YamlConfig
+from autolab_core import Point, RigidTransform, YamlConfig, keyboard_input
 from perception import EnsensoSensor
 from yumipy import YuMiRobot
 from yumipy import YuMiConstants as YMC
@@ -151,7 +151,7 @@ def register_ensenso(config):
         y.right.goto_pose(T_gripper_world)
 
         # wait for human measurement
-        yesno = raw_input("Take measurement. Hit [ENTER] when done")
+        keyboard_input("Take measurement. Hit [ENTER] when done")
         y.right.goto_pose(T_gripper_world_lift)
         y.reset_home()
         y.stop()

@@ -5,6 +5,7 @@ import os
 from autolab_core import RigidTransform, PointCloud
 from . import (
     CameraSensor,
+    Image,
     ColorImage,
     PhoXiSensor,
     WebcamSensor,
@@ -12,7 +13,8 @@ from . import (
 
 
 class ColorizedPhoXiSensor(CameraSensor):
-    """Class for using a Logitech Webcam sensor to colorize a PhoXi's point clouds."""
+    """Class for using a Logitech Webcam sensor to colorize a
+    Photoneo PhoXi's point clouds."""
 
     def __init__(self, phoxi_config, webcam_config, calib_dir, frame="phoxi"):
         """Initialize a webcam-colorized PhoXi sensor.
@@ -51,12 +53,12 @@ class ColorizedPhoXiSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi Greyscale camera."""
+        """CameraIntrinsics : camera intrinsics for PhoXi Greyscale camera."""
         return self._camera_intr
 
     @property
     def ir_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi IR camera."""
+        """CameraIntrinsics : camera intrinsics for the PhoXi IR camera."""
         return self._camera_intr
 
     @property
@@ -101,7 +103,7 @@ class ColorizedPhoXiSensor(CameraSensor):
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`numpy.ndarray`
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
             The ColorImage and DepthImage of the current frame.
         """
         self._webcam.start()
@@ -183,7 +185,8 @@ class ColorizedPhoXiSensor(CameraSensor):
         min_depths_pp = icd_depths[unique_inv]
         depth_delta_mask = np.abs(min_depths_pp - sorted_dists) < 5e-3
 
-        # Create mask for points with missing depth or that lie outside the image
+        # Create mask for points with missing depth or that lie outside the
+        # image
         valid_mask = np.logical_and(
             np.logical_and(
                 icds[:, 0] >= 0,

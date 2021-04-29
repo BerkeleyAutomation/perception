@@ -1,5 +1,6 @@
 """
-Script to register an object in world frame provided transform from cam to cb and from obj to cb
+Script to register an object in world frame provided transform
+from cam to cb and from obj to cb
 Author: Jacky
 """
 import os

@@ -104,7 +104,8 @@ class MVCNNFeature(GlobalFeature):
 
 
 class BagOfFeatures:
-    """Wrapper for a list of features, created for the sake of future bag-of-words reps.
+    """Wrapper for a list of features, created for the sake
+    of future bag-of-words reps.
 
     Attributes
     ----------

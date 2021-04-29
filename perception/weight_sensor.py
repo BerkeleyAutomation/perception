@@ -18,7 +18,8 @@ class WeightSensor(object):
         Parameters
         ----------
         id_mask : str
-            A template for the first n digits of the device IDs for valid load cells.
+            A template for the first n digits of the device IDs
+            for valid load cells.
         ntaps : int
             Maximum number of samples to perform filtering over.
         debug : bool

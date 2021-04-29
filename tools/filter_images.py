@@ -81,7 +81,6 @@ if __name__ == "__main__":
     point_cloud_filtered.data[2, high_indices] = max_height
 
     # re-project and update depth im
-    # depth_im_filtered = camera_intr.project_to_image(T_camera_world.inverse() * point_cloud_filtered)
     logging.info("Clipping took %.3f sec" % (time.time() - clip_start))
 
     # vis
@@ -180,16 +179,9 @@ if __name__ == "__main__":
     # convert to depth image
     project_start = time.time()
     point_cloud_cam = T_camera_world.inverse() * point_cloud_filtered
-    # depth_im_noise = small_camera_intr.project_to_image(point_cloud_cam)
     depth_im_filtered = small_camera_intr.project_to_image(point_cloud_cam)
-    # depth_im_filtered = depth_im_filtered.resize(1.0/rescale_factor)#, interp='nearest')
     noise_mask = depth_im_filtered.to_binary()
-    # depth_im_filtered = depth_im_filtered.inpaint(rescale_factor)
-    # depth_im_noise = depth_im_noise.resize(1.0/rescale_factor)
-    # noise_mask = depth_im_noise.to_binary()
     logging.info("Project took %.3f sec" % (time.time() - project_start))
-    # depth_im_filtered = depth_im.mask_binary(noise_mask)
-    # depth_im_filtered = depth_im_filtered.mask_binary(noise_mask.inverse())
     depth_im_filtered = depth_im_filtered.inpaint(0.5)
 
     filter_stop = time.time()

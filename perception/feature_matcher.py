@@ -7,6 +7,8 @@ import numpy as np
 from scipy import spatial
 import scipy.spatial.distance as ssd
 
+from .features import BagOfFeatures
+
 
 class Correspondences:
     """Wrapper for point-set correspondences.
@@ -45,7 +47,8 @@ class Correspondences:
     def num_matches(self):
         return self.num_matches_
 
-    # Functions to iterate through matches like "for source_corr, target_corr in correspondences"
+    # Functions to iterate through matches like "for source_corr, target_corr
+    # in correspondences"
     def __iter__(self):
         self.iter_count_ = 0
 
@@ -98,7 +101,8 @@ class NormalCorrespondences(Correspondences):
     def target_normals(self):
         return self.target_normals_
 
-    # Functions to iterate through matches like "for source_corr, target_corr in correspondences"
+    # Functions to iterate through matches like "for source_corr, target_corr
+    # in correspondences"
     def __iter__(self):
         self.iter_count_ = 0
 
@@ -116,7 +120,8 @@ class NormalCorrespondences(Correspondences):
 
 class FeatureMatcher:
     """
-    Generic feature matching between local features on a source and target object using nearest neighbors.
+    Generic feature matching between local features on a source and
+    target object using nearest neighbors.
     """
 
     __metaclass__ = ABCMeta
@@ -135,7 +140,8 @@ class FeatureMatcher:
     @abstractmethod
     def match(self, source_obj, target_obj):
         """
-        Matches features between a source and target object. Source and target object types depend on subclass implementation.
+        Matches features between a source and target object. Source and target
+        object types depend on subclass implementation.
         """
         pass
 
@@ -143,7 +149,8 @@ class FeatureMatcher:
 class RawDistanceFeatureMatcher(FeatureMatcher):
     def match(self, source_obj_features, target_obj_features):
         """
-        Matches features between two graspable objects based on a full distance matrix.
+        Matches features between two graspable objects based on
+        a full distance matrix.
 
         Parameters
         ----------
@@ -157,9 +164,9 @@ class RawDistanceFeatureMatcher(FeatureMatcher):
         corrs : :obj:`Correspondences`
             the correspondences between source and target
         """
-        if not isinstance(source_obj_features, f.BagOfFeatures):
+        if not isinstance(source_obj_features, BagOfFeatures):
             raise ValueError("Must supply source bag of object features")
-        if not isinstance(target_obj_features, f.BagOfFeatures):
+        if not isinstance(target_obj_features, BagOfFeatures):
             raise ValueError("Must supply target bag of object features")
 
         # source feature descriptors and keypoints
@@ -168,10 +175,12 @@ class RawDistanceFeatureMatcher(FeatureMatcher):
         source_keypoints = source_obj_features.keypoints
         target_keypoints = target_obj_features.keypoints
 
-        # calculate distance between this model's descriptors and each of the other_model's descriptors
+        # calculate distance between this model's descriptors and each of the
+        # other_model's descriptors
         dists = spatial.distance.cdist(source_descriptors, target_descriptors)
 
-        # calculate the indices of the target_model that minimize the distance to the descriptors in this model
+        # calculate the indices of the target_model that minimize the distance
+        # to the descriptors in this model
         source_closest_descriptors = dists.argmin(axis=1)
         target_closest_descriptors = dists.argmin(axis=0)
         match_indices = []
@@ -205,7 +214,8 @@ class PointToPlaneFeatureMatcher(FeatureMatcher):
     dist_thresh : float
         threshold distance to consider a match valid
     norm_thresh : float
-        threshold cosine distance alignment betwen normals to consider a match valid
+        threshold cosine distance alignment betwen normals
+        to consider a match valid
     """
 
     def __init__(self, dist_thresh=0.05, norm_thresh=0.75):
@@ -217,7 +227,8 @@ class PointToPlaneFeatureMatcher(FeatureMatcher):
         self, source_points, target_points, source_normals, target_normals
     ):
         """
-        Matches points between two point-normal sets. Uses the closest ip to choose matches, with distance for thresholding only.
+        Matches points between two point-normal sets. Uses the closest ip
+        to choose matches, with distance for thresholding only.
 
         Parameters
         ----------

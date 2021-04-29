@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-ROS node that buffers a ROS image stream and allows for grabbing many images simultaneously
+ROS node that buffers a ROS image stream and allows for
+grabbing many images simultaneously.
 """
 import rospy
 from sensor_msgs.msg import Image
@@ -8,7 +9,7 @@ from cv_bridge import CvBridge
 import numpy as np
 
 try:
-    from perception.srv import *
+    from perception.srv import ImageBuffer, ImageBufferResponse
 except ImportError:
     raise RuntimeError("image_buffer unavailable outside of catkin package")
 
@@ -25,11 +26,14 @@ if __name__ == "__main__":
     # Initialize the node.
     rospy.init_node("stream_image_buffer")
 
-    # Arguments:
-    # instream:       string,             ROS image stream to buffer
-    # absolute:       bool, optional      if True, current frame is not prepended to instream (default False)
-    # bufsize:        int, optional       Maximum size of image buffer (number of images stored)
-    # show_framerate: bool, optional      If True, logs number of frames received in the last 10 seconds
+    # Args:
+    # instream (string) ROS image stream to buffer
+    # absolute (bool, optional) if True, current frame is not prepended
+    #                           to instream (default False)
+    # bufsize (int, optional) Maximum size of image buffer
+    #                         (number of images stored) (default 100)
+    # show_framerate (bool, optional) If True, logs number of frames received
+    #                                 in the last 10 seconds (default True)
     instream = rospy.get_param("~instream")
     absolute = rospy.get_param("~absolute", False)
     bufsize = rospy.get_param("~bufsize", 100)
@@ -39,14 +43,16 @@ if __name__ == "__main__":
     if not absolute:
         stream_to_buffer = rospy.get_namespace() + stream_to_buffer
 
-    # Initialize the CvBridge and image buffer list, as well as misc counting things
+    # Initialize the CvBridge and image buffer list,
+    # as well as misc counting things
     bridge = CvBridge()
     buffer = []
     dtype = "float32"
     images_so_far = 0
 
     def callback(data):
-        """Callback function for subscribing to an Image topic and creating a buffer"""
+        """Callback function for subscribing to an
+        Image topic and creating a buffer"""
         global dtype
         global images_so_far
 
@@ -90,10 +96,11 @@ if __name__ == "__main__":
             ret_times = np.asarray([req_time - time for time in ret_times])
         else:
             raise RuntimeError(
-                "{0} is not a value for timing_mode".format(timing_mode)
+                "{0} is not a value for timing_mode".format(req.timing_mode)
             )
 
-        # Stack and unravel images because ROS doesn't like multidimensional arrays
+        # Stack and unravel images because ROS doesn't like
+        # multidimensional arrays
         ret_images = np.dstack(ret_images)
 
         return ImageBufferResponse(

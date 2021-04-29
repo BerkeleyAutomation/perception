@@ -300,7 +300,8 @@ class CameraIntrinsics(object):
 
         Parameters
         ----------
-        point_cloud : :obj:`autolab_core.PointCloud` or :obj:`autolab_core.Point`
+        point_cloud : :obj:`autolab_core.PointCloud` or
+          :obj:`autolab_core.Point`
             A PointCloud or Point to project onto the camera image plane.
 
         round_px : bool
@@ -354,7 +355,8 @@ class CameraIntrinsics(object):
 
         Parameters
         ----------
-        point_cloud : :obj:`autolab_core.PointCloud` or :obj:`autolab_core.Point`
+        point_cloud : :obj:`autolab_core.PointCloud` or
+          :obj:`autolab_core.Point`
             A PointCloud or Point to project onto the camera image plane.
 
         round_px : bool
@@ -423,8 +425,8 @@ class CameraIntrinsics(object):
         Raises
         ------
         ValueError
-            If depth_image is not a valid DepthImage in the same reference frame
-            as the camera.
+            If depth_image is not a valid DepthImage in the same
+            reference frame as the camera.
         """
         # check valid input
         if not isinstance(depth_image, DepthImage):
@@ -463,8 +465,8 @@ class CameraIntrinsics(object):
         Raises
         ------
         ValueError
-            If depth_image is not a valid DepthImage in the same reference frame
-            as the camera.
+            If depth_image is not a valid DepthImage in the same
+            reference frame as the camera.
         """
         point_cloud = self.deproject(depth_image)
         point_cloud_im_data = point_cloud.data.T.reshape(
@@ -520,11 +522,13 @@ class CameraIntrinsics(object):
         ValueError
             If filename does not have the .intr extension.
         """
-        file_root, file_ext = os.path.splitext(filename)
+        _, file_ext = os.path.splitext(filename)
         if file_ext.lower() != INTR_EXTENSION:
             raise ValueError(
-                "Extension %s not supported for CameraIntrinsics. Must be stored with extension %s"
-                % (file_ext, INTR_EXTENSION)
+                "Extension {} not supported for CameraIntrinsics."
+                "Must be stored with extension {}".format(
+                    file_ext, INTR_EXTENSION
+                )
             )
 
         camera_intr_dict = copy.deepcopy(self.__dict__)
@@ -555,8 +559,10 @@ class CameraIntrinsics(object):
         _, file_ext = os.path.splitext(filename)
         if file_ext.lower() != INTR_EXTENSION:
             raise ValueError(
-                "Extension %s not supported for CameraIntrinsics. Must be stored with extension %s"
-                % (file_ext, INTR_EXTENSION)
+                "Extension {} not supported for CameraIntrinsics."
+                "Must be stored with extension {}".format(
+                    file_ext, INTR_EXTENSION
+                )
             )
 
         f = open(filename, "r")

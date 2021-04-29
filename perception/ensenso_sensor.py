@@ -12,7 +12,8 @@ try:
     from sensor_msgs.msg import CameraInfo, PointCloud2
 except ImportError:
     logging.warning(
-        "Failed to import ROS in ensenso_sensor.py. ROS functionality not available"
+        "Failed to import ROS in ensenso_sensor.py. \
+         ROS functionality not available"
     )
 
 from . import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, Image
@@ -95,7 +96,7 @@ class EnsensoSensor(CameraSensor):
 
     @property
     def ir_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the Ensenso IR camera."""
+        """:obj:`CameraIntrinsics` : IR Camera intrinsics for Ensenso."""
         return self._camera_intr
 
     @property

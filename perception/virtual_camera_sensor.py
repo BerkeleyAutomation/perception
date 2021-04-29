@@ -127,19 +127,20 @@ class VirtualSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the sensor's color camera."""
+        """:obj:`CameraIntrinsics` : Sensor Color camera intrinsics."""
         return self._color_intr
 
     @property
     def ir_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the sensor's IR camera."""
+        """:obj:`CameraIntrinsics` : Sensor IR camera intrinsics."""
         return self._ir_intr
 
     def start(self):
         """Starts the sensor stream.
 
-        In this virtualized sensor, this simply resets the image index to zero.
-        Everytime start is called, we start the stream again at the first image.
+        In this virtualized sensor, this simply resets the image index
+        to zero. Everytime start is called, we start the stream again
+        at the first image.
         """
         self._im_index = 0
         self._running = True
@@ -169,7 +170,7 @@ class VirtualSensor(CameraSensor):
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`numpy.ndarray`
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
             The ColorImage and DepthImage of the current frame.
 
         Raises
@@ -198,7 +199,7 @@ class VirtualSensor(CameraSensor):
         )
         depth_im = DepthImage.open(depth_filename, frame=self._frame)
         self._im_index = (self._im_index + 1) % self._num_images
-        return color_im, depth_im, None
+        return color_im, depth_im
 
     def median_depth_img(self, num_img=1):
         """Collect a series of depth images and return the median of the set.
@@ -274,7 +275,7 @@ class TensorDatasetVirtualSensor(VirtualSensor):
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`numpy.ndarray`
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
             The ColorImage and DepthImage of the current frame.
 
         Raises

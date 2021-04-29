@@ -15,17 +15,13 @@ try:
         MVCNNFeature,
         BagOfFeatures,
     )
-    from .feature_extractors import (
-        FeatureExtractor,
-        CNNBatchFeatureExtractor,
-        CNNReusableBatchFeatureExtractor,
-    )
 except ImportError:
     logging.warning(
         "Unable to import CNN modules! Likely due to missing tensorflow."
     )
     logging.warning(
-        "TensorFlow can be installed following the instructions in https://www.tensorflow.org/get_started/os_setup"
+        "TensorFlow can be installed following the instructions "
+        "in https://www.tensorflow.org/get_started/os_setup"
     )
 
 from .feature_matcher import (
@@ -39,6 +35,7 @@ from .image import (
     Image,
     ColorImage,
     DepthImage,
+    IrImage,
     GrayscaleImage,
     RgbdImage,
     GdImage,
@@ -86,22 +83,28 @@ try:
     )
 except ImportError:
     logging.warning(
-        "Unable to import Kinect2 sensor modules! Likely due to missing pylibfreenect2."
+        "Unable to import Kinect2 sensor modules! "
+        "Likely due to missing pylibfreenect2."
     )
     logging.warning(
-        "The pylibfreenect2 library can be installed from https://github.com/r9y9/pylibfreenect2"
+        "The pylibfreenect2 library can be installed "
+        "from https://github.com/r9y9/pylibfreenect2"
     )
 
 try:
     from .primesense_sensor import (
         PrimesenseSensor,
-        PrimesenseSensor_ROS,
         PrimesenseRegistrationMode,
     )
 except ImportError:
     logging.warning(
-        "Unable to import Primsense sensor modules! Likely due to missing OpenNI2."
+        "Unable to import Primsense sensor modules! "
+        "Likely due to missing OpenNI2."
     )
+try:
+    from .primesense_ros_sensor import PrimesenseSensor_ROS
+except ImportError:
+    logging.warning("Unable to import Primesense ROS module!")
 
 try:
     from .realsense_sensor import RealSenseSensor
@@ -131,65 +134,3 @@ except ImportError:
     logging.warning("Unable to import weight sensor modules!")
 
 from .video_recorder import VideoRecorder
-
-__all__ = [
-    "CameraIntrinsics",
-    "AlexNetWeights",
-    "AlexNet",
-    "conv",
-    "RgbdDetection",
-    "RgbdDetector",
-    "RgbdForegroundMaskDetector",
-    "RgbdForegroundMaskQueryImageDetector",
-    "PointCloudBoxDetector",
-    "RgbdDetectorFactory",
-    "FeatureExtractor",
-    "CNNBatchFeatureExtractor",
-    "CNNReusableBatchFeatureExtractor",
-    "Correspondences",
-    "NormalCorrespondences",
-    "FeatureMatcher",
-    "RawDistanceFeatureMatcher",
-    "PointToPlaneFeatureMatcher",
-    "Feature",
-    "LocalFeature",
-    "GlobalFeature",
-    "SHOTFeature",
-    "MVCNNFeature",
-    "BagOfFeatures",
-    "Image",
-    "ColorImage",
-    "DepthImage",
-    "GrayscaleImage",
-    "RgbdImage",
-    "GdImage",
-    "SegmentationImage",
-    "BinaryImage",
-    "PointCloudImage",
-    "NormalCloudImage",
-    "Kinect2PacketPipelineMode",
-    "Kinect2FrameMode",
-    "Kinect2RegistrationMode",
-    "Kinect2DepthMode",
-    "Kinect2BridgedQuality",
-    "Kinect2Sensor",
-    "KinectSensorBridged",
-    "VirtualKinect2Sensor",
-    "Kinect2SensorFactory",
-    "load_images",
-    "EnsensoSensor",
-    "RgbdSensorFactory",
-    "PrimesenseSensor",
-    "VirtualPrimesenseSensor",
-    "PrimesenseSensor_ROS",
-    "PrimesenseRegistrationMode",
-    "RealSenseSensor",
-    "RenderMode",
-    "ObjectRender",
-    "QueryImageBundle",
-    "RegistrationResult",
-    "IterativeRegistrationSolver",
-    "PointToPlaneICPSolver",
-    "OpenCVCameraSensor",
-    "VideoRecorder",
-]

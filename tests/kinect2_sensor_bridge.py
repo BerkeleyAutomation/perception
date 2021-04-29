@@ -12,7 +12,8 @@ try:
     import rospy
 except ImportError:
     logging.warning(
-        "Failed to import ROS in Kinect2_sensor.py. Kinect will not be able to be used in bridged mode"
+        "Failed to import ROS in Kinect2_sensor.py. \
+        Kinect will not be able to be used in bridged mode"
     )
 
 from perception import RgbdSensorFactory, Kinect2BridgedQuality

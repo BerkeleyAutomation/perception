@@ -6,7 +6,6 @@ from abc import ABCMeta, abstractmethod
 import logging
 import os
 
-import six
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,7 +22,7 @@ import skimage.morphology as morph
 import skimage.transform as skt
 
 from autolab_core import PointCloud, NormalCloud, PointNormalCloud, Contour
-from .constants import MAX_DEPTH, MIN_DEPTH, COLOR_IMAGE_EXTS
+from .constants import MAX_DEPTH, MIN_DEPTH, MAX_IR, COLOR_IMAGE_EXTS
 
 BINARY_IM_MAX_VAL = np.iinfo(np.uint8).max
 BINARY_IM_DEFAULT_THRESH = BINARY_IM_MAX_VAL / 2
@@ -126,7 +125,7 @@ class Image(object):
         """
         if not isinstance(data, np.ndarray):
             raise ValueError("Must initialize image with a numpy ndarray")
-        if not isinstance(frame, six.string_types):
+        if not isinstance(frame, str):
             raise ValueError("Must provide string name of frame of data")
 
         self._check_valid_data(data)
@@ -159,7 +158,8 @@ class Image(object):
             data = data[:, :, np.newaxis]
         elif len(data.shape) == 0 or len(data.shape) > 3:
             raise ValueError(
-                "Illegal data array passed to image. Must be 1, 2, or 3 dimensional numpy array"
+                "Illegal data array passed to image. "
+                "Must be 1, 2, or 3 dimensional numpy array"
             )
         return data.astype(original_type)
 
@@ -284,8 +284,8 @@ class Image(object):
             * tuple - Size of the output image.
 
         interp : :obj:`str`, optional
-            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
-            'bicubic', or 'cubic')
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
         """
         pass
 
@@ -294,9 +294,6 @@ class Image(object):
         """Returns True if x can be converted to an image, False otherwise."""
         if len(x.shape) < 2 or len(x.shape) > 3:
             return False
-        dtype = x.dtype
-        height = x.shape[0]
-        width = x.shape[1]
         channels = 1
         if len(x.shape) == 3:
             channels = x.shape[2]
@@ -306,14 +303,13 @@ class Image(object):
 
     @staticmethod
     def from_array(x, frame="unspecified"):
-        """Converts an array of data to an Image based on the values in the array and the data format."""
+        """Converts an array of data to an Image based on the values in
+        the array and the data format."""
 
         if not Image.can_convert(x):
             raise ValueError("Cannot convert array to an Image!")
 
         dtype = x.dtype
-        height = x.shape[0]
-        width = x.shape[1]
         channels = 1
         if len(x.shape) == 3:
             channels = x.shape[2]
@@ -326,12 +322,14 @@ class Image(object):
                 return ColorImage(x, frame)
             else:
                 raise ValueError(
-                    "No available image conversion for uint8 array with 2 channels"
+                    "No available image conversion for uint8 array "
+                    "with 2 channels"
                 )
         elif dtype == np.uint16:
             if channels != 1:
                 raise ValueError(
-                    "No available image conversion for uint16 array with 2 or 3 channels"
+                    "No available image conversion for uint16 array "
+                    "with 2 or 3 channels"
                 )
             return GrayscaleImage(x, frame)
         elif dtype == np.float32 or dtype == np.float64:
@@ -396,7 +394,8 @@ class Image(object):
 
     def align(self, scale, center, angle, height, width):
         """Create a thumbnail from the original image that
-        is scaled by the given factor, centered on the center pixel, oriented along the grasp angle, and cropped to the desired height and width.
+        is scaled by the given factor, centered on the center pixel, oriented
+        along the grasp angle, and cropped to the desired height and width.
 
         Parameters
         ----------
@@ -472,7 +471,8 @@ class Image(object):
         return np.c_[linear_inds / self.width, linear_inds % self.width]
 
     def is_same_shape(self, other_im, check_channels=False):
-        """Checks if two images have the same height and width (and optionally channels).
+        """Checks if two images have the same height and width
+        (and optionally channels).
 
         Parameters
         ----------
@@ -587,7 +587,8 @@ class Image(object):
         ----------
         indices : int or :obj:`tuple` of int
             * int - A linear index.
-            * tuple - An ordered index in row, column, and (optionally) channel order.
+            * tuple - An ordered index in row, column, and (optionally)
+                channel order.
 
         Returns
         -------
@@ -697,12 +698,12 @@ class Image(object):
             The width of the desired image.
 
         center_i : int
-            The center height point at which to crop. If not specified, the center
-            of the image is used.
+            The center height point at which to crop. If not specified,
+            the center of the image is used.
 
         center_j : int
-            The center width point at which to crop. If not specified, the center
-            of the image is used.
+            The center width point at which to crop. If not specified,
+            the center of the image is used.
 
         Returns
         -------
@@ -751,12 +752,12 @@ class Image(object):
             The width of the desired crop box.
 
         center_i : int
-            The center height point of the crop box. If not specified, the center
-            of the image is used.
+            The center height point of the crop box. If not specified,
+            the center of the image is used.
 
         center_j : int
-            The center width point of the crop box. If not specified, the center
-            of the image is used.
+            The center width point of the crop box. If not specified,
+            the center of the image is used.
 
         Returns
         -------
@@ -1072,13 +1073,14 @@ class ColorImage(Image):
             )
 
     def _image_data(self):
-        """Returns the data in image format, with scaling and conversion to uint8 types.
+        """Returns the data in image format, with scaling and conversion
+        to uint8 types.
 
         Returns
         -------
         :obj:`numpy.ndarray` of uint8
-            A 3D matrix representing the image. The first dimension is rows, the
-            second is columns, and the third is the R/G/B entry.
+            A 3D matrix representing the image. The first dimension is rows,
+            the second is columns, and the third is the R/G/B entry.
         """
         return self._data
 
@@ -1142,8 +1144,8 @@ class ColorImage(Image):
             * tuple - Size of the output image.
 
         interp : :obj:`str`, optional
-            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
-            'bicubic', or 'cubic')
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
 
         Returns
         -------
@@ -1189,7 +1191,6 @@ class ColorImage(Image):
         # create images
         img = self.data.astype(np.uint8)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         # Find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray, (sx, sy), None)
@@ -1211,9 +1212,9 @@ class ColorImage(Image):
         Parameters
         ----------
         binary_im : :obj:`BinaryImage`
-            A BinaryImage of the same size as this image, with pixel values of either
-            zero or one. Wherever this image has zero pixels, we'll zero out the
-            pixels of the new image.
+            A BinaryImage of the same size as this image, with pixel values
+            of either zero or one. Wherever this image has zero pixels,
+            we'll zero out the pixels of the new image.
 
         Returns
         -------
@@ -1234,8 +1235,8 @@ class ColorImage(Image):
         bgmodel=None,
     ):
         """Creates a binary image mask for the foreground of an image against
-        a uniformly colored background. The background is assumed to be the mode value of the histogram
-        for each of the color channels.
+        a uniformly colored background. The background is assumed to be the
+        mode value of the histogram for each of the color channels.
 
         Parameters
         ----------
@@ -1252,8 +1253,9 @@ class ColorImage(Image):
             generation.
 
         scale : int
-            Size of background histogram bins -- there will be BINARY_IM_MAX_VAL/size bins
-            in the color histogram for each channel.
+            Size of background histogram bins -- there will be
+            BINARY_IM_MAX_VAL/size bins in the color histogram
+            for each channel.
 
         bgmodel : :obj:`list` of int
             A list containing the red, green, and blue channel modes of the
@@ -1283,7 +1285,7 @@ class ColorImage(Image):
 
         # threshold
         binary_data = cv2.inRange(self.data, lower_bound, upper_bound)
-        binary_data[:, :, ] = (
+        binary_data[:, :,] = (
             BINARY_IM_MAX_VAL
             - binary_data[
                 :,
@@ -1312,8 +1314,9 @@ class ColorImage(Image):
             generation.
 
         scale : int
-            Size of background histogram bins -- there will be BINARY_IM_MAX_VAL/size bins
-            in the color histogram for each channel.
+            Size of background histogram bins -- there will be
+            BINARY_IM_MAX_VAL/size bins in the color histogram
+            for each channel.
 
         Returns
         -------
@@ -1321,11 +1324,9 @@ class ColorImage(Image):
             background.
         """
         # hsv color
-        data = self.data
         if use_hsv:
             pil_im = PImage.fromarray(self._data)
             pil_im = pil_im.convert("HSV")
-            data = np.asarray(pil_im)
 
         # find the black pixels
         nonblack_pixels = np.where(np.sum(self.data, axis=2) > 0)
@@ -1398,8 +1399,9 @@ class ColorImage(Image):
 
     def segment_kmeans(self, rgb_weight, num_clusters, hue_weight=0.0):
         """
-        Segment a color image using KMeans based on spatial and color distances.
-        Black pixels will automatically be assigned to their own 'background' cluster.
+        Segment a color image using KMeans based on spatial and color
+        distances. Black pixels will automatically be assigned to their
+        own 'background' cluster.
 
         Parameters
         ----------
@@ -1449,7 +1451,8 @@ class ColorImage(Image):
         win_size : int
             size of window to use for inpainting
         rescale_factor : float
-            amount to rescale the image for inpainting, smaller numbers increase speed
+            amount to rescale the image for inpainting, smaller numbers
+            increase speed
 
         Returns
         -------
@@ -1583,7 +1586,8 @@ class DepthImage(Image):
         max_depth=MAX_DEPTH,
         twobyte=False,
     ):
-        """Returns the data in image format, with scaling and conversion to uint8 types.
+        """Returns the data in image format, with scaling and conversion to
+        uint8 types.
 
         Parameters
         ----------
@@ -1599,9 +1603,10 @@ class DepthImage(Image):
         Returns
         -------
         :obj:`numpy.ndarray` of uint8
-            A 3D matrix representing the image. The first dimension is rows, the
-            second is columns, and the third is a set of 3 RGB values, each of
-            which is simply the depth entry scaled to between 0 and BINARY_IM_MAX_VAL.
+            A 3D matrix representing the image. The first dimension is rows,
+            the second is columns, and the third is a set of 3 RGB values,
+            each of which is simply the depth entry scaled to between 0
+            and BINARY_IM_MAX_VAL.
         """
         max_val = BINARY_IM_MAX_VAL
         if twobyte:
@@ -1683,8 +1688,8 @@ class DepthImage(Image):
             * tuple - Size of the output image.
 
         interp : :obj:`str`, optional
-            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
-            'bicubic', or 'cubic')
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
 
         Returns
         -------
@@ -1777,7 +1782,8 @@ class DepthImage(Image):
         Parameters
         ----------
         rescale_factor : float
-            amount to rescale the image for inpainting, smaller numbers increase speed
+            amount to rescale the image for inpainting, smaller numbers
+            increase speed
 
         Returns
         -------
@@ -1825,7 +1831,8 @@ class DepthImage(Image):
         Returns
         -------
         :obj:`BinaryImage`
-            Binary image where a pixel value greater than zero indicates an invalid pixel.
+            Binary image where a pixel value greater than zero indicates an
+            invalid pixel.
         """
         # init mask buffer
         mask = np.zeros([self.height, self.width, 1]).astype(np.uint8)
@@ -1844,14 +1851,15 @@ class DepthImage(Image):
         Parameters
         ----------
         binary_im : :obj:`BinaryImage`
-            A BinaryImage of the same size as this image, with pixel values of either
-            zero or one. Wherever this image has zero pixels, we'll zero out the
-            pixels of the new image.
+            A BinaryImage of the same size as this image, with pixel values of
+            either zero or one. Wherever this image has zero pixels, we'll
+            zero out the pixels of the new image.
 
         Returns
         -------
         :obj:`DepthImage`
-            A new DepthImage of the same type, masked by the given binary image.
+            A new DepthImage of the same type, masked by the
+            given binary image.
         """
         data = np.copy(self._data)
         ind = np.where(binary_im.data == 0)
@@ -1889,7 +1897,8 @@ class DepthImage(Image):
 
     def combine_with(self, depth_im):
         """
-        Replaces all zeros in the source depth image with the value of a different depth image
+        Replaces all zeros in the source depth image with the value of a
+        different depth image
 
         Parameters
         ----------
@@ -1995,15 +2004,119 @@ class DepthImage(Image):
         :obj:`DepthImage`
             The new depth image.
         """
-        file_root, file_ext = os.path.splitext(filename)
+        _, file_ext = os.path.splitext(filename)
         data = Image.load_data(filename)
         if file_ext.lower() in COLOR_IMAGE_EXTS:
             data = (data * (MAX_DEPTH / BINARY_IM_MAX_VAL)).astype(np.float32)
         return DepthImage(data, frame)
 
 
+class IrImage(Image):
+    """An IR image in which individual pixels have a single uint16 channel."""
+
+    def __init__(self, data, frame="unspecified"):
+        """Create an IR image from an array of data.
+        Parameters
+        ----------
+        data : :obj:`numpy.ndarray`
+            An array of data with which to make the image. The first dimension
+            of the data should index rows, the second columns, and the third
+            individual pixel elements (IR values as uint16's).
+        frame : :obj:`str`
+            A string representing the frame of reference in which this image
+            lies.
+        Raises
+        ------
+        ValueError
+            If the data is not a properly-formatted ndarray or frame is not a
+            string.
+        """
+        Image.__init__(self, data, frame)
+
+    def _check_valid_data(self, data):
+        """Checks that the given data is a uint16 array with one channel.
+        Parameters
+        ----------
+        data : :obj:`numpy.ndarray`
+            The data to check.
+        Raises
+        ------
+        ValueError
+            If the data is invalid.
+        """
+        if data.dtype.type is not np.uint16:
+            raise ValueError(
+                "Illegal data type. IR images only support 16-bit uint arrays"
+            )
+
+        if len(data.shape) == 3 and data.shape[2] != 1:
+            raise ValueError(
+                "Illegal data type. IR images only support single channel "
+            )
+
+    def _image_data(self):
+        """Returns the data in image format, with scaling and conversion
+        to uint8 types.
+
+        Returns
+        -------
+        :obj:`numpy.ndarray` of uint8
+            A 3D matrix representing the image. The first dimension is rows,
+            the second is columns, and the third is simply the IR entry
+            scaled to between 0 and BINARY_IM_MAX_VAL.
+        """
+        return (self._data * (float(BINARY_IM_MAX_VAL) / MAX_IR)).astype(
+            np.uint8
+        )
+
+    def resize(self, size, interp="bilinear"):
+        """Resize the image.
+
+        Parameters
+        ----------
+        size : int, float, or tuple
+            * int   - Percentage of current size.
+            * float - Fraction of current size.
+            * tuple - Size of the output image.
+        interp : :obj:`str`, optional
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
+
+        Returns
+        -------
+        :obj:`IrImage`
+            The resized image.
+        """
+        resized_data = imresize(self._data, size, interp=interp).astype(
+            np.uint16
+        )
+        return IrImage(resized_data, self._frame)
+
+    @staticmethod
+    def open(filename, frame="unspecified"):
+        """Creates an IrImage from a file.
+        Parameters
+        ----------
+        filename : :obj:`str`
+            The file to load the data from. Must be one of .png, .jpg,
+            .npy, or .npz.
+        frame : :obj:`str`
+            A string representing the frame of reference in which the new image
+            lies.
+        Returns
+        -------
+        :obj:`IrImage`
+            The new IR image.
+        """
+        data = Image.load_data(filename)
+        data = (data * (MAX_IR / BINARY_IM_MAX_VAL)).astype(np.uint16)
+        return IrImage(data, frame)
+
+
 class GrayscaleImage(Image):
-    """A grayscale image in which individual pixels have a single uint8 channel."""
+    """A grayscale image in which individual pixels have a single
+    uint8 channel.
+    """
 
     def __init__(self, data, frame="unspecified"):
         """Create a grayscale image from an array of data.
@@ -2077,8 +2190,8 @@ class GrayscaleImage(Image):
             * tuple - Size of the output image.
 
         interp : :obj:`str`, optional
-            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
-            'bicubic', or 'cubic')
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
 
         Returns
         -------
@@ -2139,12 +2252,13 @@ class BinaryImage(Image):
             An array of data with which to make the image. The first dimension
             of the data should index rows, the second columns, and the third
             individual pixel elements (only one channel, all uint8).
-            The data array will be thresholded
-            and will end up only containing elements that are BINARY_IM_MAX_VAL or 0.
+            The data array will be thresholded and will end up only containing
+            elements that are BINARY_IM_MAX_VAL or 0.
 
         threshold : int
             A threshold value. Any value in the data array greater than
-            threshold will be set to BINARY_IM_MAX_VAL, and all others will be set to 0.
+            threshold will be set to BINARY_IM_MAX_VAL, and all others will be
+            set to 0.
 
         frame : :obj:`str`
             A string representing the frame of reference in which this image
@@ -2178,22 +2292,26 @@ class BinaryImage(Image):
         """
         if data.dtype.type is not np.uint8:
             raise ValueError(
-                "Illegal data type. Binary images only support 8-bit uint arrays"
+                "Illegal data type. \
+                    Binary images only support 8-bit uint arrays"
             )
 
         if len(data.shape) == 3 and data.shape[2] != 1:
             raise ValueError(
-                "Illegal data type. Binary images only support single channel "
+                "Illegal data type. \
+                    Binary images only support single channel "
             )
 
     def _image_data(self):
-        """Returns the data in image format, with scaling and conversion to uint8 types.
+        """Returns the data in image format, with scaling and
+        conversion to uint8 types.
 
         Returns
         -------
         :obj:`numpy.ndarray` of uint8
-            A 3D matrix representing the image. The first dimension is rows, the
-            second is columns, and the third is simply the binary 0/BINARY_IM_MAX_VAL value.
+            A 3D matrix representing the image. The first dimension is rows,
+            the second is columns, and the third is simply the binary
+            0/BINARY_IM_MAX_VAL value.
         """
         return self._data.squeeze()
 
@@ -2208,8 +2326,8 @@ class BinaryImage(Image):
             * tuple - Size of the output image.
 
         interp : :obj:`str`, optional
-            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
-            'bicubic', or 'cubic')
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
 
         Returns
         -------
@@ -2448,8 +2566,9 @@ class BinaryImage(Image):
 
         w : int
             A circular diameter in which to check for pixels.
-            As soon as the current pixel has some non-zero pixel with a diameter
-            w of it, this function returns the current pixel location.
+            As soon as the current pixel has some non-zero pixel with a
+            diameter w of it, this function returns the current
+            pixel location.
 
         t : float
             The step size with which to move pixel along direction.
@@ -2511,8 +2630,9 @@ class BinaryImage(Image):
 
         w : int
             A circular diameter in which to check for non-zero pixels.
-            As soon as the current pixel has some non-zero pixel with a diameter
-            w of it, this function returns the current pixel location.
+            As soon as the current pixel has some non-zero pixel with a
+            diameter w of it, this function returns the current
+            pixel location.
 
         t : float
             The step size with which to move pixel along direction.
@@ -2627,11 +2747,13 @@ class BinaryImage(Image):
         left_boundary : int
             the leftmost boundary of the frame
         right_boundary : int
-            the rightmost boundary of the frame (must be greater than left_boundary)
+            the rightmost boundary of the frame (must be greater than
+            left_boundary)
         upper_boundary : int
             the upper boundary of the frame
         lower_boundary : int
-            the lower boundary of the frame (must be greater than upper_boundary)
+            the lower boundary of the frame (must be greater than
+            upper_boundary)
 
         Returns
         -------
@@ -2667,7 +2789,8 @@ class BinaryImage(Image):
         Returns
         -------
         :obj:`numpy.ndarray`
-            HxW float array containing the distance transform of the binary image
+            HxW float array containing the distance transform of
+            the binary image
         """
         return snm.distance_transform_edt(BINARY_IM_MAX_VAL - self.data)
 
@@ -2808,8 +2931,8 @@ class RgbdImage(Image):
             An array of data with which to make the image. The first dimension
             of the data should index rows, the second columns, and the third
             individual pixel elements (four channels, all float).
-            The first three channels should be the red, greed, and blue channels
-            which must be in the range (0, BINARY_IM_MAX_VAL).
+            The first three channels should be the red, greed, and blue
+            channels which must be in the range (0, BINARY_IM_MAX_VAL).
             The fourth channel should be the depth channel.
 
         frame : :obj:`str`
@@ -2914,9 +3037,9 @@ class RgbdImage(Image):
         Parameters
         ----------
         binary_im : :obj:`BinaryImage`
-            A BinaryImage of the same size as this image, with pixel values of either
-            zero or one. Wherever this image has zero pixels, we'll zero out the
-            pixels of the new image.
+            A BinaryImage of the same size as this image, with pixel values
+            of either zero or one. Wherever this image has zero pixels,
+            we'll zero out the pixels of the new image.
 
         Returns
         -------
@@ -2938,8 +3061,8 @@ class RgbdImage(Image):
             * tuple - Size of the output image.
 
         interp : :obj:`str`, optional
-            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
-            'bicubic', or 'cubic')
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
         """
         # resize channels separately
         color_im_resized = self.color.resize(size, interp)
@@ -2962,8 +3085,8 @@ class RgbdImage(Image):
             The width of the desired image.
 
         center_i : int
-            The center height point at which to crop. If not specified, the center
-            of the image is used.
+            The center height point at which to crop. If not specified,
+            the center of the image is used.
 
         center_j : int
             The center width point at which to crop. If not specified,
@@ -3150,8 +3273,8 @@ class GdImage(Image):
         return DepthImage(self.raw_data[:, :, 1], frame=self.frame)
 
     def _image_data(self, normalize=False):
-        """Returns the data in image format, with scaling and conversion to uint8 types.
-        NOTE: Only returns the color image!!!!
+        """Returns the data in image format, with scaling and conversion
+        to uint8 types. NOTE: Only returns the color image!!!!
 
         Parameters
         ----------
@@ -3161,9 +3284,10 @@ class GdImage(Image):
         Returns
         -------
         :obj:`numpy.ndarray` of uint8
-            A 3D matrix representing the image. The first dimension is rows, the
-            second is columns, and the third is a set of 3 RGB values, each of
-            which is simply the depth entry scaled to between 0 and BINARY_IM_MAX_VAL.
+            A 3D matrix representing the image. The first dimension is rows,
+            the second is columns, and the third is a set of 3 RGB values,
+            each of which is simply the depth entry scaled to between 0
+            and BINARY_IM_MAX_VAL.
         """
         return self.gray_im._image_data(normalize=normalize)
 
@@ -3178,8 +3302,8 @@ class GdImage(Image):
             * tuple - Size of the output image.
 
         interp : :obj:`str`, optional
-            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
-            'bicubic', or 'cubic')
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
         """
         # resize channels separately
         gray_im_resized = self.gray.resize(size, interp)
@@ -3202,12 +3326,12 @@ class GdImage(Image):
             The width of the desired image.
 
         center_i : int
-            The center height point at which to crop. If not specified, the center
-            of the image is used.
+            The center height point at which to crop. If not specified,
+            the center of the image is used.
 
         center_j : int
-            The center width point at which to crop. If not specified, the center
-            of the image is used.
+            The center width point at which to crop. If not specified,
+            the center of the image is used.
 
         Returns
         -------
@@ -3253,12 +3377,14 @@ class SegmentationImage(Image):
             and data.dtype.type is not np.uint16
         ):
             raise ValueError(
-                "Illegal data type. Segmentation images only support 8-bit or 16-bit uint arrays"
+                "Illegal data type. Segmentation images only support \
+                    8-bit or 16-bit uint arrays"
             )
 
         if len(data.shape) == 3 and data.shape[2] != 1:
             raise ValueError(
-                "Illegal data type. Segmentation images only support single channel "
+                "Illegal data type. \
+                    Segmentation images only support single channel."
             )
 
     @property
@@ -3272,16 +3398,19 @@ class SegmentationImage(Image):
         self, grad_sigma=0.5, grad_lower_thresh=0.1, grad_upper_thresh=1.0
     ):
         """
-        Returns the pixels on the boundary between all segments, excluding the zero segment.
+        Returns the pixels on the boundary between all segments,
+        excluding the zero segment.
 
         Parameters
         ----------
         grad_sigma : float
             standard deviation used for gaussian gradient filter
         grad_lower_thresh : float
-            lower threshold on gradient threshold used to determine the boundary pixels
+            lower threshold on gradient threshold used to determine
+            the boundary pixels
         grad_upper_thresh : float
-            upper threshold on gradient threshold used to determine the boundary pixels
+            upper threshold on gradient threshold used to determine
+            the boundary pixels
 
         Returns
         -------
@@ -3308,7 +3437,8 @@ class SegmentationImage(Image):
         return border_px
 
     def segment_mask(self, segnum):
-        """Returns a binary image of just the segment corresponding to the given number.
+        """Returns a binary image of just the segment corresponding
+        to the given number.
 
         Parameters
         ----------
@@ -3331,9 +3461,9 @@ class SegmentationImage(Image):
         Parameters
         ----------
         binary_im : :obj:`BinaryImage`
-            A BinaryImage of the same size as this image, with pixel values of either
-            zero or one. Wherever this image has zero pixels, we'll zero out the
-            pixels of the new image.
+            A BinaryImage of the same size as this image, with pixel values
+            of either zero or one. Wherever this image has zero pixels, we'll
+            zero out the pixels of the new image.
 
         Returns
         -------
@@ -3356,8 +3486,8 @@ class SegmentationImage(Image):
             * tuple - Size of the output image.
 
         interp : :obj:`str`, optional
-            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
-            'bicubic', or 'cubic')
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
         """
         resized_data = imresize(self.data, size, interp=interp).astype(
             np.uint8
@@ -3383,7 +3513,8 @@ class SegmentationImage(Image):
 
 
 class PointCloudImage(Image):
-    """A point cloud image in which individual pixels have three float channels."""
+    """A point cloud image in which individual pixels
+    have three float channels."""
 
     def __init__(self, data, frame="unspecified"):
         """Create a PointCloudImage image from an array of data.
@@ -3425,7 +3556,8 @@ class PointCloudImage(Image):
             and data.dtype.type is not np.float64
         ):
             raise ValueError(
-                "Illegal data type. PointCloud images only support 32-bit or 64-bit float arrays"
+                "Illegal data type. PointCloud images only \
+                    support 32-bit or 64-bit float arrays"
             )
 
         if len(data.shape) != 3 or data.shape[2] != 3:
@@ -3455,8 +3587,8 @@ class PointCloudImage(Image):
             * tuple - Size of the output image.
 
         interp : :obj:`str`, optional
-            Interpolation to use for re-sizing ('nearest', 'lanczos', 'bilinear',
-            'bicubic', or 'cubic')
+            Interpolation to use for re-sizing
+            ('nearest', 'lanczos', 'bilinear', 'bicubic', or 'cubic')
 
         Returns
         -------
@@ -3505,7 +3637,6 @@ class PointCloudImage(Image):
 
                 # check distances
                 d01 = np.abs(v0[2] - v1[2])
-                d02 = np.abs(v0[2] - v2[2])
                 d03 = np.abs(v0[2] - v3[2])
                 d13 = np.abs(v1[2] - v3[2])
                 d23 = np.abs(v2[2] - v3[2])
@@ -3629,7 +3760,8 @@ class PointCloudImage(Image):
 
 
 class NormalCloudImage(Image):
-    """A normal cloud image in which individual pixels have three float channels."""
+    """A normal cloud image in which individual pixels
+    have three float channels."""
 
     def __init__(self, data, frame="unspecified"):
         """Create a NormalCloudImage image from an array of data.
@@ -3671,12 +3803,14 @@ class NormalCloudImage(Image):
             and data.dtype.type is not np.float64
         ):
             raise ValueError(
-                "Illegal data type. NormalCloud images only support 32-bit or 64-bit float arrays"
+                "Illegal data type. NormalCloud images only \
+                    support 32-bit or 64-bit float arrays"
             )
 
         if len(data.shape) != 3 or data.shape[2] != 3:
             raise ValueError(
-                "Illegal data type. NormalCloud images must have three channels"
+                "Illegal data type. \
+                    NormalCloud images must have three channels"
             )
 
         if np.any(

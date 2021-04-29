@@ -14,7 +14,13 @@ import traceback
 import rospy
 import rosgraph.roslogging as rl
 
-from autolab_core import Point, PointCloud, RigidTransform, YamlConfig
+from autolab_core import (
+    Point,
+    PointCloud,
+    RigidTransform,
+    YamlConfig,
+    keyboard_input,
+)
 from perception import CameraChessboardRegistration, RgbdSensorFactory
 
 from visualization import Visualizer3D as vis3d
@@ -90,7 +96,7 @@ if __name__ == "__main__":
             logging.info("Translation: ")
             logging.info(T_camera_world.translation)
 
-        except Exception as e:
+        except Exception:
             logging.error("Failed to register sensor {}".format(sensor_frame))
             traceback.print_exc()
             continue
@@ -435,7 +441,7 @@ if __name__ == "__main__":
             robot.goto_pose(T_gripper_world)
 
             # wait for human measurement
-            yesno = raw_input("Take measurement. Hit [ENTER] when done")
+            keyboard_input("Take measurement. Hit [ENTER] when done")
             robot.goto_pose(T_gripper_world_lift)
 
             # choose target point 2
@@ -469,7 +475,7 @@ if __name__ == "__main__":
             robot.goto_pose(T_gripper_world)
 
             # wait for human measurement
-            yesno = raw_input("Take measurement. Hit [ENTER] when done")
+            keyboard_input("Take measurement. Hit [ENTER] when done")
             robot.goto_pose(T_gripper_world_lift)
             robot.goto_pose(T_orig_gripper_world_lift)
 
@@ -507,7 +513,7 @@ if __name__ == "__main__":
             robot.goto_pose(T_gripper_world)
 
             # wait for human measurement
-            yesno = raw_input("Take measurement. Hit [ENTER] when done")
+            keyboard_input("Take measurement. Hit [ENTER] when done")
             robot.goto_pose(T_gripper_world_lift)
             robot.goto_pose(T_orig_gripper_world_lift)
 

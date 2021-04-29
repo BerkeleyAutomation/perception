@@ -2,7 +2,6 @@
 Class for interfacing with the Primesense RGBD sensor
 Author: Jeff Mahler
 """
-import copy
 import logging
 import numpy as np
 import os
@@ -12,7 +11,8 @@ try:
     import pylibfreenect2 as lf2
 except ImportError:
     logging.warning(
-        "Unable to import pylibfreenect2. Python-only Kinect driver may not work properly."
+        "Unable to import pylibfreenect2. "
+        "Python-only Kinect driver may not work properly."
     )
 
 try:
@@ -21,14 +21,15 @@ try:
     import sensor_msgs.msg
 except ImportError:
     logging.warning(
-        "Failed to import ROS in Kinect2_sensor.py. Kinect will not be able to be used in bridged mode"
+        "Failed to import ROS in Kinect2_sensor.py."
+        "Kinect will not be able to be used in bridged mode"
     )
 
 
 from .constants import MM_TO_METERS, INTR_EXTENSION
 from .camera_intrinsics import CameraIntrinsics
 from .camera_sensor import CameraSensor
-from .image import ColorImage, DepthImage, Image
+from .image import ColorImage, DepthImage, IrImage, Image
 
 
 class Kinect2PacketPipelineMode:
@@ -69,8 +70,8 @@ class Kinect2BridgedQuality:
 
 class Kinect2Sensor(CameraSensor):
     # constants for image height and width (in case they're needed somewhere)
-    """Class for interacting with a Kinect v2 RGBD sensor directly through protonect driver.
-    https://github.com/OpenKinect/libfreenect2
+    """Class for interacting with a Kinect v2 RGBD sensor directly through
+    protonect driver. https://github.com/OpenKinect/libfreenect2
     """
 
     # Constants for image height and width (in case they're needed somewhere)
@@ -87,8 +88,11 @@ class Kinect2Sensor(CameraSensor):
         device_num=0,
         frame=None,
     ):
-        """Initialize a Kinect v2 sensor directly to the protonect driver with the given configuration.
-        When kinect is connected to the protonect driver directly, the iai_kinect kinect_bridge cannot be run at the same time
+        """Initialize a Kinect v2 sensor directly to the protonect driver with
+        the given configuration. When kinect is connected to the protonect
+        driver directly, the iai_kinect kinect_bridge cannot be run at the
+        same time.
+
         Parameters
         ----------
         packet_pipeline_mode : int
@@ -134,10 +138,10 @@ class Kinect2Sensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the Kinect's color camera."""
+        """:obj:`CameraIntrinsics` : Color camera intrinsics of Kinect."""
         if self._device is None:
             raise RuntimeError(
-                "Kinect2 device %s not runnning. Cannot return color intrinsics"
+                "Kinect2 device not runnning. Cannot return color intrinsics"
             )
         camera_params = self._device.getColorCameraParams()
         return CameraIntrinsics(
@@ -150,10 +154,10 @@ class Kinect2Sensor(CameraSensor):
 
     @property
     def ir_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the Kinect's IR camera."""
+        """:obj:`CameraIntrinsics` : IR camera intrinsics for the Kinect."""
         if self._device is None:
             raise RuntimeError(
-                "Kinect2 device %s not runnning. Cannot return IR intrinsics"
+                "Kinect2 device not runnning. Cannot return IR intrinsics"
             )
         camera_params = self._device.getIrCameraParams()
         return CameraIntrinsics(
@@ -314,7 +318,8 @@ class Kinect2Sensor(CameraSensor):
 
     def _frames_and_index_map(self, skip_registration=False):
         """Retrieve a new frame from the Kinect and return a ColorImage,
-        DepthImage, and a map from depth pixels to color pixel indices.
+        DepthImage, IrImage, and a map from depth pixels to color
+        pixel indices.
 
         Parameters
         ----------
@@ -323,9 +328,11 @@ class Kinect2Sensor(CameraSensor):
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame, and an
-            ndarray that maps pixels of the depth image to the index of the
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`,
+          :obj:`IrImage`, :obj:`numpy.ndarray`
+            The ColorImage, DepthImage, and IrImage of the
+            current frame, and an ndarray that maps pixels
+            of the depth image to the index of the
             corresponding pixel in the color image.
 
         Raises
@@ -373,14 +380,14 @@ class Kinect2Sensor(CameraSensor):
             )
 
         # convert to array (copy needed to prevent reference of deleted data
-        color_arr = copy.copy(color.asarray())
+        color_arr = np.copy(color.asarray())
         color_arr[:, :, [0, 2]] = color_arr[:, :, [2, 0]]  # convert BGR to RGB
         color_arr[:, :, 0] = np.fliplr(color_arr[:, :, 0])
         color_arr[:, :, 1] = np.fliplr(color_arr[:, :, 1])
         color_arr[:, :, 2] = np.fliplr(color_arr[:, :, 2])
         color_arr[:, :, 3] = np.fliplr(color_arr[:, :, 3])
-        depth_arr = np.fliplr(copy.copy(depth.asarray()))
-        ir_arr = np.fliplr(copy.copy(ir.asarray()))
+        depth_arr = np.fliplr(np.copy(depth.asarray()))
+        ir_arr = np.fliplr(np.copy(ir.asarray()))
 
         # convert meters
         if self._depth_mode == Kinect2DepthMode.METERS:
@@ -397,9 +404,10 @@ class Kinect2Sensor(CameraSensor):
 
 
 class KinectSensorBridged(CameraSensor):
-    """Class for interacting with a Kinect v2 RGBD sensor through the kinect bridge
-    https://github.com/code-iai/iai_kinect2. This is preferrable for visualization and debug
-    because the kinect bridge will continuously publish image and point cloud info.
+    """Class for interacting with a Kinect v2 RGBD sensor through the kinect
+    bridge https://github.com/code-iai/iai_kinect2. This is preferrable for
+    visualization and debug because the kinect bridge will continuously
+    publish image and point cloud info.
     """
 
     def __init__(
@@ -407,10 +415,12 @@ class KinectSensorBridged(CameraSensor):
         quality=Kinect2BridgedQuality.HD,
         frame="kinect2_rgb_optical_frame",
     ):
-        """Initialize a Kinect v2 sensor which connects to the iai_kinect2 bridge
+        """Initialize a Kinect v2 sensor which connects to the
+        iai_kinect2 bridge
         ----------
         quality : :obj:`str`
-            The quality (HD, Quarter-HD, SD) of the image data that should be subscribed to
+            The quality (HD, Quarter-HD, SD) of the image data that
+            should be subscribed to
         frame : :obj:`str`
             The name of the frame of reference in which the sensor resides.
             If None, this will be set to 'kinect2_rgb_optical_frame'
@@ -480,10 +490,6 @@ class KinectSensorBridged(CameraSensor):
         encoding = image_msg.encoding
         try:
             depth_arr = self._bridge.imgmsg_to_cv2(image_msg, encoding)
-            import pdb
-
-            pdb.set_trace()
-
         except CvBridgeError as e:
             rospy.logerr(e)
         depth = np.array(depth_arr * MM_TO_METERS, np.float32)
@@ -496,7 +502,7 @@ class KinectSensorBridged(CameraSensor):
 
     @property
     def ir_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the Ensenso IR camera."""
+        """:obj:`CameraIntrinsics` : IR camera intrinsics of Kinect."""
         return self._camera_intr
 
     @property
@@ -568,13 +574,13 @@ class KinectSensorBridged(CameraSensor):
         return True
 
     def frames(self):
-        """Retrieve a new frame from the Ensenso and convert it to a ColorImage,
-        a DepthImage, IrImage is always none for this type
+        """Retrieve a new frame from the Kinect and convert it to a ColorImage,
+        a DepthImage is always none for this type
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
 
         Raises
         ------
@@ -593,7 +599,7 @@ class KinectSensorBridged(CameraSensor):
         self._cur_depth_im = None
 
         # TODO add ir image
-        return color_im, depth_im, None
+        return color_im, depth_im
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):
         """Collect a series of depth images and return the median of the set.
@@ -719,19 +725,20 @@ class VirtualKinect2Sensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the Kinect's color camera."""
+        """:obj:`CameraIntrinsics` : Color camera intrinsics of the Kinect."""
         return self._color_intr
 
     @property
     def ir_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the Kinect's IR camera."""
+        """:obj:`CameraIntrinsics` : IR camera intrinsics of the Kinect."""
         return self._ir_intr
 
     def start(self):
         """Starts the Kinect v2 sensor stream.
 
-        In this virtualized sensor, this simply resets the image index to zero.
-        Everytime start is called, we start the stream again at the first image.
+        In this virtualized sensor, this simply resets the image index to
+        zero. Everytime start is called, we start the stream again at the
+        first image.
         """
         self._im_index = 0
         self._running = True
@@ -746,13 +753,13 @@ class VirtualKinect2Sensor(CameraSensor):
             stopped or was not otherwise available.
         """
         if not self._running:
-            return false
+            return False
         self._running = False
         return True
 
     def frames(self):
-        """Retrieve the next frame from the image directory and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve the next frame from the image directory and convert it
+        to a ColorImage, a DepthImage, and an IrImage.
 
         Parameters
         ----------
@@ -761,7 +768,7 @@ class VirtualKinect2Sensor(CameraSensor):
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`
             The ColorImage, DepthImage, and IrImage of the current frame.
 
         Raises
@@ -772,8 +779,9 @@ class VirtualKinect2Sensor(CameraSensor):
         """
         if not self._running:
             raise RuntimeError(
-                "VirtualKinect2 device pointing to %s not runnning. Cannot read frames"
-                % (self._path_to_images)
+                "VirtualKinect2 device pointing "
+                "to {} not running. ".format(self._path_to_images)
+                + "Cannot read frames."
             )
 
         if self._im_index > self._num_images:
@@ -856,11 +864,11 @@ def load_images(cfg):
     camera intrinsics.
 
     The config dictionary must have these keys:
-        - prestored_data -- If 1, use the virtual sensor, else use a real sensor.
-        - prestored_data_dir -- A path to the prestored data dir for a virtual sensor.
+        - prestored_data -- If 1, use the virtual sensor, else real sensor.
+        - prestored_data_dir -- Path to data dir for a virtual sensor.
         - sensor/frame -- The frame of reference for the sensor.
-        - sensor/device_num -- The device number for the real Kinect.
-        - sensor/pipeline_mode -- The mode for the real Kinect's packet pipeline.
+        - sensor/device_num -- Real Kinect device number.
+        - sensor/pipeline_mode -- Real Kinect packet pipeline mode.
         - num_images -- The number of images to generate.
 
     Parameters
@@ -870,7 +878,8 @@ def load_images(cfg):
 
     Returns
     -------
-    :obj:`tuple` of :obj:`list` of :obj:`ColorImage`, :obj:`list` of :obj:`DepthImage`, :obj:`CameraIntrinsics`
+    :obj:`tuple` of :obj:`list` of :obj:`ColorImage`,
+      :obj:`list` of :obj:`DepthImage`, :obj:`CameraIntrinsics`
         A set of ColorImages and DepthImages, and the Kinect's CameraIntrinsics
         for its IR sensor.
     """

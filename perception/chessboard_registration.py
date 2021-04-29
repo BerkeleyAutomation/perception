@@ -3,7 +3,6 @@ Classes for easy chessboard registration
 Authors: Jeff Mahler and Jacky Liang
 """
 import logging
-import math
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -52,7 +51,8 @@ class CameraChessboardRegistration:
 
         Notes
         -----
-        The config must have the parameters specified in the Other Parameters section.
+        The config must have the parameters specified in the
+        Other Parameters section.
 
         Other Parameters
         ----------------
@@ -65,7 +65,8 @@ class CameraChessboardRegistration:
         corners_y : int
             the number of chessboard corners in the y-direction
         color_image_rescale_factor : float
-            amount to rescale the color image for detection (numbers around 4-8 are useful)
+            amount to rescale the color image for detection
+            (numbers around 4-8 are useful)
         vis : bool
             whether or not to visualize the registration
         """
@@ -85,11 +86,8 @@ class CameraChessboardRegistration:
 
         # read params from sensor
         logging.info("Registering camera %s" % (sensor.frame))
-        ir_intrinsics = sensor.ir_intrinsics
 
         # repeat registration multiple times and average results
-        R = np.zeros([3, 3])
-        t = np.zeros([3, 1])
         points_3d_plane = PointCloud(
             np.zeros([3, sx * sy]), frame=sensor.ir_frame
         )
@@ -194,8 +192,8 @@ class CameraChessboardRegistration:
 
         # get points along y
         if point_order == "row_major":
-            coord_pos_x = int(math.floor(sx * sy / 2.0))
-            coord_neg_x = int(math.ceil(sx * sy / 2.0))
+            coord_pos_x = int(np.floor(sx * sy / 2.0))
+            coord_neg_x = int(np.ceil(sx * sy / 2.0))
 
             points_pos_x = points_3d_centered[coord_pos_x:]
             points_neg_x = points_3d_centered[:coord_neg_x]
@@ -206,8 +204,8 @@ class CameraChessboardRegistration:
             x_axis = x_axis / np.linalg.norm(x_axis)
             y_axis = np.cross(n, x_axis)
         else:
-            coord_pos_y = int(math.floor(sx * (sy - 1) / 2.0))
-            coord_neg_y = int(math.ceil(sx * (sy + 1) / 2.0))
+            coord_pos_y = int(np.floor(sx * (sy - 1) / 2.0))
+            coord_neg_y = int(np.ceil(sx * (sy + 1) / 2.0))
             points_pos_y = points_3d_centered[:coord_pos_y]
             points_neg_y = points_3d_centered[coord_neg_y:]
             y_axis = np.mean(points_pos_y.data, axis=1) - np.mean(
@@ -217,7 +215,8 @@ class CameraChessboardRegistration:
             y_axis = y_axis / np.linalg.norm(y_axis)
             x_axis = np.cross(-n, y_axis)
 
-        # produce translation and rotation from plane center and chessboard basis
+        # produce translation and rotation from plane center and chessboard
+        # basis
         rotation_cb_camera = RigidTransform.rotation_from_axes(
             x_axis, y_axis, n
         )

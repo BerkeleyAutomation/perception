@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import unittest
 
-from .constants import *
+from .constants import IM_HEIGHT, IM_WIDTH, BINARY_THRESH, COLOR_IM_FILEROOT
 from perception import (
     ColorImage,
     DepthImage,
@@ -363,52 +363,53 @@ class TestImage(unittest.TestCase):
         caught_out_of_bounds = False
         try:
             c_read = im[-1, j, k]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
         caught_out_of_bounds = False
         try:
             c_read = im[i, -1, k]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
         caught_out_of_bounds = False
         try:
             c_read = im[i, j, -1]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
         caught_out_of_bounds = False
         try:
             c_read = im[height, j, k]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
         caught_out_of_bounds = False
         try:
             c_read = im[i, width, k]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
         caught_out_of_bounds = False
         try:
             c_read = im[i, j, 3]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
-        # test out of bounds slicing on color image. (Python slicing does not cause out of bound)
+        # test out of bounds slicing on color image. (Python slicing does not
+        # cause out of bound)
         caught_out_of_bounds = False
         try:
             c_read = im[
                 -1:i_stop:i_step, j_start:j_stop:j_step, k_start:k_stop:k_step
             ]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
@@ -417,7 +418,7 @@ class TestImage(unittest.TestCase):
             c_read = im[
                 i_start:i_stop:i_step, -1:j_stop:j_step, k_start:k_stop:k_step
             ]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
@@ -426,7 +427,7 @@ class TestImage(unittest.TestCase):
             c_read = im[
                 i_start:i_stop:i_step, j_start:j_stop:j_step, -1:k_stop:k_step
             ]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
@@ -437,7 +438,7 @@ class TestImage(unittest.TestCase):
                 j_start:j_stop:j_step,
                 k_start:k_stop:k_step,
             ]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
@@ -448,7 +449,7 @@ class TestImage(unittest.TestCase):
                 j_start : width + 1 : j_step,
                 k_start:k_stop:k_step,
             ]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 
@@ -457,7 +458,7 @@ class TestImage(unittest.TestCase):
             c_read = im[
                 i_start:i_stop:i_step, j_start:j_stop:j_step, k_start:4:k_step
             ]
-        except ValueError as e:
+        except ValueError:
             caught_out_of_bounds = True
         self.assertTrue(caught_out_of_bounds)
 

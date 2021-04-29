@@ -23,7 +23,7 @@ from autolab_core import (
     TensorDataset,
     YamlConfig,
 )
-from autolab_core.constants import *
+from autolab_core.constants import TRAIN_ID, TEST_ID
 from meshrender import Scene, SceneObject, VirtualCamera, MaterialProperties
 from perception import RgbdSensorFactory, RenderMode
 from visualization import Visualizer2D as vis2d
@@ -97,7 +97,6 @@ def preprocess_images(
         ec.set_MaxClusterSize(max_cluster_size)
         ec.set_SearchMethod(tree)
         cluster_indices = ec.Extract()
-        num_clusters = len(cluster_indices)
 
         # read out all points in large clusters
         filtered_points = np.zeros([3, workspace_point_cloud_world.num_points])

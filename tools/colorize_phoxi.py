@@ -75,7 +75,8 @@ def main():
     )
     f = open("pcloud.ply", "w")
     f.write(
-        "ply\nformat ascii 1.0\nelement vertex {}\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\n".format(
+        "ply\nformat ascii 1.0\nelement vertex {}\nproperty float x\n"
+        "property float y\nproperty float z\nproperty uchar red\n".format(
             len(vertices)
         )
         + "property uchar green\nproperty uchar blue\nend_header\n"

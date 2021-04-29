@@ -31,7 +31,7 @@ def main():
 
     print("intrinsics matrix: {}".format(camera_intr.K))
 
-    fig, axes = plt.subplots(1, 2)
+    _, axes = plt.subplots(1, 2)
     for ax, im in zip(axes, [color_im.data, depth_im.data]):
         ax.imshow(im)
         ax.axis("off")

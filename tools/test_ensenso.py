@@ -41,7 +41,7 @@ def main(args):
 
     vis2d.figure()
     vis2d.imshow(depth_im)
-    vis2d.title("PhoXi - Raw")
+    vis2d.title("Ensenso - Raw")
     vis2d.show()
 
     vis3d.figure()

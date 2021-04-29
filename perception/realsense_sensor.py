@@ -118,7 +118,7 @@ class RealSenseSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the RealSense color camera."""
+        """:obj:`CameraIntrinsics` : RealSense color camera intrinsics."""
         return CameraIntrinsics(
             self._frame,
             self._intrinsics[0, 0],
