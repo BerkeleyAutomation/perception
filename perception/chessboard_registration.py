@@ -122,7 +122,9 @@ class CameraChessboardRegistration:
                     plt.scatter(corner_px[i, 0], corner_px[i, 1], s=25, c="b")
                 plt.show()
             elif corner_px is None:
-                logging.error('No chessboard detected! Check camera exposure settings')
+                logging.error(
+                    "No chessboard detected! Check camera exposure settings"
+                )
                 continue
 
             # convert back to original image
