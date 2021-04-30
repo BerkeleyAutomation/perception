@@ -9,6 +9,7 @@ import os
 import cv2
 import numpy as np
 import PIL.Image as PImage
+import matplotlib.pyplot as plt
 
 import scipy.signal as ssg
 import scipy.ndimage.filters as sf
@@ -962,10 +963,6 @@ class Image(object):
         cmap : :obj:`Colormap`, optional
             A Colormap object fo the pyplot.
         """
-        import matplotlib
-        matplotlib.use("agg")
-        import matplotlib.pyplot as plt
-
         plt.figure()
         plt.imshow(self.data, cmap=cmap)
         plt.title(title)
@@ -3498,10 +3495,6 @@ class SegmentationImage(Image):
         return SegmentationImage(resized_data, self._frame)
 
     def to_color(self):
-        import matplotlib
-        matplotlib.use("agg")
-        import matplotlib.pyplot as plt
-
         if self.num_segments > 10:
             color = (np.iinfo(np.uint8).max * plt.cm.tab20(self.data)).astype(
                 np.uint8
