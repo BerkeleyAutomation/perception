@@ -1,4 +1,4 @@
-name: Release autolab_perception
+name: Release Perception
 
 on:
   push:
