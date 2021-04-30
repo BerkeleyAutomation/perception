@@ -1,6 +1,6 @@
 ## Berkeley Autolab Perception Module
 
-[![Build Status](https://travis-ci.org/BerkeleyAutomation/perception.svg?branch=master)](https://travis-ci.org/BerkeleyAutomation/perception)
+[![Build Status](https://github.com/BerkeleyAutomation/perception/actions/workflows/release.yml/badge.svg)]
 
 This package provides a wide variety of useful tools for perception tasks.
 It directly depends on the [Berkeley Autolab Core
