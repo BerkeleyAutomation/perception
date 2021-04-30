@@ -3,4 +3,4 @@ IM_WIDTH = 100
 NUM_POINTS = 100
 NUM_ITERS = 500
 BINARY_THRESH = 127
-COLOR_IM_FILEROOT = 'data/test_color'
+COLOR_IM_FILEROOT = "tests/data/test_color"

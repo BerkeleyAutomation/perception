@@ -2,18 +2,22 @@
 Classes for features of a 3D object surface.
 Author: Jeff Mahler
 """
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 import numpy as np
 
+
 class Feature:
-    """ Abstract class for features """
+    """Abstract class for features"""
+
     __metaclass__ = ABCMeta
+
     def __init__(self):
         pass
 
+
 class LocalFeature(Feature):
-    """ Local (e.g. pointwise) features on shape surfaces.
+    """Local (e.g. pointwise) features on shape surfaces.
 
     Attributes
     ----------
@@ -26,6 +30,7 @@ class LocalFeature(Feature):
     normal : :obj:`numpy.ndarray`
         3D surface normal on shape surface at corresponding point
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self, descriptor, rf, point, normal):
@@ -50,8 +55,9 @@ class LocalFeature(Feature):
     def normal(self):
         return self.normal_
 
+
 class GlobalFeature(Feature):
-    """ Global features of a full shape surface.
+    """Global features of a full shape surface.
 
     Attributes
     ----------
@@ -62,6 +68,7 @@ class GlobalFeature(Feature):
     pose : :obj:`autolab_core.RigidTransform`
         pose of object for the descriptor, if relevant
     """
+
     __metaclass__ = ABCMeta
 
     def __init__(self, key, descriptor, pose=None):
@@ -81,25 +88,32 @@ class GlobalFeature(Feature):
     def pose(self):
         return self.pose_
 
+
 class SHOTFeature(LocalFeature):
-    """ Signature of Oriented Histogram (SHOT) features """ 
+    """Signature of Oriented Histogram (SHOT) features"""
+
     def __init__(self, descriptor, rf, point, normal):
         LocalFeature.__init__(self, descriptor, rf, point, normal)
 
+
 class MVCNNFeature(GlobalFeature):
-    """ Multi-View Convolutional Neural Network (MV-CNN) descriptor """ 
+    """Multi-View Convolutional Neural Network (MV-CNN) descriptor"""
+
     def __init__(self, key, descriptor, pose=None):
         GlobalFeature.__init__(self, key, descriptor, pose)
 
+
 class BagOfFeatures:
-    """ Wrapper for a list of features, created for the sake of future bag-of-words reps.
+    """Wrapper for a list of features, created for the sake
+    of future bag-of-words reps.
 
     Attributes
     ----------
     features : :obj:`list` of :obj:`Feature`
         list of feature objects
     """
-    def __init__(self, features = None):
+
+    def __init__(self, features=None):
         self.features_ = features
         if self.features_ is None:
             self.features_ = []
@@ -107,7 +121,7 @@ class BagOfFeatures:
         self.num_features_ = len(self.features_)
 
     def add(self, feature):
-        """ Add a new feature to the bag.
+        """Add a new feature to the bag.
 
         Parameters
         ----------
@@ -115,10 +129,10 @@ class BagOfFeatures:
             feature to add
         """
         self.features_.append(feature)
-        self.num_features_ = len(self.features_)        
+        self.num_features_ = len(self.features_)
 
     def extend(self, features):
-        """ Add a list of features to the bag.
+        """Add a list of features to the bag.
 
         Parameters
         ----------
@@ -126,10 +140,10 @@ class BagOfFeatures:
             features to add
         """
         self.features_.extend(features)
-        self.num_features_ = len(self.features_)        
+        self.num_features_ = len(self.features_)
 
     def feature(self, index):
-        """ Returns a feature.
+        """Returns a feature.
 
         Parameters
         ----------
@@ -141,12 +155,12 @@ class BagOfFeatures:
         :obj:`Feature`
         """
         if index < 0 or index >= self.num_features_:
-            raise ValueError('Index %d out of range' %(index))
+            raise ValueError("Index %d out of range" % (index))
         return self.features_[index]
 
     def feature_subset(self, indices):
-        """ Returns some subset of the features.
-        
+        """Returns some subset of the features.
+
         Parameters
         ----------
         indices : :obj:`list` of :obj:`int`
@@ -159,7 +173,7 @@ class BagOfFeatures:
         if isinstance(indices, np.ndarray):
             indices = indices.tolist()
         if not isinstance(indices, list):
-            raise ValueError('Can only index with lists')
+            raise ValueError("Can only index with lists")
         return [self.features_[i] for i in indices]
 
     @property
@@ -168,20 +182,20 @@ class BagOfFeatures:
 
     @property
     def descriptors(self):
-        """ Make a nice array of the descriptors """
+        """Make a nice array of the descriptors"""
         return np.array([f.descriptor for f in self.features_])
 
     @property
     def reference_frames(self):
-        """ Make a nice array of the reference frames """
+        """Make a nice array of the reference frames"""
         return np.array([f.reference_frame for f in self.features_])
 
     @property
     def keypoints(self):
-        """ Make a nice array of the keypoints """
+        """Make a nice array of the keypoints"""
         return np.array([f.keypoint for f in self.features_])
 
     @property
     def normals(self):
-        """ Make a nice array of the normals """
+        """Make a nice array of the normals"""
         return np.array([f.normal for f in self.features_])
