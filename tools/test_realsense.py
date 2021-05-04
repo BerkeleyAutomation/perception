@@ -19,11 +19,11 @@ def main():
     assert ids, "[!] No camera detected."
 
     cfg = {}
-    cfg['cam_id'] = ids[0]
-    cfg['filter_depth'] = True
-    cfg['frame'] = 'realsense_overhead'
+    cfg["cam_id"] = ids[0]
+    cfg["filter_depth"] = True
+    cfg["frame"] = "realsense_overhead"
 
-    sensor = RgbdSensorFactory.sensor('realsense', cfg)
+    sensor = RgbdSensorFactory.sensor("realsense", cfg)
     sensor.start()
     camera_intr = sensor.color_intrinsics
     color_im, depth_im, _ = sensor.frames()
@@ -31,12 +31,12 @@ def main():
 
     print("intrinsics matrix: {}".format(camera_intr.K))
 
-    fig, axes = plt.subplots(1, 2)
+    _, axes = plt.subplots(1, 2)
     for ax, im in zip(axes, [color_im.data, depth_im.data]):
         ax.imshow(im)
-        ax.axis('off')
+        ax.axis("off")
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
