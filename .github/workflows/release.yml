@@ -86,8 +86,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
-          with:
-            fetch-depth: 2
+        with:
+          fetch-depth: 2
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v5.1
