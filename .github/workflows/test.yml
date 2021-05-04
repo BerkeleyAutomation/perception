@@ -18,7 +18,7 @@ jobs:
     - name: Check Formatting
       run: |
         flake8 --config=.flake8 .
-        black -l 79 --check
+        black -l 79 --check .
 
   tests:
     name: Run Unit Tests
@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.5, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
     - uses: actions/checkout@v2
@@ -40,10 +40,5 @@ jobs:
         pip install nose2
     - name: Install Perception
       run: pip install .
-    - name: MPL Configure
-      run: |
-        export MPL_DIR=`python -c 'import matplotlib; print(matplotlib.get_configdir())'`
-        mkdir -p ${MPL_DIR}
-        touch ${MPL_DIR}/matplotlibrc
     - name: Run Nose Tests
       run: nose2

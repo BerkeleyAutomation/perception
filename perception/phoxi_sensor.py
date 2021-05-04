@@ -2,32 +2,21 @@ import time
 import logging
 
 import numpy as np
+from autolab_core import DepthImage, GrayscaleImage, CameraIntrinsics, Image
 
-try:
-    import rospy
-    from cv_bridge import CvBridge
-    from sensor_msgs.msg import Image as ImageMessage
-    from std_srvs.srv import Empty
-    from perception.srv import (
-        ConnectCamera,
-        GetDeviceList,
-        GetFrame,
-        TriggerImage,
-    )
-except ImportError:
-    logging.warning(
-        "Failed to import ROS in phoxi_sensor.py. PhoXiSensor functionality unavailable."
-    )
-
-from . import (
-    CameraSensor,
-    DepthImage,
-    ColorImage,
-    GrayscaleImage,
-    CameraIntrinsics,
-    Image,
-    SensorUnresponsiveException,
+import rospy
+from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import Image as ImageMessage
+from std_srvs.srv import Empty
+from perception.srv import (
+    ConnectCamera,
+    GetDeviceList,
+    GetFrame,
+    TriggerImage,
 )
+
+from .camera_sensor import CameraSensor
+from .exceptions import SensorUnresponsiveException
 
 
 class PhoXiSensor(CameraSensor):
@@ -41,9 +30,11 @@ class PhoXiSensor(CameraSensor):
         Parameters
         ----------
         frame : str
-            A name for the frame in which depth images, normal maps, and RGB images are returned.
+            A name for the frame in which depth images, normal maps,
+            and RGB images are returned.
         device_name : str
-            The string name of the PhoXi device (SN listed on sticker on back sensor).
+            The string name of the PhoXi device
+            (SN listed on sticker on back sensor).
             Old PhoXi: 1703005
             New PhoXi: 2018-02-020-LC3
         size : str
@@ -93,12 +84,12 @@ class PhoXiSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi Greyscale camera."""
+        """CameraIntrinsics : Camera intrinsics for PhoXi Greyscale camera."""
         return self._camera_intr
 
     @property
     def ir_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi IR camera."""
+        """CameraIntrinsics : Camera intrinsics for PhoXi IR camera."""
         return self._camera_intr
 
     @property
@@ -166,17 +157,15 @@ class PhoXiSensor(CameraSensor):
         return True
 
     def frames(self):
-        """Retrieve a new frame from the PhoXi and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the PhoXi and convert it to a
+        ColorImage and a DepthImage.
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
         """
         # Run a software trigger
-        times = []
-
         rospy.ServiceProxy("phoxi_camera/start_acquisition", Empty)()
         rospy.ServiceProxy("phoxi_camera/trigger_image", TriggerImage)()
 
@@ -199,7 +188,7 @@ class PhoXiSensor(CameraSensor):
                 raise SensorUnresponsiveException(
                     "PhoXi sensor seems to be non-responsive"
                 )
-        return self._cur_color_im, self._cur_depth_im, None
+        return self._cur_color_im, self._cur_depth_im
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):
         """Collect a series of depth images and return the median of the set.
@@ -268,7 +257,7 @@ class PhoXiSensor(CameraSensor):
             data = np.clip(data, 0.0, 255.0).astype(np.uint8)
             gsimage = GrayscaleImage(data, frame=self._frame)
             self._cur_color_im = gsimage.to_color()
-        except:
+        except (CvBridgeError, ValueError):
             self._cur_color_im = None
 
     def _depth_im_callback(self, msg):
@@ -277,12 +266,12 @@ class PhoXiSensor(CameraSensor):
             self._cur_depth_im = DepthImage(
                 self._bridge.imgmsg_to_cv2(msg) / 1000.0, frame=self._frame
             )
-        except:
+        except (CvBridgeError, ValueError):
             self._cur_depth_im = None
 
     def _normal_map_callback(self, msg):
         """Callback for handling normal maps."""
         try:
             self._cur_normal_map = self._bridge.imgmsg_to_cv2(msg)
-        except:
+        except (CvBridgeError, ValueError):
             self._cur_normal_map = None

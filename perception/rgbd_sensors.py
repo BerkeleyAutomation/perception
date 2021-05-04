@@ -2,19 +2,60 @@
 RGBD Sensor factory
 Author: Jeff Mahler
 """
-from . import (
-    Kinect2Sensor,
-    PrimesenseSensor,
-    RealSenseSensor,
-    VirtualSensor,
-    PrimesenseSensor_ROS,
-    EnsensoSensor,
-    PhoXiSensor,
-    TensorDatasetVirtualSensor,
-    KinectSensorBridged,
-    WebcamSensor,
-    ColorizedPhoXiSensor,
-)
+
+from .virtual_camera_sensor import VirtualSensor, TensorDatasetVirtualSensor
+from .webcam_sensor import WebcamSensor
+
+try:
+    from .kinect2_sensor import Kinect2Sensor
+except BaseException as E:
+    from . import exceptions
+
+    Kinect2Sensor = exceptions.closure(E)
+
+try:
+    from .kinect2_ros_sensor import KinectSensorBridged
+except BaseException as E:
+    from . import exceptions
+
+    KinectSensorBridged = exceptions.closure(E)
+
+try:
+    from .primesense_sensor import PrimesenseSensor
+except BaseException as E:
+    from . import exceptions
+
+    PrimesenseSensor = exceptions.closure(E)
+
+try:
+    from .primesense_ros_sensor import PrimesenseSensor_ROS
+except BaseException as E:
+    from . import exceptions
+
+    PrimesenseSensor_ROS = exceptions.closure(E)
+
+try:
+    from .realsense_sensor import RealSenseSensor
+except BaseException as E:
+    from . import exceptions
+
+    RealSenseSensor = exceptions.closure(E)
+
+try:
+    from .ensenso_sensor import EnsensoSensor
+except BaseException as E:
+    from . import exceptions
+
+    EnsensoSensor = exceptions.closure(E)
+
+try:
+    from .phoxi_sensor import PhoXiSensor
+    from .colorized_phoxi_sensor import ColorizedPhoXiSensor
+except BaseException as E:
+    from . import exceptions
+
+    PhoXiSensor = exceptions.closure(E)
+    ColorizedPhoXiSensor = exceptions.closure(E)
 
 
 class RgbdSensorFactory:
