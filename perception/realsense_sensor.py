@@ -3,13 +3,10 @@ Class for interfacing with the Intel RealSense D400-Series.
 """
 import logging
 import numpy as np
+import pyrealsense2 as rs
+from autolab_core import CameraIntrinsics, ColorImage, DepthImage
 
-try:
-    import pyrealsense2 as rs
-except ImportError:
-    logging.warning("Unable to import pyrealsense2.")
-
-from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage
+from .camera_sensor import CameraSensor
 
 
 class RealSenseRegistrationMode:
@@ -20,9 +17,9 @@ class RealSenseRegistrationMode:
 
 
 class RealSenseSensor(CameraSensor):
-    """Class for interacting with a RealSense D400-series sensor.
+    r"""Class for interacting with a RealSense D400-series sensor.
 
-    pyrealsense2 should be installed from source with the following
+    pyrealsense2 can be installed using pip or from source with the following
     commands:
 
     >>> git clone https://github.com/IntelRealSense/librealsense
@@ -118,7 +115,7 @@ class RealSenseSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the RealSense color camera."""
+        """:obj:`CameraIntrinsics` : RealSense color camera intrinsics."""
         return CameraIntrinsics(
             self._frame,
             self._intrinsics[0, 0],
@@ -225,13 +222,13 @@ class RealSenseSensor(CameraSensor):
         return color, depth
 
     def frames(self):
-        """Retrieve a new frame from the RealSense and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the RealSense and convert it to a
+        ColorImage and a DepthImage
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
 
         Raises
         ------
@@ -239,4 +236,4 @@ class RealSenseSensor(CameraSensor):
             If the RealSense stream is not running.
         """
         color_im, depth_im = self._read_color_and_depth_image()
-        return color_im, depth_im, None
+        return color_im, depth_im

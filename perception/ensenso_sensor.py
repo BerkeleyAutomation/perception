@@ -7,16 +7,11 @@ import numpy as np
 import struct
 import time
 
-try:
-    import rospy
-    from sensor_msgs.msg import CameraInfo, PointCloud2
-except ImportError:
-    logging.warning(
-        "Failed to import ROS in ensenso_sensor.py. ROS functionality not available"
-    )
+import rospy
+from sensor_msgs.msg import CameraInfo, PointCloud2
 
-from .constants import MM_TO_METERS, INTR_EXTENSION
-from . import CameraIntrinsics, CameraSensor, ColorImage, DepthImage, Image
+from autolab_core import CameraIntrinsics, Image, ColorImage, DepthImage
+from .camera_sensor import CameraSensor
 
 
 class EnsensoSensor(CameraSensor):
@@ -96,7 +91,7 @@ class EnsensoSensor(CameraSensor):
 
     @property
     def ir_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the Ensenso IR camera."""
+        """:obj:`CameraIntrinsics` : IR Camera intrinsics for Ensenso."""
         return self._camera_intr
 
     @property
@@ -142,13 +137,13 @@ class EnsensoSensor(CameraSensor):
         return True
 
     def frames(self):
-        """Retrieve a new frame from the Ensenso and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the Ensenso and convert it to a
+        ColorImage and a DepthImage.
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
 
         Raises
         ------

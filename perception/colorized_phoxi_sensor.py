@@ -1,20 +1,16 @@
 import logging
 import numpy as np
 import os
-import time
 
-from autolab_core import RigidTransform, PointCloud
-from . import (
-    CameraSensor,
-    ColorImage,
-    CameraIntrinsics,
-    PhoXiSensor,
-    WebcamSensor,
-)
+from autolab_core import RigidTransform, PointCloud, Image, ColorImage
+from .camera_sensor import CameraSensor
+from .phoxi_sensor import PhoXiSensor
+from .webcam_sensor import WebcamSensor
 
 
 class ColorizedPhoXiSensor(CameraSensor):
-    """Class for using a Logitech Webcam sensor to colorize a PhoXi's point clouds."""
+    """Class for using a Logitech Webcam sensor to colorize a
+    Photoneo PhoXi's point clouds."""
 
     def __init__(self, phoxi_config, webcam_config, calib_dir, frame="phoxi"):
         """Initialize a webcam-colorized PhoXi sensor.
@@ -53,12 +49,12 @@ class ColorizedPhoXiSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi Greyscale camera."""
+        """CameraIntrinsics : camera intrinsics for PhoXi Greyscale camera."""
         return self._camera_intr
 
     @property
     def ir_intrinsics(self):
-        """CameraIntrinsics : The camera intrinsics for the PhoXi IR camera."""
+        """CameraIntrinsics : camera intrinsics for the PhoXi IR camera."""
         return self._camera_intr
 
     @property
@@ -98,13 +94,13 @@ class ColorizedPhoXiSensor(CameraSensor):
         return True
 
     def frames(self):
-        """Retrieve a new frame from the PhoXi and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the PhoXi and convert it to a
+        ColorImage and a DepthImage.
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
         """
         self._webcam.start()
         _, phoxi_depth_im, _ = self._phoxi.frames()
@@ -113,7 +109,7 @@ class ColorizedPhoXiSensor(CameraSensor):
 
         # Colorize PhoXi Image
         phoxi_color_im = self._colorize(phoxi_depth_im, webcam_color_im)
-        return phoxi_color_im, phoxi_depth_im, None
+        return phoxi_color_im, phoxi_depth_im
 
     def median_depth_img(self, num_img=1, fill_depth=0.0):
         """Collect a series of depth images and return the median of the set.
@@ -185,7 +181,8 @@ class ColorizedPhoXiSensor(CameraSensor):
         min_depths_pp = icd_depths[unique_inv]
         depth_delta_mask = np.abs(min_depths_pp - sorted_dists) < 5e-3
 
-        # Create mask for points with missing depth or that lie outside the image
+        # Create mask for points with missing depth or that lie outside the
+        # image
         valid_mask = np.logical_and(
             np.logical_and(
                 icds[:, 0] >= 0,
