@@ -22,6 +22,8 @@ class Kinect2PacketPipelineMode:
 
     OPENGL = 0
     CPU = 1
+    OPENCL = 2
+    AUTO = 3
 
 
 class Kinect2FrameMode:
@@ -59,7 +61,7 @@ class Kinect2Sensor(CameraSensor):
 
     def __init__(
         self,
-        packet_pipeline_mode=Kinect2PacketPipelineMode.CPU,
+        packet_pipeline_mode=Kinect2PacketPipelineMode.AUTO,
         registration_mode=Kinect2RegistrationMode.COLOR_TO_DEPTH,
         depth_mode=Kinect2DepthMode.METERS,
         device_num=0,
@@ -73,8 +75,11 @@ class Kinect2Sensor(CameraSensor):
         Parameters
         ----------
         packet_pipeline_mode : int
-            Either Kinect2PacketPipelineMode.OPENGL or
+            Either Kinect2PacketPipelineMode.OPENGL,
+            Kinect2PacketPipelineMode.OPENCL or
             Kinect2PacketPipelineMode.CPU -- indicates packet processing type.
+            If not specified the packet pipeline will be determined
+            automatically.
 
         registration_mode : int
             Either Kinect2RegistrationMode.NONE or
@@ -175,15 +180,43 @@ class Kinect2Sensor(CameraSensor):
         IOError
             If the Kinect v2 is not detected.
         """
-        # open packet pipeline
-        if self._packet_pipeline_mode == Kinect2PacketPipelineMode.OPENGL:
-            self._pipeline = lf2.OpenGLPacketPipeline()
-        elif self._packet_pipeline_mode == Kinect2PacketPipelineMode.CPU:
-            self._pipeline = lf2.CpuPacketPipeline()
 
         # setup logger
         self._logger = lf2.createConsoleLogger(lf2.LoggerLevel.Warning)
         lf2.setGlobalLogger(self._logger)
+
+        # open packet pipeline
+        self._pipeline = None
+        if (
+            self._packet_pipeline_mode == Kinect2PacketPipelineMode.OPENGL
+            or self._packet_pipeline_mode == Kinect2PacketPipelineMode.AUTO
+        ):
+            # Try OpenGL packet pipeline first or if specified
+            try:
+                self._pipeline = lf2.OpenGLPacketPipeline()
+            except BaseException:
+                logging.warning(
+                    "OpenGL not available. "
+                    "Defaulting to CPU-based packet pipeline."
+                )
+
+        if self._pipeline is None and (
+            self._packet_pipeline_mode == Kinect2PacketPipelineMode.OPENCL
+            or self._packet_pipeline_mode == Kinect2PacketPipelineMode.AUTO
+        ):
+            # Try OpenCL if available
+            try:
+                self._pipeline = lf2.OpenCLPacketPipeline()
+            except BaseException:
+                logging.warning(
+                    "OpenCL not available. Defaulting to CPU packet pipeline."
+                )
+
+        if (
+            self._pipeline is None
+            or self._packet_pipeline_mode == Kinect2PacketPipelineMode.CPU
+        ):  # CPU packet pipeline
+            self._pipeline = lf2.CpuPacketPipeline()
 
         # check devices
         self._fn_handle = lf2.Freenect2()
