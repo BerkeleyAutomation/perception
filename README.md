@@ -1,6 +1,5 @@
 ## Berkeley Autolab Perception Module
-
-[![Github Actions](https://github.com/BerkeleyAutomation/perception/actions/workflows/release.yml/badge.svg)](https://github.com/BerkeleyAutomation/perception/actions) [![PyPI version](https://badge.fury.io/py/autolab-perception.svg)](https://badge.fury.io/py/autolab-perception)
+[![pypi](https://img.shields.io/pypi/v/autolab-perception.svg)](https://pypi.org/project/autolab-perception/) [![python-versions](https://img.shields.io/pypi/pyversions/autolab-perception.svg)](https://pypi.org/project/autolab-perception/) [![status](https://github.com/BerkeleyAutomation/perception/workflows/Release%20Perception/badge.svg)](https://github.com/BerkeleyAutomation/perception/actions) [![style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 This package provides a wide variety of useful tools for perception tasks.
 It directly depends on the [Berkeley Autolab Core
