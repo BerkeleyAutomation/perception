@@ -3,25 +3,23 @@ Class for interfacing with the Intel RealSense D400-Series.
 """
 import logging
 import numpy as np
+import pyrealsense2 as rs
+from autolab_core import CameraIntrinsics, ColorImage, DepthImage
 
-try:
-    import pyrealsense2 as rs
-except ImportError:
-    logging.warning('Unable to import pyrealsense2.')
+from .camera_sensor import CameraSensor
 
-from perception import CameraIntrinsics, CameraSensor, ColorImage, DepthImage
 
 class RealSenseRegistrationMode:
-    """Realsense registration mode.
-    """
+    """Realsense registration mode."""
+
     NONE = 0
     DEPTH_TO_COLOR = 1
 
 
 class RealSenseSensor(CameraSensor):
-    """Class for interacting with a RealSense D400-series sensor.
+    r"""Class for interacting with a RealSense D400-series sensor.
 
-    pyrealsense2 should be installed from source with the following
+    pyrealsense2 can be installed using pip or from source with the following
     commands:
 
     >>> git clone https://github.com/IntelRealSense/librealsense
@@ -39,17 +37,20 @@ class RealSenseSensor(CameraSensor):
     >>> sudo make install
     >>> export PYTHONPATH=$PYTHONPATH:/usr/local/lib
     """
+
     COLOR_IM_HEIGHT = 480
     COLOR_IM_WIDTH = 640
     DEPTH_IM_HEIGHT = 480
     DEPTH_IM_WIDTH = 640
     FPS = 30
 
-    def __init__(self,
-                 cam_id,
-                 filter_depth=True,
-                 frame=None,
-                 registration_mode=RealSenseRegistrationMode.DEPTH_TO_COLOR):
+    def __init__(
+        self,
+        cam_id,
+        filter_depth=True,
+        frame=None,
+        registration_mode=RealSenseRegistrationMode.DEPTH_TO_COLOR,
+    ):
         self._running = None
 
         self.id = cam_id
@@ -59,8 +60,8 @@ class RealSenseSensor(CameraSensor):
         self._frame = frame
 
         if self._frame is None:
-            self._frame = 'realsense'
-        self._color_frame = '%s_color' % (self._frame)
+            self._frame = "realsense"
+        self._color_frame = "%s_color" % (self._frame)
 
         # realsense objects
         self._pipe = rs.pipeline()
@@ -77,8 +78,7 @@ class RealSenseSensor(CameraSensor):
         self._hole_filling = rs.hole_filling_filter()
 
     def _config_pipe(self):
-        """Configures the pipeline to stream color and depth.
-        """
+        """Configures the pipeline to stream color and depth."""
         self._cfg.enable_device(self.id)
 
         # configure the color stream
@@ -87,7 +87,7 @@ class RealSenseSensor(CameraSensor):
             RealSenseSensor.COLOR_IM_WIDTH,
             RealSenseSensor.COLOR_IM_HEIGHT,
             rs.format.bgr8,
-            RealSenseSensor.FPS
+            RealSenseSensor.FPS,
         )
 
         # configure the depth stream
@@ -96,18 +96,16 @@ class RealSenseSensor(CameraSensor):
             RealSenseSensor.DEPTH_IM_WIDTH,
             360 if self._depth_align else RealSenseSensor.DEPTH_IM_HEIGHT,
             rs.format.z16,
-            RealSenseSensor.FPS
+            RealSenseSensor.FPS,
         )
 
     def _set_depth_scale(self):
-        """Retrieve the scale of the depth sensor.
-        """
+        """Retrieve the scale of the depth sensor."""
         sensor = self._profile.get_device().first_depth_sensor()
         self._depth_scale = sensor.get_depth_scale()
 
     def _set_intrinsics(self):
-        """Read the intrinsics matrix from the stream.
-        """
+        """Read the intrinsics matrix from the stream."""
         strm = self._profile.get_stream(rs.stream.color)
         obj = strm.as_video_stream_profile().get_intrinsics()
         self._intrinsics[0, 0] = obj.fx
@@ -117,8 +115,7 @@ class RealSenseSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """:obj:`CameraIntrinsics` : The camera intrinsics for the RealSense color camera.
-        """
+        """:obj:`CameraIntrinsics` : RealSense color camera intrinsics."""
         return CameraIntrinsics(
             self._frame,
             self._intrinsics[0, 0],
@@ -130,35 +127,33 @@ class RealSenseSensor(CameraSensor):
         )
 
     def __del__(self):
-        """Automatically stop the sensor for safety.
-        """
+        """Automatically stop the sensor for safety."""
         if self.is_running:
             self.stop()
 
     @property
     def is_running(self):
-        """bool : True if the stream is running, or false otherwise.
-        """
+        """bool : True if the stream is running, or false otherwise."""
         return self._running
 
     @property
     def frame(self):
-        """:obj:`str` : The reference frame of the sensor.
-        """
+        """:obj:`str` : The reference frame of the sensor."""
         return self._frame
 
     @property
     def color_frame(self):
-        """:obj:`str` : The reference frame of the color sensor.
-        """
+        """:obj:`str` : The reference frame of the color sensor."""
         return self._color_frame
 
     def start(self):
-        """Start the sensor.
-        """
+        """Start the sensor."""
         try:
             self._depth_align = False
-            if self._registration_mode == RealSenseRegistrationMode.DEPTH_TO_COLOR:
+            if (
+                self._registration_mode
+                == RealSenseRegistrationMode.DEPTH_TO_COLOR
+            ):
                 self._depth_align = True
 
             self._config_pipe()
@@ -177,11 +172,10 @@ class RealSenseSensor(CameraSensor):
             print(e)
 
     def stop(self):
-        """Stop the sensor.
-        """
+        """Stop the sensor."""
         # check that everything is running
         if not self._running:
-            logging.warning('Realsense not running. Aborting stop.')
+            logging.warning("Realsense not running. Aborting stop.")
             return False
 
         self._pipe.stop()
@@ -198,8 +192,7 @@ class RealSenseSensor(CameraSensor):
         return out
 
     def _read_color_and_depth_image(self):
-        """Read a color and depth image from the device.
-        """
+        """Read a color and depth image from the device."""
         frames = self._pipe.wait_for_frames()
         if self._depth_align:
             frames = self._align.process(frames)
@@ -208,7 +201,7 @@ class RealSenseSensor(CameraSensor):
         color_frame = frames.get_color_frame()
 
         if not depth_frame or not color_frame:
-            logging.warning('Could not retrieve frames.')
+            logging.warning("Could not retrieve frames.")
             return None, None
 
         if self._filter_depth:
@@ -229,13 +222,13 @@ class RealSenseSensor(CameraSensor):
         return color, depth
 
     def frames(self):
-        """Retrieve a new frame from the RealSense and convert it to a ColorImage,
-        a DepthImage, and an IrImage.
+        """Retrieve a new frame from the RealSense and convert it to a
+        ColorImage and a DepthImage
 
         Returns
         -------
-        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`, :obj:`IrImage`, :obj:`numpy.ndarray`
-            The ColorImage, DepthImage, and IrImage of the current frame.
+        :obj:`tuple` of :obj:`ColorImage`, :obj:`DepthImage`
+            The ColorImage and DepthImage of the current frame.
 
         Raises
         ------
@@ -243,4 +236,4 @@ class RealSenseSensor(CameraSensor):
             If the RealSense stream is not running.
         """
         color_im, depth_im = self._read_color_and_depth_image()
-        return color_im, depth_im, None
+        return color_im, depth_im
