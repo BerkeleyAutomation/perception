@@ -65,7 +65,7 @@ if __name__ == '__main__':
             sensor_config['frame'] = sensor_frame
             logging.info('Creating sensor')
             sensor = RgbdSensorFactory.sensor(sensor_type, sensor_config)
-            logging.info('Starting sensor')
+            logging.info('Starting sensor, class type: {}'.format(sensor))
             sensor.start()
             ir_intrinsics = sensor.ir_intrinsics
             logging.info('Sensor initialized')

@@ -10,8 +10,8 @@ chessboard_registration:
   debug: 1 # show the final pose detection
   scale_amt: 0.1 # scale for vis axes
 
-calib_dir: /mnt/data/diskstation/calib # directory for the output
-chessboard_tf: /mnt/data/diskstation/calib/chessboard/metal_chessboard_to_world_yumi1.tf
+calib_dir: /nfs/diskstation/calib # directory for the output
+chessboard_tf: /nfs/diskstation/calib/chessboard/metal_chessboard_to_world_yumi1.tf
 
 # SENSOR CALIBRATION LIST
 sensors:
@@ -46,7 +46,7 @@ gripper_height: 0.15
 vis_points: 1
 
 # ROBOT VERIFICATION PARAMS
-use_robot: 1
+use_robot: 0
 vis_cb_corners: 0
 gripper_offset_x: 0.0
 gripper_offset_y: 0.0

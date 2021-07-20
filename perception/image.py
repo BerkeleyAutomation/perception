@@ -1129,7 +1129,7 @@ class ColorImage(Image):
         :obj:`ColorImage`
             The resized image.
         """
-        resized_data = imresize(self.data, size, interp=interp).astype(np.uint8)
+        resized_data = (imresize(self.data, size, interp=interp) * 255).astype(np.uint8)
         return ColorImage(resized_data, self._frame)
 
     def find_chessboard(self, sx=6, sy=9):
@@ -1164,6 +1164,20 @@ class ColorImage(Image):
         img = self.data.astype(np.uint8)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        # print('Inside find_chessboard, with img as np.uint8:')
+        # import pdb; pdb.set_trace()
+        # import matplotlib.pyplot as plt
+        # plt.imshow(gray)
+        # plt.show()
+        # print(img.shape, np.min(img), np.max(img), np.mean(img), np.sum(img==0), np.sum(img==1))
+        # gray_255 = (gray*255).astype(np.uint8)
+        # cv2.imwrite('grayscale.png', gray_255)
+        # for Yumi near Triton 1
+        msk = np.zeros(gray.shape)
+        msk[293:611, 433:846] = 1
+        gray = gray * msk
+        gray = gray.astype(np.uint8)
 
         # Find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray, (sx, sy), None)
