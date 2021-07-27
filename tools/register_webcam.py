@@ -9,7 +9,7 @@ import traceback
 
 import cv2
 import numpy as np
-from autolab_core import RigidTransform, YamlConfig
+from autolab_core import RigidTransform, YamlConfig, ColorImage
 
 from perception import RgbdSensorFactory
 
@@ -51,6 +51,16 @@ if __name__ == "__main__":
         sx, sy = reg_cfg["size_x"], reg_cfg["size_y"]
 
         img, _ = sensor.frames()
+
+        # Undistort if possible
+        if "distortion" in sensor_cfg:
+            dist = np.load(sensor_cfg["distortion"])
+            h, w = img.data.shape[:2]
+            newK, roi = cv2.getOptimalNewCameraMatrix(intrinsics.K, dist, (w,h), 1, (w,h))
+            dst = cv2.undistort(img.data, intrinsics.K, dist, None, newK)
+            x, y, w, h = roi
+            img = ColorImage(dst[y:y+h, x:x+w], frame=img.frame)
+
         criteria = (
             cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
             30,

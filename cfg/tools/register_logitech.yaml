@@ -13,3 +13,4 @@ sensor:
   frame: webcam
   intrinsics: calib/webcam.intr
   device_id: 1
+  distortion: calib/webcam_distortion.npy
