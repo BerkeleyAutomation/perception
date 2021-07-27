@@ -1,0 +1,15 @@
+output_dir: calib # directory for the output
+
+# REGISTRATION PARAMS
+chessboard:
+  corners_x: 11 # number of corners in the x direction
+  corners_y: 8  # number of corners in the y direction
+  size_x: 0.02   # width of each square in meters
+  size_y: 0.02  # height of each square in meters
+  tf: calib/chessboard_to_robot.tf
+
+# SENSOR PARAMS
+sensor:
+  frame: webcam
+  intrinsics: calib/webcam.intr
+  device_id: 1

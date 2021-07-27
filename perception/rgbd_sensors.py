@@ -94,7 +94,7 @@ class RgbdSensorFactory:
                 size=cfg["size"],
             )
         elif sensor_type == "webcam":
-            s = WebcamSensor(frame=cfg["frame"], device_id=cfg["device_id"])
+            s = WebcamSensor(frame=cfg["frame"], intrinsics=cfg["intrinsics"], device_id=cfg["device_id"])
         elif sensor_type == "colorized_phoxi":
             s = ColorizedPhoXiSensor(
                 frame=cfg["frame"],

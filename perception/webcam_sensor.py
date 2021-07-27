@@ -9,38 +9,24 @@ from .camera_sensor import CameraSensor
 
 
 class WebcamSensor(CameraSensor):
-    """Class for interfacing with a Logitech webcam sensor (720p)."""
+    """Class for interfacing with a Logitech webcam sensor."""
 
-    def __init__(self, frame="webcam", device_id=0):
+    def __init__(self, frame="webcam", intrinsics=None, device_id=0):
         """Initialize a Logitech webcam sensor.
 
         Parameters
         ----------
-        frame : str
-            A name for the frame in which RGB images are returned.
+        intrinsics : CameraIntrinsics
+            Camera intrinsics object for the camera (can be found using calibrate_camera.py)
         device_id : int
             The device ID for the webcam (by default, zero).
         """
         self._frame = frame
-        self._camera_intr = None
+        self._camera_intr = CameraIntrinsics.load(intrinsics) if intrinsics is not None else None
         self._device_id = device_id
         self._cap = None
         self._running = False
         self._adjust_exposure = True
-
-        # Set up camera intrinsics for the sensor
-        width, height = 1280, 960
-        focal_x, focal_y = 1430.0, 1420.0
-        center_x, center_y = 1280 / 2, 960 / 2
-        self._camera_intr = CameraIntrinsics(
-            self._frame,
-            focal_x,
-            focal_y,
-            center_x,
-            center_y,
-            height=height,
-            width=width,
-        )
 
     def __del__(self):
         """Automatically stop the sensor for safety."""
@@ -76,8 +62,9 @@ class WebcamSensor(CameraSensor):
             self._cap = None
             return False
 
-        self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, self._camera_intr.width)
-        self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._camera_intr.height)
+        if self._camera_intr is not None:
+            self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, self._camera_intr.width)
+            self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._camera_intr.height)
         self._running = True
 
         # Capture 5 frames to flush webcam sensor
