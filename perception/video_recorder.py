@@ -3,7 +3,6 @@ Class to record videos from webcams using ffmpeg-python
 Author: Mike Danielczuk
 """
 import ffmpeg
-import time
 
 
 class VideoRecorder:
@@ -42,30 +41,33 @@ class VideoRecorder:
     def start(self):
         pass
 
-    def start_recording(self, output_file, overwrite=True):
+    def start_recording(self, output_file, filters={}, overwrite=True):
         """Starts recording to a given output video file.
 
         Parameters
         ----------
         output_file : :obj:`str`
             filename to write video to
+        filters : dict of dicts
+            filters to apply to the video
+        overwrite : bool
+            whether to overwrite the output file if it exists
         """
         if self._recording:
             raise Exception(
                 "Cannot record a video while one is already recording!"
             )
         self._recording = True
-        self._video = (
-            ffmpeg.input(
-                "/dev/video{}".format(self._device),
-                f=self._format,
-                s="{}x{}".format(*self._res),
-                framerate=self._fps,
-            )
-            .output(output_file)
-            .run_async(quiet=True, overwrite_output=overwrite)
+        stream = ffmpeg.input(
+            "/dev/video{}".format(self._device),
+            f=self._format,
+            s="{}x{}".format(*self._res),
+            framerate=self._fps,
         )
-        time.sleep(2)  # Pause until video starts
+        for filter_name, filter_kwargs in filters.items():
+            stream = ffmpeg.filter(stream, filter_name, **filter_kwargs)
+        stream = ffmpeg.output(stream, output_file)
+        self._video = ffmpeg.run_async(stream, quiet=True, overwrite_output=overwrite)
 
     def stop_recording(self):
         """Stops writing video to file."""
