@@ -1,9 +1,9 @@
-import cv2
 import logging
 import os
 import subprocess
 
-from autolab_core import ColorImage, CameraIntrinsics
+import cv2
+from autolab_core import CameraIntrinsics, ColorImage
 
 from .camera_sensor import CameraSensor
 
@@ -49,7 +49,7 @@ class WebcamSensor(CameraSensor):
 
     @property
     def color_intrinsics(self):
-        """Camera intrinsics for the PhoXi Greyscale camera."""
+        """Camera intrinsics for the webcam."""
         return self._camera_intr
 
     @property

@@ -1,19 +1,21 @@
-"""Wrapper class for weight sensor.
-"""
-import numpy as np
-import rospy
-from scipy import signal
+"""Wrapper class for weight sensor."""
+import glob
+import threading
 import time
 
-from std_msgs.msg import Float32MultiArray
-from std_srvs.srv import Empty
+import numpy as np
+import serial
+from autolab_core import Logger
+from scipy import signal
+
+from .constants import LBS_TO_GRAMS
 
 
 class WeightSensor(object):
-    """Class for reading from a set of load cells."""
+    """Driver for weight sensors."""
 
-    def __init__(self, id_mask="F1804", ntaps=4, debug=False):
-        """Initialize the WeightSensor.
+    def __init__(self, id_mask="F1804", ntaps=4, log=True):
+        """Initialize the weight sensor.
 
         Parameters
         ----------
@@ -22,109 +24,154 @@ class WeightSensor(object):
             for valid load cells.
         ntaps : int
             Maximum number of samples to perform filtering over.
-        debug : bool
-            If True, have sensor seem to work normally but just return zeros.
+        log : bool
+            Use a logger
         """
         self._id_mask = id_mask
-        self._weight_buffers = []
         self._ntaps = ntaps
-        self._debug = debug
         self._filter_coeffs = signal.firwin(ntaps, 0.1)
         self._running = False
+        self._cur_weights = None
+        self._read_thread = None
+        self._write_lock = threading.Condition()
+        self.logger = Logger.get_logger("WeightSensor") if log else None
 
     def start(self):
-        """Start the sensor."""
-        if rospy.get_name() == "/unnamed":
-            raise ValueError("Weight sensor must be run inside a ros node!")
-        self._weight_subscriber = rospy.Subscriber(
-            "weight_sensor/weights", Float32MultiArray, self._weights_callback
-        )
+        """Start the sensor
+        (connect and start thread for reading weight values)
+        """
+
+        if self._running:
+            return
+        self._serials = self._connect(self._id_mask)
+        if len(self._serials) == 0:
+            raise ValueError(
+                "Error -- No loadstar weight sensors connected to machine!"
+            )
+
+        # Flush the sensor's communications
+        self._flush()
         self._running = True
+
+        # Start thread for reading weight sensor
+        self._read_thread = threading.Thread(
+            target=self._read_weights, daemon=True
+        )
+        self._read_thread.start()
 
     def stop(self):
         """Stop the sensor."""
         if not self._running:
             return
-        self._weight_subscriber.unregister()
         self._running = False
+        self._read_thread.join()
+        self._serials = None
+        self._read_thread = None
 
-    def total_weight(self):
-        """Read a weight from the sensor in grams.
+    def reset(self):
+        """Starts and stops the sensor"""
+        self.stop()
+        self.start()
 
-        Returns
-        -------
-        weight : float
-            The sensor weight in grams.
-        """
-        weights = self._raw_weights()
-        if weights.shape[1] == 0:
-            return 0.0
-        elif weights.shape[1] < self._ntaps:
-            return np.sum(np.mean(weights, axis=1))
-        else:
-            return self._filter_coeffs.dot(np.sum(weights, axis=0))
+    def _connect(self, id_mask):
+        """Connects to all of the load cells serially."""
+        # Get all devices attached as USB serial
+        all_devices = glob.glob("/dev/ttyUSB*")
 
-    def individual_weights(self):
-        """Read individual weights from the load cells in grams.
+        # Identify which of the devices are LoadStar Serial Sensors
+        sensors = []
+        for device in all_devices:
+            try:
+                ser = serial.Serial(port=device, timeout=0.5, exclusive=True)
+                ser.write("ID\r".encode())
+                time.sleep(0.05)
+                resp = ser.read(13).decode()
+                ser.close()
 
-        Returns
-        -------
-        weight : float
-            The sensor weight in grams.
-        """
-        weights = self._raw_weights()
-        if weights.shape[1] == 0:
-            return np.zeros(weights.shape[0])
-        elif weights.shape[1] < self._ntaps:
-            return np.mean(weights, axis=1)
-        else:
-            return weights.dot(self._filter_coeffs)
+                if len(resp) >= 10 and resp[: len(id_mask)] == id_mask:
+                    sensors.append((device, resp.rstrip("\r\n")))
+            except (serial.SerialException, serial.SerialTimeoutException):
+                continue
+        sensors = sorted(sensors, key=lambda x: x[1])
+
+        # Connect to each of the serial devices
+        serials = []
+        for device, key in sensors:
+            ser = serial.Serial(port=device, timeout=0.5)
+            serials.append(ser)
+            if self.logger is not None:
+                self.logger.info(
+                    "Connected to load cell {} at {}".format(key, device)
+                )
+        return serials
+
+    def _flush(self):
+        """Flushes all of the serial ports."""
+        for ser in self._serials:
+            ser.flush()
+            ser.flushInput()
+            ser.flushOutput()
+        time.sleep(0.02)
 
     def tare(self):
-        """Zero out (tare) the sensor."""
+        """Zeros out (tare) all of the load cells."""
+        with self._write_lock:
+            self._write_lock.wait()
+            for ser in self._serials:
+                ser.write("TARE\r".encode())
+                ser.flush()
+                ser.flushInput()
+                ser.flushOutput()
+            time.sleep(0.02)
+        if self.logger is not None:
+            self.logger.info("Tared sensor")
+
+    def read(self):
         if not self._running:
             raise ValueError("Weight sensor is not running!")
-        rospy.ServiceProxy("weight_sensor/tare", Empty)()
+        while self._cur_weights is None:
+            pass
+        return self._cur_weights
+
+    def _read_weights(self):
+        weights_buffer = []
+        while self._running:
+            with self._write_lock:
+                if len(weights_buffer) == self._ntaps:
+                    weights_buffer.pop(0)
+                weights_buffer.append(self._raw_weights())
+                if len(weights_buffer) < self._ntaps:
+                    self._cur_weights = np.mean(weights_buffer, axis=0)
+                else:
+                    self._cur_weights = self._filter_coeffs.dot(weights_buffer)
+                self._write_lock.notify()
+            time.sleep(0.005)
 
     def _raw_weights(self):
-        """Create a numpy array containing the raw sensor weights."""
-        if self._debug:
-            return np.array([[], [], [], []])
+        """Reads weights from each of the load cells."""
+        weights = []
 
-        if not self._running:
-            raise ValueError("Weight sensor is not running!")
-        if len(self._weight_buffers) == 0:
-            time.sleep(0.3)
-            if len(self._weight_buffers) == 0:
-                raise ValueError("Weight sensor is not retrieving data!")
-        weights = np.array(self._weight_buffers)
+        # Read from each of the sensors
+        for ser in self._serials:
+            ser.write("W\r".encode())
+            ser.flush()
+        time.sleep(0.02)
+        for ser in self._serials:
+            try:
+                output_str = ser.readline().decode()
+                weight = float(output_str) * LBS_TO_GRAMS
+                weights.append(weight)
+            except (serial.SerialException, ValueError):
+                weights.append(0.0)
+
+        # Log the output
+        if self.logger is not None:
+            log_output = ""
+            for w in weights:
+                log_output += "{:.2f} ".format(w)
+            self.logger.debug(log_output)
+
         return weights
-
-    def _weights_callback(self, msg):
-        """Callback for recording weights from sensor."""
-        # Read weights
-        weights = np.array(msg.data)
-
-        # If needed, initialize indiv_weight_buffers
-        if len(self._weight_buffers) == 0:
-            self._weight_buffers = [[] for i in range(len(weights))]
-
-        # Record individual weights
-        for i, w in enumerate(weights):
-            if len(self._weight_buffers[i]) == self._ntaps:
-                self._weight_buffers[i].pop(0)
-            self._weight_buffers[i].append(w)
 
     def __del__(self):
         self.stop()
-
-
-if __name__ == "__main__":
-    ws = None
-    rospy.init_node("weight_sensor_node", anonymous=True)
-    ws = WeightSensor()
-    ws.start()
-    ws.tare()
-    while not rospy.is_shutdown():
-        print("{:.2f}".format(ws.total_weight()))
-        time.sleep(0.1)

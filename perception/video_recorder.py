@@ -67,7 +67,9 @@ class VideoRecorder:
         for filter_name, filter_kwargs in filters.items():
             stream = ffmpeg.filter(stream, filter_name, **filter_kwargs)
         stream = ffmpeg.output(stream, output_file)
-        self._video = ffmpeg.run_async(stream, quiet=True, overwrite_output=overwrite)
+        self._video = ffmpeg.run_async(
+            stream, quiet=True, overwrite_output=overwrite
+        )
 
     def stop_recording(self):
         """Stops writing video to file."""

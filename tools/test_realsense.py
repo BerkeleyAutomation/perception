@@ -1,5 +1,5 @@
-import pyrealsense2 as rs
 import matplotlib.pyplot as plt
+import pyrealsense2 as rs
 
 from perception import RgbdSensorFactory
 

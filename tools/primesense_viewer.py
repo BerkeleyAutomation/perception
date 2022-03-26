@@ -3,13 +3,13 @@ Simple tool to view output and fps of a primesense RGBD sensor
 Author: Jeff Mahler
 """
 import logging
-import numpy as np
 import time
 
-from perception import PrimesenseSensor
-
+import numpy as np
 from visualization import Visualizer2D as vis
 from visualization import Visualizer3D as vis3d
+
+from perception import PrimesenseSensor
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)

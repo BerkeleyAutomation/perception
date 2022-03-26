@@ -4,17 +4,17 @@ Author: Jeff Mahler
 """
 import argparse
 import logging
-import numpy as np
 import os
 import time
 
-from ensenso.srv import CollectPattern, EstimatePatternPose
+import numpy as np
 import rospy
-
 from autolab_core import Point, RigidTransform, YamlConfig, keyboard_input
-from perception import RgbdSensorFactory
-from yumipy import YuMiRobot
+from ensenso.srv import CollectPattern, EstimatePatternPose
 from yumipy import YuMiConstants as YMC
+from yumipy import YuMiRobot
+
+from perception import RgbdSensorFactory
 
 
 def register_ensenso(config):

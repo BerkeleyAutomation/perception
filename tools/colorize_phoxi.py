@@ -5,13 +5,12 @@ Author: Matt Matl
 import argparse
 import logging
 
-import rospy
 import rosgraph.roslogging as rl
-
+import rospy
 from autolab_core import YamlConfig
-from perception import RgbdSensorFactory
-
 from visualization import Visualizer3D as vis3d
+
+from perception import RgbdSensorFactory
 
 
 def main():

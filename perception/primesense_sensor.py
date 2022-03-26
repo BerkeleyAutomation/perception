@@ -3,16 +3,11 @@ Class for interfacing with the Primesense Carmine RGBD sensor
 Author: Jeff Mahler
 """
 import logging
-import numpy as np
-from primesense import openni2
 
-from autolab_core import (
-    CameraIntrinsics,
-    ColorImage,
-    DepthImage,
-    Image,
-)
+import numpy as np
+from autolab_core import CameraIntrinsics, ColorImage, DepthImage, Image
 from autolab_core.constants import MM_TO_METERS
+from primesense import openni2
 
 from .camera_sensor import CameraSensor
 

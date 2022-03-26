@@ -3,30 +3,28 @@ Script to register sensors to a chessboard for the YuMi setup
 Authors: Jeff Mahler and Brenton Chu
 """
 import argparse
-import cv2
 import logging
-import numpy as np
 import os
 import time
 import traceback
 
-
-import rospy
+import cv2
+import numpy as np
 import rosgraph.roslogging as rl
-
+import rospy
 from autolab_core import (
+    CameraChessboardRegistration,
     Point,
     PointCloud,
     RigidTransform,
     YamlConfig,
     keyboard_input,
-    CameraChessboardRegistration,
 )
-from perception import RgbdSensorFactory
-
 from visualization import Visualizer3D as vis3d
-from yumipy import YuMiRobot
 from yumipy import YuMiConstants as YMC
+from yumipy import YuMiRobot
+
+from perception import RgbdSensorFactory
 
 global clicked_pt
 clicked_pt = None
@@ -362,8 +360,8 @@ if __name__ == "__main__":
             # open interface to robot
             if robot_type == "ur5":
                 from ur_control import (
-                    UniversalRobot,
                     KINEMATIC_AVOIDANCE_JOINTS,
+                    UniversalRobot,
                 )
 
                 robot = UniversalRobot()

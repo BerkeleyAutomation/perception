@@ -3,10 +3,10 @@
 ROS node that buffers a ROS image stream and allows for
 grabbing many images simultaneously.
 """
-import rospy
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
 import numpy as np
+import rospy
+from cv_bridge import CvBridge
+from sensor_msgs.msg import Image
 
 try:
     from perception.srv import ImageBuffer, ImageBufferResponse

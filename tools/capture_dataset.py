@@ -5,17 +5,16 @@ Author: Jeff Mahler
 """
 import argparse
 import logging
-import numpy as np
 import os
+
+import autolab_core.utils as utils
+import matplotlib.pyplot as plt
+import numpy as np
 import pcl
 import rosgraph.roslogging as rl
 import rospy
 import scipy.stats as ss
 import trimesh
-
-import matplotlib.pyplot as plt
-
-import autolab_core.utils as utils
 from autolab_core import (
     Box,
     PointCloud,
@@ -23,10 +22,11 @@ from autolab_core import (
     TensorDataset,
     YamlConfig,
 )
-from autolab_core.constants import TRAIN_ID, TEST_ID
-from meshrender import Scene, SceneObject, VirtualCamera, MaterialProperties
-from perception import RgbdSensorFactory
+from autolab_core.constants import TEST_ID, TRAIN_ID
+from meshrender import MaterialProperties, Scene, SceneObject, VirtualCamera
 from visualization import Visualizer2D as vis2d
+
+from perception import RgbdSensorFactory
 
 GUI_PAUSE = 0.5
 

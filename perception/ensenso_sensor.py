@@ -3,14 +3,14 @@ Interface to the Ensenso N* Sensor
 Author: Jeff Mahler
 """
 import logging
-import numpy as np
 import struct
 import time
 
+import numpy as np
 import rospy
+from autolab_core import CameraIntrinsics, ColorImage, DepthImage, Image
 from sensor_msgs.msg import CameraInfo, PointCloud2
 
-from autolab_core import CameraIntrinsics, Image, ColorImage, DepthImage
 from .camera_sensor import CameraSensor
 
 

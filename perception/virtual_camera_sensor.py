@@ -1,5 +1,6 @@
 import os
-from autolab_core import CameraIntrinsics, Image, ColorImage, DepthImage
+
+from autolab_core import CameraIntrinsics, ColorImage, DepthImage, Image
 from autolab_core.constants import INTR_EXTENSION
 
 from .camera_sensor import CameraSensor

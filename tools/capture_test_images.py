@@ -4,12 +4,13 @@ Be sure to register camera beforehand!!!
 Author: Jeff Mahler
 """
 import argparse
-import numpy as np
 import os
-import rospy
 
-from autolab_core import RigidTransform, Box, YamlConfig, Logger
 import autolab_core.utils as utils
+import numpy as np
+import rospy
+from autolab_core import Box, Logger, RigidTransform, YamlConfig
+
 from perception import RgbdSensorFactory
 
 # set up logger

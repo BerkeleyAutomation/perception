@@ -3,13 +3,14 @@ Script to register webcam to a chessboard in the YuMi setup.
 Authors: Matt Matl and Jeff Mahler
 """
 import argparse
-import cv2
 import logging
-import numpy as np
 import os
 import traceback
 
+import cv2
+import numpy as np
 from autolab_core import RigidTransform, YamlConfig
+
 from perception import RgbdSensorFactory
 
 if __name__ == "__main__":

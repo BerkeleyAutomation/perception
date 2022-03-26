@@ -1,10 +1,11 @@
 import logging
-import numpy as np
 import os
 
-from autolab_core import RigidTransform, PointCloud, Image, ColorImage
+import numpy as np
+from autolab_core import ColorImage, Image, PointCloud, RigidTransform
+
 from .camera_sensor import CameraSensor
-from .phoxi_sensor import PhoXiSensor
+from .phoxi_ros_sensor import PhoXiSensor
 from .webcam_sensor import WebcamSensor
 
 
