@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>perception</name>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <description>Autolab Drivers package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 

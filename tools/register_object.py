@@ -3,16 +3,17 @@ Script to register an object in world frame provided transform
 from cam to cb and from obj to cb
 Author: Jacky
 """
-import os
 import argparse
 import logging
-import trimesh
+import os
 
+import trimesh
 from autolab_core import (
+    CameraChessboardRegistration,
     RigidTransform,
     YamlConfig,
-    CameraChessboardRegistration,
 )
+
 from perception import RgbdSensorFactory
 
 VIS_SUPPORTED = True

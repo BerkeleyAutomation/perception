@@ -1,12 +1,11 @@
 import numpy as np
 import rospy
-
-from autolab_core import Image, ColorImage, DepthImage
+from autolab_core import ColorImage, DepthImage, Image
 from autolab_core.constants import MM_TO_METERS
 
-from .primesense_sensor import PrimesenseSensor
-
 from perception.srv import ImageBuffer, ImageBufferResponse
+
+from .primesense_sensor import PrimesenseSensor
 
 ImageBufferResponse = rospy.numpy_msg.numpy_msg(ImageBufferResponse)
 ImageBuffer._response_class = ImageBufferResponse

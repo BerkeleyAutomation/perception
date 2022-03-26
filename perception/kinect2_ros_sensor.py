@@ -3,16 +3,15 @@ Class for interfacing with the Primesense RGBD sensor
 Author: Jeff Mahler
 """
 import logging
-import numpy as np
 import time
 
-from cv_bridge import CvBridge, CvBridgeError
+import numpy as np
 import rospy
 import sensor_msgs.msg
-
-
 from autolab_core import CameraIntrinsics, ColorImage, DepthImage, Image
 from autolab_core.constants import MM_TO_METERS
+from cv_bridge import CvBridge, CvBridgeError
+
 from .camera_sensor import CameraSensor
 
 

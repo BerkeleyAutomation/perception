@@ -2,6 +2,7 @@
 Class for interfacing with the Intel RealSense D400-Series.
 """
 import logging
+
 import numpy as np
 import pyrealsense2 as rs
 from autolab_core import CameraIntrinsics, ColorImage, DepthImage

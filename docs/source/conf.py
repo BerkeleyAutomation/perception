@@ -12,9 +12,11 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
+import sys
+
 import sphinx_rtd_theme
+
 from perception import __version__
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -52,9 +54,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"perception"
-copyright = u"2016, Jeff Mahler"
-author = u"Jeff Mahler"
+project = "perception"
+copyright = "2016, Jeff Mahler"
+author = "Jeff Mahler"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -230,8 +232,8 @@ latex_documents = [
     (
         master_doc,
         "perception.tex",
-        u"perception Documentation",
-        u"Jeff Mahler",
+        "perception Documentation",
+        "Jeff Mahler",
         "manual",
     ),
 ]
@@ -262,7 +264,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, "perception", u"perception Documentation", [author], 1)
+    (master_doc, "perception", "perception Documentation", [author], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -278,7 +280,7 @@ texinfo_documents = [
     (
         master_doc,
         "perception",
-        u"perception Documentation",
+        "perception Documentation",
         author,
         "perception",
         "One line description of project.",

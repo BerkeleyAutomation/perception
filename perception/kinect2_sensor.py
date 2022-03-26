@@ -3,17 +3,18 @@ Class for interfacing with the Primesense RGBD sensor
 Author: Jeff Mahler
 """
 import logging
+
 import numpy as np
 import pylibfreenect2 as lf2
-
 from autolab_core import (
     CameraIntrinsics,
     ColorImage,
     DepthImage,
-    IrImage,
     Image,
+    IrImage,
 )
 from autolab_core.constants import MM_TO_METERS
+
 from .camera_sensor import CameraSensor
 
 

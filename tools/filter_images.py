@@ -5,16 +5,17 @@ Author: Jeff Mahler
 import argparse
 import copy
 import logging
-import matplotlib.pyplot as plt
-import numpy as np
-import pcl
 import os
 import time
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pcl
 from autolab_core import Box, PointCloud, RigidTransform
-from perception.virtual_camera_sensor import VirtualSensor
 from visualization import Visualizer2D as vis2d
 from visualization import Visualizer3D as vis3d
+
+from perception.virtual_camera_sensor import VirtualSensor
 
 min_height = 0.001
 max_height = 0.15

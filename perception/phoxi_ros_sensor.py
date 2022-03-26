@@ -1,19 +1,14 @@
-import time
 import logging
+import time
 
 import numpy as np
-from autolab_core import DepthImage, GrayscaleImage, CameraIntrinsics, Image
-
 import rospy
+from autolab_core import CameraIntrinsics, DepthImage, GrayscaleImage, Image
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image as ImageMessage
 from std_srvs.srv import Empty
-from perception.srv import (
-    ConnectCamera,
-    GetDeviceList,
-    GetFrame,
-    TriggerImage,
-)
+
+from perception.srv import ConnectCamera, GetDeviceList, GetFrame, TriggerImage
 
 from .camera_sensor import CameraSensor
 from .exceptions import SensorUnresponsiveException

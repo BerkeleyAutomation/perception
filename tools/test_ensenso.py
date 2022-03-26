@@ -3,13 +3,14 @@ Tests the ensenso.
 Author: Jeff Mahler
 """
 import logging
-import rospy
 import sys
 import time
 
-from perception import RgbdSensorFactory
+import rospy
 from visualization import Visualizer2D as vis2d
 from visualization import Visualizer3D as vis3d
+
+from perception import RgbdSensorFactory
 
 
 def main(args):

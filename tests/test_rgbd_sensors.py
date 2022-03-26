@@ -1,7 +1,9 @@
 import os
-import numpy as np
 import unittest
-from autolab_core import ColorImage, DepthImage, CameraIntrinsics
+
+import numpy as np
+from autolab_core import CameraIntrinsics, ColorImage, DepthImage
+
 from perception import RgbdSensorFactory
 
 IM_FILEROOT = "tests/data"

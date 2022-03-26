@@ -4,9 +4,9 @@ Interface to the Ensenso N* Sensor
 Author: Jeff Mahler
 """
 import logging
+import signal
 import sys
 import time
-import signal
 
 try:
     import rospy

@@ -3,6 +3,7 @@ Setup of Berkeley AUTOLab Perception module Python codebase.
 Author: Jeff Mahler
 """
 import os
+
 from setuptools import setup
 
 requirements = [
