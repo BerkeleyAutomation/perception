@@ -22,7 +22,11 @@ class WebcamSensor(CameraSensor):
             The device ID for the webcam (by default, zero).
         """
         self._frame = frame
-        self._camera_intr = CameraIntrinsics.load(intrinsics) if intrinsics is not None else None
+        self._camera_intr = (
+            CameraIntrinsics.load(intrinsics)
+            if intrinsics is not None
+            else None
+        )
         self._device_id = device_id
         self._cap = None
         self._running = False

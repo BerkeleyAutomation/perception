@@ -40,7 +40,14 @@ if __name__ == "__main__":
     try:
         # Open sensor
         logging.info("Creating sensor")
-        sensor = RgbdSensorFactory.sensor(sensor_frame, {"frame": sensor_frame, "intrinsics": sensor_cfg["intrinsics"], "device_id": sensor_cfg["device_id"]})
+        sensor = RgbdSensorFactory.sensor(
+            sensor_frame,
+            {
+                "frame": sensor_frame,
+                "intrinsics": sensor_cfg["intrinsics"],
+                "device_id": sensor_cfg["device_id"],
+            },
+        )
         logging.info("Starting sensor")
         sensor.start()
         intrinsics = sensor.color_intrinsics
@@ -56,10 +63,12 @@ if __name__ == "__main__":
         if "distortion" in sensor_cfg:
             dist = np.load(sensor_cfg["distortion"])
             h, w = img.data.shape[:2]
-            newK, roi = cv2.getOptimalNewCameraMatrix(intrinsics.K, dist, (w,h), 1, (w,h))
+            newK, roi = cv2.getOptimalNewCameraMatrix(
+                intrinsics.K, dist, (w, h), 1, (w, h)
+            )
             dst = cv2.undistort(img.data, intrinsics.K, dist, None, newK)
             x, y, w, h = roi
-            img = ColorImage(dst[y:y+h, x:x+w], frame=img.frame)
+            img = ColorImage(dst[y : y + h, x : x + w], frame=img.frame)
 
         criteria = (
             cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
@@ -117,8 +126,6 @@ if __name__ == "__main__":
     output_dir = config["output_dir"]
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    pose_filename = os.path.join(
-        output_dir, "%s_to_world.tf" % (sensor_frame)
-    )
+    pose_filename = os.path.join(output_dir, "%s_to_world.tf" % (sensor_frame))
     T_camera_world.save(pose_filename)
     sensor.stop()
